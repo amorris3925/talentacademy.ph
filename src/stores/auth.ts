@@ -7,6 +7,7 @@ import { academyApi } from '@/lib/api';
 import { useChatStore } from '@/stores/chat';
 import { useGamificationStore } from '@/stores/gamification';
 import { useGenerationStore } from '@/stores/generation';
+import { useInteractionStore } from '@/stores/interaction';
 import { useLessonStore } from '@/stores/lesson';
 import { useSettingsStore } from '@/stores/settings';
 import type { AcademyLearner, RegisterPayload } from '@/types';
@@ -121,6 +122,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       useChatStore.setState({ messages: [], isStreaming: false, streamingContent: '' });
       useGamificationStore.setState({ xp: 0, level: 'beginner', currentStreak: 0, badges: [], recentXpGains: [] });
       useGenerationStore.setState({ generations: [], activeGeneration: null, isGenerating: false });
+      useInteractionStore.getState().reset();
       useLessonStore.setState({ currentLesson: null, currentModule: null, currentTrack: null, progress: null });
       useSettingsStore.setState({ profile: {}, settings: null, isSaving: false, saveStatus: 'idle' });
     },

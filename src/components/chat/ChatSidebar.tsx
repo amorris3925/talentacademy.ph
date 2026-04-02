@@ -5,6 +5,8 @@ import { MessageSquare, Bot } from 'lucide-react';
 import { useChatStore } from '@/stores/chat';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
+import GhostPrompts from './GhostPrompts';
+import OutputRating from './OutputRating';
 
 interface ChatSidebarProps {
   lessonId?: string;
@@ -68,7 +70,10 @@ export function ChatSidebar({ lessonId }: ChatSidebarProps) {
         )}
 
         {messages.map((msg) => (
-          <ChatMessage key={msg.id} message={msg} />
+          <div key={msg.id}>
+            <ChatMessage message={msg} />
+            {msg.role === 'assistant' && <OutputRating messageId={msg.id} />}
+          </div>
         ))}
 
         {/* Streaming indicator */}
@@ -101,6 +106,9 @@ export function ChatSidebar({ lessonId }: ChatSidebarProps) {
           </div>
         )}
       </div>
+
+      {/* Ghost prompts */}
+      <GhostPrompts />
 
       {/* Input */}
       <ChatInput onSend={sendMessage} isStreaming={isStreaming} />

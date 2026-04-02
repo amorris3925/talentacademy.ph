@@ -9,6 +9,9 @@ import { CalloutBlock } from './CalloutBlock';
 import { ExerciseBlock } from './ExerciseBlock';
 import { QuizBlock } from './QuizBlock';
 import { GenerationBlock } from './GenerationBlock';
+import PromptChips from './PromptChips';
+import ProgressiveHints from './ProgressiveHints';
+import Checkpoint from './Checkpoint';
 
 interface ContentBlockRendererProps {
   blocks: ContentBlock[];
@@ -73,13 +76,40 @@ function renderBlock(block: ContentBlock, index: number) {
           metadata={block.metadata as { gen_type: 'image' | 'video' | 'audio' | 'music'; prompt_hint?: string }}
         />
       );
+    case 'prompts':
+      return (
+        <PromptChips
+          key={`${block.type}-${index}`}
+          prompts={block.metadata.prompts as Array<{ label: string; text: string }>}
+        />
+      );
+    case 'hints':
+      return (
+        <ProgressiveHints
+          key={`${block.type}-${index}`}
+          hints={block.metadata.hints as string[]}
+          blockId={`${block.type}-${index}`}
+        />
+      );
+    case 'checkpoint':
+      return (
+        <Checkpoint
+          key={`${block.type}-${index}`}
+          id={`checkpoint-${index}`}
+          title={block.metadata.title as string}
+          instructions={block.content}
+          keywords={block.metadata.keywords as string[]}
+        />
+      );
     default:
       return null;
   }
 }
 
 export function ContentBlockRenderer({ blocks }: ContentBlockRendererProps) {
-  if (!blocks || blocks.length === 0) {
+  const safeBlocks = Array.isArray(blocks) ? blocks : [];
+
+  if (safeBlocks.length === 0) {
     return (
       <div className="py-12 text-center text-sm text-gray-500">
         No content available for this lesson.
@@ -89,7 +119,7 @@ export function ContentBlockRenderer({ blocks }: ContentBlockRendererProps) {
 
   return (
     <div className="space-y-6">
-      {blocks.map((block, index) => renderBlock(block, index))}
+      {safeBlocks.map((block, index) => renderBlock(block, index))}
     </div>
   );
 }

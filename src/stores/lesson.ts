@@ -43,9 +43,20 @@ export const useLessonStore = create<LessonState>((set, get) => {
       ]);
       // Discard result if a newer request was started
       if (requestId !== currentRequestId) return;
+
+      // Parse content_blocks if it's a string (DB stores as JSON string via json.dumps)
+      const lesson = lessonRes.lesson;
+      if (typeof lesson.content_blocks === 'string') {
+        try { lesson.content_blocks = JSON.parse(lesson.content_blocks) }
+        catch { lesson.content_blocks = [] }
+      }
+      if (!Array.isArray(lesson.content_blocks)) {
+        lesson.content_blocks = []
+      }
+
       const mod = (trackRes.modules || []).find((m: any) => m.slug === moduleSlug);
       set({
-        currentLesson: lessonRes.lesson,
+        currentLesson: lesson,
         currentModule: mod ?? null,
         currentTrack: trackRes.track,
         progress: null,

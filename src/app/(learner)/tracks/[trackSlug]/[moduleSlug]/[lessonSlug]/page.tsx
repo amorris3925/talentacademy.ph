@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import {
   ChevronRight,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useLessonStore } from '@/stores/lesson';
 import { useChatStore } from '@/stores/chat';
+import { useInteractionStore } from '@/stores/interaction';
 import { ContentBlockRenderer } from '@/components/lesson/ContentBlockRenderer';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { Button, Spinner } from '@/components/ui';
@@ -45,13 +46,41 @@ export default function LessonPage() {
     setActiveTab,
   } = useLessonStore();
 
-  const { clearHistory } = useChatStore();
+  const { clearHistory, sendMessage } = useChatStore();
+  const { pendingPrompt, reset: resetInteraction, clearPendingPrompt, setSelectedText } = useInteractionStore();
+
+  // Reset interaction store on mount
+  useEffect(() => {
+    resetInteraction();
+  }, [resetInteraction]);
 
   useEffect(() => {
     if (!params.trackSlug || !params.moduleSlug || !params.lessonSlug) return;
     clearHistory();
     loadLesson(params.trackSlug, params.moduleSlug, params.lessonSlug);
   }, [params.trackSlug, params.moduleSlug, params.lessonSlug, loadLesson, clearHistory]);
+
+  // Watch pendingPrompt and auto-send to chat
+  useEffect(() => {
+    if (!pendingPrompt) return;
+    clearPendingPrompt();
+    sendMessage(pendingPrompt);
+  }, [pendingPrompt, clearPendingPrompt, sendMessage]);
+
+  // Highlight-to-Ask: capture text selection within lesson content
+  const handleMouseUp = useCallback(() => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim();
+    if (text && text.length > 0) {
+      const range = selection?.getRangeAt(0);
+      const rect = range?.getBoundingClientRect();
+      if (rect) {
+        setSelectedText(text, { top: rect.top, left: rect.left, bottom: rect.bottom });
+      }
+    } else {
+      setSelectedText(null);
+    }
+  }, [setSelectedText]);
 
   // --- Loading state ---
   if (isLoading) {
@@ -156,7 +185,7 @@ export default function LessonPage() {
             activeTab === 'lesson' ? 'flex w-full' : 'hidden md:flex',
           )}
         >
-          <div className="flex-1 px-4 py-6 md:px-8">
+          <div className="flex-1 px-4 py-6 md:px-8" onMouseUp={handleMouseUp}>
             {/* Lesson Title */}
             <h1 className="mb-2 text-2xl font-bold text-gray-900">
               {currentLesson.title}

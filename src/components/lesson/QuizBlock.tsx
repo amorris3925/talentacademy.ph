@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { useInteractionStore } from '@/stores/interaction';
 
 interface QuizBlockProps {
   content: string;
@@ -17,12 +18,24 @@ interface QuizBlockProps {
 export function QuizBlock({ content, metadata }: QuizBlockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const triggerPrompt = useInteractionStore((s) => s.triggerPrompt);
 
   const isCorrect = submitted && selectedIndex === metadata.correct_index;
 
   const handleSubmit = () => {
     if (selectedIndex === null) return;
     setSubmitted(true);
+
+    const correct = selectedIndex === metadata.correct_index;
+    if (correct) {
+      triggerPrompt(
+        `I just answered a quiz question correctly: "${content}". Can you explain why this is the right answer?`,
+      );
+    } else {
+      triggerPrompt(
+        `I got this quiz question wrong: "${content}". I chose "${metadata.options[selectedIndex]}" but the correct answer was "${metadata.options[metadata.correct_index]}". Can you help me understand?`,
+      );
+    }
   };
 
   const handleReset = () => {

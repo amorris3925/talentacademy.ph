@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { academyApi } from '@/lib/api';
+import { useInteractionStore } from '@/stores/interaction';
 import type { AcademyChatMessage } from '@/types';
 
 interface ChatState {
@@ -11,6 +12,7 @@ interface ChatState {
   lessonContext: { lessonId: string; lessonTitle: string } | null;
 
   sendMessage: (content: string) => Promise<void>;
+  sendFromInteraction: () => Promise<void>;
   loadHistory: (lessonId?: string) => Promise<void>;
   clearHistory: () => void;
   setLessonContext: (ctx: { lessonId: string; lessonTitle: string } | null) => void;
@@ -98,6 +100,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
         streamingContent: '',
       }));
     }
+  },
+
+  async sendFromInteraction() {
+    const { pendingPrompt, pendingPromptContext, clearPendingPrompt } = useInteractionStore.getState()
+    if (!pendingPrompt) return
+    clearPendingPrompt()
+    // Call the existing sendMessage logic with the prompt
+    get().sendMessage(pendingPrompt)
   },
 
   async loadHistory(_lessonId?: string) {

@@ -78,7 +78,10 @@ export interface ContentBlock {
     | 'callout'
     | 'exercise'
     | 'quiz'
-    | 'generation';
+    | 'generation'
+    | 'prompts'
+    | 'hints'
+    | 'checkpoint';
   content: string;
   metadata: Record<string, unknown>;
 }
