@@ -32,18 +32,30 @@ async function getSupabaseUser() {
 }
 
 async function proxyToHenry(req: NextRequest, method: string) {
+  if (!ACADEMY_API_KEY) {
+    console.error('[academy-proxy] ACADEMY_API_KEY is not set. Check .env.local.')
+    return NextResponse.json(
+      { error: 'API not configured', code: 'MISSING_API_KEY' },
+      { status: 503 }
+    )
+  }
+
   const url = new URL(req.url)
   const pathSegments = url.pathname.replace('/api/academy/', '')
   const henryUrl = `${HENRY_API_URL}/api/academy/${pathSegments}${url.search}`
 
   const user = await getSupabaseUser()
 
-  const headers: Record<string, string> = {
-    'Authorization': `Bearer ${ACADEMY_API_KEY}`,
+  if (!user) {
+    return NextResponse.json(
+      { error: 'You must be signed in to use this feature', code: 'NOT_AUTHENTICATED' },
+      { status: 401 }
+    )
   }
 
-  if (user) {
-    headers['X-Academy-Auth-User-ID'] = user.id
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${ACADEMY_API_KEY}`,
+    'X-Academy-Auth-User-ID': user.id,
   }
 
   // Determine content type and body
@@ -89,6 +101,20 @@ async function proxyToHenry(req: NextRequest, method: string) {
           'Connection': 'keep-alive',
         },
       })
+    }
+
+    // SSE request failed — return structured JSON error instead of opaque stream
+    if (isSSE && !response.ok) {
+      const text = await response.text().catch(() => '')
+      return NextResponse.json(
+        {
+          error: response.status === 401
+            ? 'AI service authentication failed'
+            : `Generation failed: ${text || response.statusText}`,
+          code: response.status === 401 ? 'UPSTREAM_AUTH_FAILED' : 'UPSTREAM_ERROR',
+        },
+        { status: response.status }
+      )
     }
 
     // Regular JSON response

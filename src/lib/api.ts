@@ -60,6 +60,10 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
 function formatErrorMessage(status: number, text: string): string {
   try {
     const parsed = JSON.parse(text);
+    // Handle structured error codes from our proxy
+    if (parsed?.code === 'MISSING_API_KEY') return 'The AI service is not configured. Please contact support.';
+    if (parsed?.code === 'NOT_AUTHENTICATED') return 'Please sign in to use this feature.';
+    if (parsed?.code === 'UPSTREAM_AUTH_FAILED') return 'AI service authentication failed. Please contact support.';
     if (Array.isArray(parsed?.detail)) {
       return parsed.detail
         .map((err: { loc?: string[]; msg?: string }) => {
@@ -74,6 +78,7 @@ function formatErrorMessage(status: number, text: string): string {
   } catch {
     // not JSON
   }
+  if (status === 401) return 'Authentication failed. Please sign in again.';
   return text || `HTTP ${status}`;
 }
 

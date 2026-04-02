@@ -95,7 +95,19 @@ export function TextGenerator() {
 
       {/* Error */}
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+          <p className="text-sm font-medium text-red-800">{error}</p>
+          {error.includes('sign in') && (
+            <a href="/login" className="mt-1 inline-block text-sm text-red-600 underline">
+              Go to sign in
+            </a>
+          )}
+          {error.includes('contact support') && (
+            <p className="mt-1 text-xs text-red-500">
+              This is a server configuration issue, not something you did wrong.
+            </p>
+          )}
+        </div>
       )}
 
       {/* Output */}
