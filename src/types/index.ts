@@ -1,0 +1,319 @@
+// ─── Core Learner ───────────────────────────────────────────────────────────
+
+export interface AcademyLearner {
+  id: string;
+  auth_user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  age: number | null;
+  sex: string | null;
+  marital_status: string | null;
+  cv_url: string | null;
+  website_url: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  xp_total: number;
+  level: string;
+  current_streak: number;
+  longest_streak: number;
+  last_active_date: string | null;
+  talent_score: number | null;
+  management_score: number | null;
+  is_flagged_talent: boolean;
+  is_flagged_leader: boolean;
+  onboarding_completed: boolean;
+  selected_track: string | null;
+  cohort: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LearnerSettings {
+  id: string;
+  learner_id: string;
+  notification_lesson_reminders: boolean;
+  notification_streak_alerts: boolean;
+  notification_peer_review: boolean;
+  notification_team_challenges: boolean;
+  notification_badges: boolean;
+  preferred_track: string | null;
+  ai_default_image_style: string | null;
+  ai_default_voice: string | null;
+  ai_default_video_style: string | null;
+  ai_default_music_genre: string | null;
+  theme: 'light' | 'dark' | 'system';
+}
+
+// ─── Curriculum ─────────────────────────────────────────────────────────────
+
+export interface AcademyTrack {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  prerequisite_track_id: string | null;
+  is_invite_only: boolean;
+  icon: string | null;
+  duration_weeks: number;
+}
+
+export interface AcademyModule {
+  id: string;
+  track_id: string;
+  slug: string;
+  title: string;
+  description: string;
+  week_number: number;
+  order: number;
+}
+
+export interface ContentBlock {
+  type:
+    | 'markdown'
+    | 'code'
+    | 'video'
+    | 'image'
+    | 'callout'
+    | 'exercise'
+    | 'quiz'
+    | 'generation';
+  content: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface AcademyLesson {
+  id: string;
+  module_id: string;
+  slug: string;
+  title: string;
+  description: string;
+  content_blocks: ContentBlock[];
+  ai_context: string | null;
+  ai_tools_enabled: string[];
+  exercise_config: Record<string, unknown> | null;
+  xp_reward: number;
+  passing_score: number | null;
+  time_limit_minutes: number | null;
+  order: number;
+}
+
+// ─── Progress & Enrollment ──────────────────────────────────────────────────
+
+export type LessonStatus = 'not_started' | 'in_progress' | 'completed';
+
+export interface LessonProgress {
+  id: string;
+  learner_id: string;
+  lesson_id: string;
+  status: LessonStatus;
+  time_spent: number;
+  submission_data: Record<string, unknown> | null;
+  quality_score: number | null;
+  speed_score: number | null;
+  creativity_score: number | null;
+  curiosity_score: number | null;
+  composite_score: number | null;
+  xp_earned: number;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
+export interface AcademyEnrollment {
+  id: string;
+  learner_id: string;
+  track_id: string;
+  status: string;
+  progress_pct: number;
+  started_at: string;
+  completed_at: string | null;
+}
+
+// ─── Chat ───────────────────────────────────────────────────────────────────
+
+export interface AcademyChatMessage {
+  id: string;
+  session_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
+}
+
+// ─── AI Generation ──────────────────────────────────────────────────────────
+
+export type GenerationType = 'image' | 'video' | 'audio' | 'music' | 'text';
+export type GenerationStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+export interface AcademyGeneration {
+  id: string;
+  learner_id: string;
+  type: GenerationType;
+  prompt: string;
+  model: string | null;
+  params: Record<string, unknown> | null;
+  result_url: string | null;
+  result_text: string | null;
+  status: GenerationStatus;
+  error: string | null;
+  lesson_id: string | null;
+  tokens_used: number | null;
+  duration_ms: number | null;
+  created_at: string;
+}
+
+export interface ImageGenParams {
+  style: string | null;
+  width: number | null;
+  height: number | null;
+  negative_prompt: string | null;
+}
+
+export interface VideoGenParams {
+  style: string | null;
+  duration: number | null;
+  resolution: string | null;
+}
+
+export interface AudioGenParams {
+  voice: string | null;
+  speed: number | null;
+  format: string | null;
+}
+
+export interface MusicGenParams {
+  genre: string | null;
+  duration: number | null;
+  mood: string | null;
+  instruments: string[] | null;
+}
+
+// ─── Gamification ───────────────────────────────────────────────────────────
+
+export type BadgeCategory =
+  | 'achievement'
+  | 'streak'
+  | 'skill'
+  | 'special'
+  | 'milestone'
+  | 'competition'
+  | 'leadership'
+  | 'curiosity'
+  | 'consistency';
+
+export interface AcademyBadge {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  icon: string | null;
+  category: BadgeCategory;
+}
+
+export interface LearnerBadge {
+  id: string;
+  learner_id: string;
+  badge_id: string;
+  badge: AcademyBadge;
+  earned_at: string;
+}
+
+export interface XpLogEntry {
+  id: string;
+  learner_id: string;
+  amount: number;
+  source: string;
+  source_id: string | null;
+  created_at: string;
+}
+
+export interface Certificate {
+  id: string;
+  learner_id: string;
+  track_id: string;
+  title: string;
+  issued_at: string;
+  share_url: string | null;
+}
+
+// ─── Social / Community ─────────────────────────────────────────────────────
+
+export interface PeerReview {
+  id: string;
+  reviewer_id: string;
+  reviewee_id: string;
+  lesson_id: string;
+  feedback_text: string;
+  ai_quality_score: number | null;
+  created_at: string;
+}
+
+export interface CommunityPost {
+  id: string;
+  author_id: string;
+  author_name: string;
+  type: 'question' | 'answer';
+  parent_id: string | null;
+  content: string;
+  is_accepted: boolean;
+  helpfulness_score: number | null;
+  created_at: string;
+}
+
+export interface LeaderboardEntry {
+  learner_id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+  xp_total: number;
+  level: string;
+  current_streak: number;
+  rank: number;
+}
+
+export interface TalentReview {
+  id: string;
+  learner_id: string;
+  reviewer_email: string;
+  recommendation: 'advance' | 'hold' | 'drop' | 'hire';
+  notes: string | null;
+  created_at: string;
+}
+
+// ─── Auth Payloads ──────────────────────────────────────────────────────────
+
+export interface RegisterPayload {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  phone?: string;
+  age?: number;
+  sex?: string;
+  marital_status?: string;
+  cv_url?: string;
+  website_url?: string;
+}
+
+// ─── Dashboard ──────────────────────────────────────────────────────────────
+
+export interface DashboardData {
+  xp: number;
+  level: string;
+  streak: number;
+  enrolled_tracks: AcademyEnrollment[];
+  recent_badges: LearnerBadge[];
+  progress_summary: {
+    track_slug: string;
+    completed: number;
+    total: number;
+  }[];
+}
+
+// ─── Pagination ─────────────────────────────────────────────────────────────
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  cursor: string | null;
+  has_more: boolean;
+}

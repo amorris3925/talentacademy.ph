@@ -1,0 +1,121 @@
+'use client';
+
+import { create } from 'zustand';
+import type { Session } from '@supabase/supabase-js';
+import { createBrowserClient } from '@/lib/supabase';
+import { academyApi } from '@/lib/api';
+import type { AcademyLearner, RegisterPayload } from '@/types';
+
+interface AuthState {
+  learner: AcademyLearner | null;
+  session: Session | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+
+  initialize: () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (data: RegisterPayload) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+}
+
+export const useAuthStore = create<AuthState>((set, get) => {
+  let listenerSetUp = false;
+
+  return {
+    learner: null,
+    session: null,
+    isLoading: true,
+    isAuthenticated: false,
+
+    async initialize() {
+      set({ isLoading: true });
+      try {
+        const supabase = createBrowserClient();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          set({ session });
+          try {
+            const learner = await academyApi.get<AcademyLearner>('/learner/profile');
+            set({ learner, isAuthenticated: true });
+          } catch {
+            set({ learner: null, isAuthenticated: false });
+          }
+        } else {
+          set({ session: null, learner: null, isAuthenticated: false });
+        }
+
+        // Set up auth state listener once
+        if (!listenerSetUp) {
+          listenerSetUp = true;
+          supabase.auth.onAuthStateChange(async (event, newSession) => {
+            set({ session: newSession });
+            if (event === 'SIGNED_OUT' || !newSession) {
+              set({ learner: null, isAuthenticated: false });
+            } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+              try {
+                const learner = await academyApi.get<AcademyLearner>('/learner/profile');
+                set({ learner, isAuthenticated: true });
+              } catch {
+                set({ learner: null, isAuthenticated: false });
+              }
+            }
+          });
+        }
+      } finally {
+        set({ isLoading: false });
+      }
+    },
+
+    async login(email: string, password: string) {
+      const supabase = createBrowserClient();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      set({ session });
+
+      const learner = await academyApi.get<AcademyLearner>('/learner/profile');
+      set({ learner, isAuthenticated: true });
+    },
+
+    async register(data: RegisterPayload) {
+      const supabase = createBrowserClient();
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+      });
+      if (error) throw error;
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      set({ session });
+
+      // Create learner profile on the Henry API side
+      const learner = await academyApi.post<AcademyLearner>('/register', data);
+      set({ learner, isAuthenticated: true });
+    },
+
+    async logout() {
+      const supabase = createBrowserClient();
+      await supabase.auth.signOut();
+      set({ learner: null, session: null, isAuthenticated: false });
+    },
+
+    async refreshProfile() {
+      if (!get().session) return;
+      try {
+        const learner = await academyApi.get<AcademyLearner>('/learner/profile');
+        set({ learner, isAuthenticated: true });
+      } catch {
+        // Profile fetch failed — leave current state
+      }
+    },
+  };
+});
