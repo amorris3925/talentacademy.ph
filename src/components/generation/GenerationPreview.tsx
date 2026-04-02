@@ -1,8 +1,24 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Download, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { AcademyGeneration } from '@/types';
+
+function WaveformVisualizer() {
+  const waveformHeights = useMemo(() => Array.from({ length: 40 }, () => Math.random() * 100), []);
+  return (
+    <div className="flex h-12 items-end justify-center gap-0.5">
+      {waveformHeights.map((h, i) => (
+        <div
+          key={i}
+          className="w-1 rounded-full bg-indigo-300"
+          style={{ height: `${20 + h * 0.8}%` }}
+        />
+      ))}
+    </div>
+  );
+}
 
 interface GenerationPreviewProps {
   generation: AcademyGeneration;
@@ -95,18 +111,7 @@ export function GenerationPreview({ generation }: GenerationPreviewProps) {
             />
           )}
           {/* Simple waveform visualization */}
-          <div className="flex h-12 items-end justify-center gap-0.5">
-            {Array.from({ length: 40 }).map((_, i) => {
-              const height = 20 + Math.random() * 80;
-              return (
-                <div
-                  key={i}
-                  className="w-1 rounded-full bg-indigo-300"
-                  style={{ height: `${height}%` }}
-                />
-              );
-            })}
-          </div>
+          <WaveformVisualizer />
         </div>
       );
 

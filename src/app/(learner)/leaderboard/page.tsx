@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Flame, Trophy } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
@@ -21,6 +21,7 @@ export default function LeaderboardPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
+  const cursorRef = useRef<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [cohortFilter, setCohortFilter] = useState('');
   const [trackFilter, setTrackFilter] = useState('');
@@ -30,6 +31,7 @@ export default function LeaderboardPage() {
       if (reset) {
         setLoading(true);
         setEntries([]);
+        cursorRef.current = null;
       } else {
         setLoadingMore(true);
       }
@@ -38,7 +40,7 @@ export default function LeaderboardPage() {
         const params: Record<string, string | number | boolean | undefined> = {
           limit: 20,
         };
-        if (!reset && cursor) params.cursor = cursor;
+        if (!reset && cursorRef.current) params.cursor = cursorRef.current;
         if (cohortFilter) params.cohort = cohortFilter;
         if (trackFilter) params.track = trackFilter;
 
@@ -48,7 +50,9 @@ export default function LeaderboardPage() {
         );
 
         setEntries((prev) => (reset ? res.leaderboard : [...prev, ...res.leaderboard]));
-        setCursor(res.next_cursor);
+        const nextCursor = res.next_cursor ?? null;
+        setCursor(nextCursor);
+        cursorRef.current = nextCursor;
         setHasMore(!!res.next_cursor);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load leaderboard');
@@ -57,7 +61,7 @@ export default function LeaderboardPage() {
         setLoadingMore(false);
       }
     },
-    [cursor, cohortFilter, trackFilter],
+    [cohortFilter, trackFilter],
   );
 
   useEffect(() => {

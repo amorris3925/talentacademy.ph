@@ -44,10 +44,11 @@ export function AudioGenerator() {
     <div className="space-y-5">
       {/* Text Input */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label htmlFor="audio-gen-text" className="mb-1.5 block text-sm font-medium text-gray-700">
           Text to speak
         </label>
         <textarea
+          id="audio-gen-text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter the text you want to convert to speech..."

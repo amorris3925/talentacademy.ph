@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Image as ImageIcon,
   Video,
@@ -46,6 +46,7 @@ export default function GenerationsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
+  const cursorRef = useRef<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [preview, setPreview] = useState<AcademyGeneration | null>(null);
 
@@ -54,6 +55,7 @@ export default function GenerationsPage() {
       if (reset) {
         setLoading(true);
         setItems([]);
+        cursorRef.current = null;
       } else {
         setLoadingMore(true);
       }
@@ -63,7 +65,7 @@ export default function GenerationsPage() {
           limit: 20,
         };
         if (activeTab !== 'all') params.type = activeTab;
-        if (!reset && cursor) params.cursor = cursor;
+        if (!reset && cursorRef.current) params.cursor = cursorRef.current;
 
         const res = await academyApi.get<any>(
           '/learner/generations',
@@ -75,7 +77,9 @@ export default function GenerationsPage() {
           id: g.generation_id ?? g.id,
         })) as AcademyGeneration[];
         setItems((prev) => (reset ? generations : [...prev, ...generations]));
-        setCursor(res.next_cursor ?? null);
+        const nextCursor = res.next_cursor ?? null;
+        setCursor(nextCursor);
+        cursorRef.current = nextCursor;
         setHasMore(!!res.next_cursor);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load generations');
@@ -84,7 +88,7 @@ export default function GenerationsPage() {
         setLoadingMore(false);
       }
     },
-    [activeTab, cursor],
+    [activeTab],
   );
 
   useEffect(() => {

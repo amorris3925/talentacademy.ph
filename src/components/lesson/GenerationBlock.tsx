@@ -108,6 +108,7 @@ export function GenerationBlock({ metadata }: GenerationBlockProps) {
             onChange={(e) => setPrompt(e.target.value)}
             placeholder={metadata.prompt_hint || `Describe what you want to generate...`}
             rows={3}
+            aria-label="Generation prompt"
             className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
           />
         </div>

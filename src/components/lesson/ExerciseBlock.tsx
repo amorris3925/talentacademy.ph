@@ -97,6 +97,7 @@ export function ExerciseBlock({ content, metadata }: ExerciseBlockProps) {
           className="w-full resize-y bg-gray-900 p-4 pt-8 font-mono text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
           rows={12}
           spellCheck={false}
+          aria-label="Code editor"
           placeholder="Write your code here..."
         />
       </div>

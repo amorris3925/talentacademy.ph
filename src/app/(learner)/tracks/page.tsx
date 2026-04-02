@@ -55,10 +55,10 @@ export default function TracksPage() {
     fetchTracks();
   }, []);
 
-  const handleEnroll = async (trackId: string) => {
-    setEnrolling(trackId);
+  const handleEnroll = async (track: TrackWithMeta) => {
+    setEnrolling(track.id);
     try {
-      await academyApi.post('/enroll', { track_id: trackId });
+      await academyApi.post(`/enroll/${track.slug}`);
       await fetchTracks();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to enroll');
@@ -158,7 +158,7 @@ export default function TracksPage() {
                       size="sm"
                       className="w-full"
                       isLoading={enrolling === track.id}
-                      onClick={() => handleEnroll(track.id)}
+                      onClick={() => handleEnroll(track)}
                     >
                       Enroll
                     </Button>

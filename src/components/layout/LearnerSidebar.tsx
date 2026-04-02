@@ -61,7 +61,7 @@ export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps)
             <Sparkles className="h-6 w-6 text-indigo-600" />
             <span className="font-bold text-gray-900">AI Academy</span>
           </Link>
-          <button onClick={onClose} className="lg:hidden p-1 text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="lg:hidden p-1 text-gray-400 hover:text-gray-600" aria-label="Close sidebar">
             <X className="h-5 w-5" />
           </button>
         </div>

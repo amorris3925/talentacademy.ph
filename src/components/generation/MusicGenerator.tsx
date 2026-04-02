@@ -50,10 +50,11 @@ export function MusicGenerator() {
     <div className="space-y-5">
       {/* Prompt */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label htmlFor="music-gen-prompt" className="mb-1.5 block text-sm font-medium text-gray-700">
           Prompt
         </label>
         <textarea
+          id="music-gen-prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="A calming lo-fi track with soft piano and rain sounds..."

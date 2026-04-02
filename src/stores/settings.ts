@@ -18,9 +18,11 @@ interface SettingsState {
   updateSettings: (updates: Partial<LearnerSettings>) => Promise<void>;
   uploadCv: (file: File) => Promise<void>;
   uploadAvatar: (file: File) => Promise<void>;
-  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  changePassword: (newPassword: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
 }
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useSettingsStore = create<SettingsState>((set) => ({
   profile: {},
@@ -29,8 +31,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   saveStatus: 'idle',
 
   async loadSettings() {
-    const res = await academyApi.get<{ profile: AcademyLearner; settings: LearnerSettings }>('/settings');
-    set({ profile: res.profile, settings: res.settings });
+    try {
+      const res = await academyApi.get<{ profile: AcademyLearner; settings: LearnerSettings }>('/settings');
+      set({ profile: res.profile, settings: res.settings });
+    } catch (err) {
+      console.error('Failed to load settings:', err);
+      throw err;
+    }
   },
 
   async updateProfile(updates: Partial<AcademyLearner>) {
@@ -42,7 +49,8 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         isSaving: false,
         saveStatus: 'saved',
       }));
-      setTimeout(() => set({ saveStatus: 'idle' }), 2000);
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => set({ saveStatus: 'idle' }), 2000);
     } catch {
       set({ isSaving: false, saveStatus: 'error' });
       throw new Error('Failed to update profile');
@@ -58,7 +66,8 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         isSaving: false,
         saveStatus: 'saved',
       }));
-      setTimeout(() => set({ saveStatus: 'idle' }), 2000);
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => set({ saveStatus: 'idle' }), 2000);
     } catch {
       set({ isSaving: false, saveStatus: 'error' });
       throw new Error('Failed to update settings');
@@ -73,14 +82,15 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     throw new Error('Avatar upload coming soon');
   },
 
-  async changePassword(_oldPassword: string, newPassword: string) {
+  async changePassword(newPassword: string) {
     set({ isSaving: true, saveStatus: 'saving' });
     try {
       const sb = createBrowserClient();
       const { error } = await sb.auth.updateUser({ password: newPassword });
       if (error) throw error;
       set({ isSaving: false, saveStatus: 'saved' });
-      setTimeout(() => set({ saveStatus: 'idle' }), 2000);
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => set({ saveStatus: 'idle' }), 2000);
     } catch (err) {
       set({ isSaving: false, saveStatus: 'error' });
       throw err instanceof Error ? err : new Error('Failed to change password');

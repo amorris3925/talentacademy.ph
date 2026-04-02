@@ -12,6 +12,7 @@ interface LessonState {
   currentTrack: AcademyTrack | null;
   progress: LessonProgress | null;
   isLoading: boolean;
+  error: string | null;
   activeTab: ActiveTab;
 
   loadLesson: (trackSlug: string, moduleSlug: string, lessonSlug: string) => Promise<void>;
@@ -20,30 +21,39 @@ interface LessonState {
   setActiveTab: (tab: ActiveTab) => void;
 }
 
-export const useLessonStore = create<LessonState>((set, get) => ({
+export const useLessonStore = create<LessonState>((set, get) => {
+  let currentRequestId = 0;
+
+  return {
   currentLesson: null,
   currentModule: null,
   currentTrack: null,
   progress: null,
   isLoading: false,
+  error: null,
   activeTab: 'lesson',
 
   async loadLesson(trackSlug: string, moduleSlug: string, lessonSlug: string) {
-    set({ isLoading: true });
+    const requestId = ++currentRequestId;
+    set({ isLoading: true, error: null });
     try {
       const [lessonRes, trackRes] = await Promise.all([
         academyApi.get<any>(`/lessons/${lessonSlug}`),
         academyApi.get<any>(`/tracks/${trackSlug}`),
       ]);
+      // Discard result if a newer request was started
+      if (requestId !== currentRequestId) return;
       const mod = (trackRes.modules || []).find((m: any) => m.slug === moduleSlug);
       set({
         currentLesson: lessonRes.lesson,
         currentModule: mod ?? null,
         currentTrack: trackRes.track,
         progress: null,
+        isLoading: false,
       });
-    } finally {
-      set({ isLoading: false });
+    } catch (err) {
+      if (requestId !== currentRequestId) return;
+      set({ error: 'Failed to load lesson', isLoading: false });
     }
   },
 
@@ -51,25 +61,34 @@ export const useLessonStore = create<LessonState>((set, get) => ({
     const { currentLesson } = get();
     if (!currentLesson) return;
 
-    const updated = await academyApi.post<LessonProgress>(
-      `/learner/progress/${currentLesson.id}`,
-      { status: 'completed' },
-    );
-    set({ progress: updated });
+    try {
+      const updated = await academyApi.post<LessonProgress>(
+        `/learner/progress/${currentLesson.id}`,
+        { status: 'completed' },
+      );
+      set({ progress: updated });
+    } catch {
+      set({ error: 'Failed to mark lesson complete' });
+    }
   },
 
   async updateProgress(data: Partial<LessonProgress>) {
     const { currentLesson } = get();
     if (!currentLesson) return;
 
-    const updated = await academyApi.post<LessonProgress>(
-      `/learner/progress/${currentLesson.id}`,
-      data,
-    );
-    set({ progress: updated });
+    try {
+      const updated = await academyApi.post<LessonProgress>(
+        `/learner/progress/${currentLesson.id}`,
+        data,
+      );
+      set({ progress: updated });
+    } catch {
+      set({ error: 'Failed to update progress' });
+    }
   },
 
   setActiveTab(tab: ActiveTab) {
     set({ activeTab: tab });
   },
-}));
+};
+});

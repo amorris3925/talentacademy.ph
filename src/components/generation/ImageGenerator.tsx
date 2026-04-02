@@ -51,10 +51,11 @@ export function ImageGenerator() {
     <div className="space-y-5">
       {/* Prompt */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label htmlFor="image-gen-prompt" className="mb-1.5 block text-sm font-medium text-gray-700">
           Prompt
         </label>
         <textarea
+          id="image-gen-prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="A vibrant sunset over a tropical beach with palm trees..."

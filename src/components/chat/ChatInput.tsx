@@ -50,6 +50,7 @@ export function ChatInput({
         placeholder={placeholder}
         rows={1}
         disabled={isStreaming}
+        aria-label="Chat message"
         className={cn(
           'flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm',
           'placeholder:text-gray-400',

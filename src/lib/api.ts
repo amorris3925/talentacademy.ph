@@ -88,12 +88,15 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+const DEFAULT_TIMEOUT = 30000;
+
 export const academyApi = {
   async get<T>(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
     const headers = await getAuthHeaders();
     const response = await fetch(buildUrl(path, params), {
       method: 'GET',
       headers,
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT),
     });
     return handleResponse<T>(response);
   },
@@ -104,6 +107,7 @@ export const academyApi = {
       method: 'POST',
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT),
     });
     return handleResponse<T>(response);
   },
@@ -114,6 +118,7 @@ export const academyApi = {
       method: 'PATCH',
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT),
     });
     return handleResponse<T>(response);
   },
@@ -123,6 +128,7 @@ export const academyApi = {
     const response = await fetch(buildUrl(path), {
       method: 'DELETE',
       headers,
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT),
     });
     return handleResponse<T>(response);
   },
@@ -135,6 +141,7 @@ export const academyApi = {
       method: 'POST',
       headers,
       body: formData,
+      signal: AbortSignal.timeout(60000), // Longer timeout for file uploads
     });
     return handleResponse<T>(response);
   },

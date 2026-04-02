@@ -10,7 +10,9 @@ export function formatXp(xp: number): string {
 }
 
 export function formatDate(date: string): string {
+  if (!date) return '';
   const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffSec = Math.floor(diffMs / 1000);
@@ -31,9 +33,10 @@ export function formatDate(date: string): string {
 }
 
 export function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
+  const secs = Math.floor(seconds);
+  if (secs < 60) return `${secs}s`;
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
   if (m < 60) return s > 0 ? `${m}m ${s}s` : `${m}m`;
   const h = Math.floor(m / 60);
   const rm = m % 60;
@@ -69,6 +72,7 @@ export function getStatusColor(status: string): string {
 }
 
 export function truncate(str: string, len: number): string {
+  if (!str) return '';
   if (str.length <= len) return str;
   return str.slice(0, len).trimEnd() + '...';
 }

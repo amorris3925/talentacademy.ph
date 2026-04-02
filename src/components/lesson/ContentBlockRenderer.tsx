@@ -17,11 +17,11 @@ interface ContentBlockRendererProps {
 function renderBlock(block: ContentBlock, index: number) {
   switch (block.type) {
     case 'markdown':
-      return <MarkdownBlock key={index} content={block.content} />;
+      return <MarkdownBlock key={`${block.type}-${index}`} content={block.content} />;
     case 'code':
       return (
         <CodeBlock
-          key={index}
+          key={`${block.type}-${index}`}
           content={block.content}
           metadata={block.metadata as { language: string }}
         />
@@ -29,7 +29,7 @@ function renderBlock(block: ContentBlock, index: number) {
     case 'video':
       return (
         <VideoBlock
-          key={index}
+          key={`${block.type}-${index}`}
           content={block.content}
           metadata={block.metadata as { title?: string }}
         />
@@ -37,7 +37,7 @@ function renderBlock(block: ContentBlock, index: number) {
     case 'image':
       return (
         <ImageBlock
-          key={index}
+          key={`${block.type}-${index}`}
           content={block.content}
           metadata={block.metadata as { caption?: string; alt?: string }}
         />
@@ -45,7 +45,7 @@ function renderBlock(block: ContentBlock, index: number) {
     case 'callout':
       return (
         <CalloutBlock
-          key={index}
+          key={`${block.type}-${index}`}
           content={block.content}
           metadata={block.metadata as { type?: 'info' | 'warning' | 'tip' | 'danger' }}
         />
@@ -53,7 +53,7 @@ function renderBlock(block: ContentBlock, index: number) {
     case 'exercise':
       return (
         <ExerciseBlock
-          key={index}
+          key={`${block.type}-${index}`}
           content={block.content}
           metadata={block.metadata as { language?: string; starter_code?: string; lesson_id?: string }}
         />
@@ -61,7 +61,7 @@ function renderBlock(block: ContentBlock, index: number) {
     case 'quiz':
       return (
         <QuizBlock
-          key={index}
+          key={`${block.type}-${index}`}
           content={block.content}
           metadata={block.metadata as { options: string[]; correct_index: number; explanation: string }}
         />
@@ -69,7 +69,7 @@ function renderBlock(block: ContentBlock, index: number) {
     case 'generation':
       return (
         <GenerationBlock
-          key={index}
+          key={`${block.type}-${index}`}
           metadata={block.metadata as { gen_type: 'image' | 'video' | 'audio' | 'music'; prompt_hint?: string }}
         />
       );

@@ -451,6 +451,7 @@ function AccountManagementSection() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleChangePassword = async () => {
     setPasswordError(null);
@@ -463,7 +464,7 @@ function AccountManagementSection() {
       return;
     }
     try {
-      await changePassword(oldPassword, newPassword);
+      await changePassword(newPassword);
       setShowPasswordModal(false);
       setOldPassword('');
       setNewPassword('');
@@ -477,8 +478,15 @@ function AccountManagementSection() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') return;
-    await deleteAccount();
-    window.location.href = '/login';
+    setDeleteError(null);
+    try {
+      await deleteAccount();
+      window.location.href = '/login';
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Failed to delete account. Please try again.',
+      );
+    }
   };
 
   const handleExportData = () => {
@@ -599,6 +607,10 @@ function AccountManagementSection() {
             onChange={(e) => setDeleteConfirmText(e.target.value)}
             placeholder="DELETE"
           />
+
+          {deleteError && (
+            <p className="text-sm text-red-600">{deleteError}</p>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

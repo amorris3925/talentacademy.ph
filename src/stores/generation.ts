@@ -14,6 +14,8 @@ interface GenerationState {
   generations: AcademyGeneration[];
   activeGeneration: AcademyGeneration | null;
   isGenerating: boolean;
+  generatingTypes: Set<string>;
+  cancelPolling: () => void;
 
   generateImage: (prompt: string, params?: ImageGenParams) => Promise<AcademyGeneration>;
   generateVideo: (prompt: string, params?: VideoGenParams) => Promise<AcademyGeneration>;
@@ -28,19 +30,45 @@ async function startGeneration(
   prompt: string,
   params?: Record<string, unknown>,
 ): Promise<AcademyGeneration> {
-  const body: Record<string, unknown> = { prompt, ...params };
+  const body: Record<string, unknown> =
+    genType === 'audio' ? { text: prompt, ...params } : { prompt, ...params };
   const res = await academyApi.post<any>(`/generate/${genType}`, body);
   // Map generation_id to id for consistency with frontend type
   return { ...res, id: res.generation_id ?? res.id } as AcademyGeneration;
 }
 
-export const useGenerationStore = create<GenerationState>((set, get) => ({
+export const useGenerationStore = create<GenerationState>((set, get) => {
+  let pollAbortController: AbortController | null = null;
+
+  function addGeneratingType(type: string) {
+    set((state) => {
+      const next = new Set(state.generatingTypes);
+      next.add(type);
+      return { generatingTypes: next, isGenerating: true };
+    });
+  }
+
+  function removeGeneratingType(type: string) {
+    set((state) => {
+      const next = new Set(state.generatingTypes);
+      next.delete(type);
+      return { generatingTypes: next, isGenerating: next.size > 0 };
+    });
+  }
+
+  return {
   generations: [],
   activeGeneration: null,
   isGenerating: false,
+  generatingTypes: new Set<string>(),
+
+  cancelPolling() {
+    pollAbortController?.abort();
+    pollAbortController = null;
+  },
 
   async generateImage(prompt: string, params?: ImageGenParams) {
-    set({ isGenerating: true });
+    addGeneratingType('image');
     try {
       const gen = await startGeneration('image', prompt, params as unknown as Record<string, unknown>);
       set((state) => ({
@@ -50,12 +78,12 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
       const final = await get().pollStatus(gen.id);
       return final;
     } finally {
-      set({ isGenerating: false });
+      removeGeneratingType('image');
     }
   },
 
   async generateVideo(prompt: string, params?: VideoGenParams) {
-    set({ isGenerating: true });
+    addGeneratingType('video');
     try {
       const gen = await startGeneration('video', prompt, params as unknown as Record<string, unknown>);
       set((state) => ({
@@ -65,12 +93,12 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
       const final = await get().pollStatus(gen.id);
       return final;
     } finally {
-      set({ isGenerating: false });
+      removeGeneratingType('video');
     }
   },
 
   async generateAudio(text: string, params?: AudioGenParams) {
-    set({ isGenerating: true });
+    addGeneratingType('audio');
     try {
       const gen = await startGeneration('audio', text, params as unknown as Record<string, unknown>);
       set((state) => ({
@@ -80,12 +108,12 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
       const final = await get().pollStatus(gen.id);
       return final;
     } finally {
-      set({ isGenerating: false });
+      removeGeneratingType('audio');
     }
   },
 
   async generateMusic(prompt: string, params?: MusicGenParams) {
-    set({ isGenerating: true });
+    addGeneratingType('music');
     try {
       const gen = await startGeneration('music', prompt, params as unknown as Record<string, unknown>);
       set((state) => ({
@@ -95,7 +123,7 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
       const final = await get().pollStatus(gen.id);
       return final;
     } finally {
-      set({ isGenerating: false });
+      removeGeneratingType('music');
     }
   },
 
@@ -103,9 +131,22 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
     const POLL_INTERVAL = 2000;
     const MAX_POLLS = 150; // 5 minutes max
 
+    // Cancel any previous polling
+    pollAbortController?.abort();
+    const controller = new AbortController();
+    pollAbortController = controller;
+
     for (let i = 0; i < MAX_POLLS; i++) {
+      if (controller.signal.aborted) {
+        throw new Error('Polling cancelled');
+      }
+
       const res = await academyApi.get<any>(`/generate/${generationId}/status`);
       const gen = { ...res, id: res.generation_id ?? res.id } as AcademyGeneration;
+
+      if (controller.signal.aborted) {
+        throw new Error('Polling cancelled');
+      }
 
       // Update in state
       set((state) => ({
@@ -117,21 +158,32 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
         return gen;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(resolve, POLL_INTERVAL);
+        controller.signal.addEventListener('abort', () => {
+          clearTimeout(timeout);
+          reject(new Error('Polling cancelled'));
+        }, { once: true });
+      });
     }
 
     throw new Error('Generation timed out');
   },
 
   async loadHistory(type?: string) {
-    const params: Record<string, string> = {};
-    if (type) params.type = type;
+    try {
+      const params: Record<string, string> = {};
+      if (type) params.type = type;
 
-    const res = await academyApi.get<any>('/learner/generations', params);
-    const generations = (res.generations ?? []).map((g: any) => ({
-      ...g,
-      id: g.generation_id ?? g.id,
-    })) as AcademyGeneration[];
-    set({ generations });
+      const res = await academyApi.get<any>('/learner/generations', params);
+      const generations = (res.generations ?? []).map((g: any) => ({
+        ...g,
+        id: g.generation_id ?? g.id,
+      })) as AcademyGeneration[];
+      set({ generations });
+    } catch (err) {
+      console.error('Failed to load generation history:', err);
+    }
   },
-}));
+};
+});

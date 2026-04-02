@@ -302,7 +302,7 @@ export interface DashboardData {
   current_streak: number;
   enrollments: AcademyEnrollment[];
   recent_badges: LearnerBadge[];
-  recent_xp: { amount: number; reason: string; created_at: string }[];
+  recent_xp: { amount: number; source: string; created_at: string }[];
 }
 
 // ─── Pagination ─────────────────────────────────────────────────────────────
@@ -316,4 +316,5 @@ export interface PaginatedResponse<T> {
 export interface LeaderboardResponse {
   leaderboard: LeaderboardEntry[];
   next_cursor: string | null;
+  has_more: boolean;
 }

@@ -12,6 +12,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isChecking, setIsChecking] = useState(true)
   const [isValidSession, setIsValidSession] = useState(false)
   const router = useRouter()
 
@@ -19,6 +20,9 @@ export default function ResetPasswordPage() {
     const supabase = createBrowserClient()
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsValidSession(!!session)
+      setIsChecking(false)
+    }).catch(() => {
+      setIsChecking(false)
     })
   }, [])
 
@@ -48,6 +52,14 @@ export default function ResetPasswordPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+      </div>
+    )
   }
 
   if (!isValidSession) {

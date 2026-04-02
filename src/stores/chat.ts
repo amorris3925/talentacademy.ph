@@ -34,11 +34,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       created_at: new Date().toISOString(),
     };
 
-    set({
-      messages: [...messages, userMsg],
+    set((state) => ({
+      messages: [...state.messages, userMsg],
       isStreaming: true,
       streamingContent: '',
-    });
+    }));
 
     let accumulated = '';
 

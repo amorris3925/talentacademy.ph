@@ -93,8 +93,9 @@ async function proxyToHenry(req: NextRequest, method: string) {
               if (done) break
               controller.enqueue(new TextEncoder().encode(decoder.decode(value, { stream: true })))
             }
-          } catch {
-            // Stream closed
+          } catch (err) {
+            console.error('SSE stream error:', err)
+            controller.enqueue(new TextEncoder().encode('data: {"error":"Stream interrupted"}\n\n'))
           } finally {
             controller.close()
           }

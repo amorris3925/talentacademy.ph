@@ -59,7 +59,7 @@ export function QuizBlock({ content, metadata }: QuizBlockProps) {
 
           return (
             <button
-              key={index}
+              key={`option-${index}`}
               type="button"
               onClick={() => {
                 if (!submitted) setSelectedIndex(index);

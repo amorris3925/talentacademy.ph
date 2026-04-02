@@ -61,10 +61,11 @@ export function VideoGenerator() {
     <div className="space-y-5">
       {/* Prompt */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label htmlFor="video-gen-prompt" className="mb-1.5 block text-sm font-medium text-gray-700">
           Prompt
         </label>
         <textarea
+          id="video-gen-prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="A drone shot flying over a mountain range at golden hour..."

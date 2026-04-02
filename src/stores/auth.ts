@@ -4,6 +4,11 @@ import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import { createBrowserClient } from '@/lib/supabase';
 import { academyApi } from '@/lib/api';
+import { useChatStore } from '@/stores/chat';
+import { useGamificationStore } from '@/stores/gamification';
+import { useGenerationStore } from '@/stores/generation';
+import { useLessonStore } from '@/stores/lesson';
+import { useSettingsStore } from '@/stores/settings';
 import type { AcademyLearner, RegisterPayload } from '@/types';
 
 interface AuthState {
@@ -21,6 +26,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => {
   let listenerSetUp = false;
+  let authSubscription: { unsubscribe: () => void } | null = null;
 
   return {
     learner: null,
@@ -51,7 +57,9 @@ export const useAuthStore = create<AuthState>((set, get) => {
         // Set up auth state listener once
         if (!listenerSetUp) {
           listenerSetUp = true;
-          supabase.auth.onAuthStateChange(async (event, newSession) => {
+          // Unsubscribe previous listener if any (safety net)
+          authSubscription?.unsubscribe();
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             set({ session: newSession });
             if (event === 'SIGNED_OUT' || !newSession) {
               set({ learner: null, isAuthenticated: false });
@@ -64,6 +72,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
               }
             }
           });
+          authSubscription = subscription;
         }
       } finally {
         set({ isLoading: false });
@@ -109,6 +118,11 @@ export const useAuthStore = create<AuthState>((set, get) => {
       const supabase = createBrowserClient();
       await supabase.auth.signOut();
       set({ learner: null, session: null, isAuthenticated: false });
+      useChatStore.setState({ messages: [], isStreaming: false, streamingContent: '' });
+      useGamificationStore.setState({ xp: 0, level: 'beginner', currentStreak: 0, badges: [], recentXpGains: [] });
+      useGenerationStore.setState({ generations: [], activeGeneration: null, isGenerating: false });
+      useLessonStore.setState({ currentLesson: null, currentModule: null, currentTrack: null, progress: null });
+      useSettingsStore.setState({ profile: {}, settings: null, isSaving: false, saveStatus: 'idle' });
     },
 
     async refreshProfile() {

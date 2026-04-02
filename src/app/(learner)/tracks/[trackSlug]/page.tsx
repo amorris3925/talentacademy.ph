@@ -60,7 +60,7 @@ export default function TrackDetailPage() {
     if (!track) return;
     setEnrolling(true);
     try {
-      await academyApi.post('/enroll', { track_id: track.id });
+      await academyApi.post(`/enroll/${track.slug}`);
       await fetchTrack();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to enroll');

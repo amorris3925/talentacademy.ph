@@ -82,17 +82,20 @@ export default function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
               onClick={() => setDropdownOpen((prev) => !prev)}
               className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
               aria-label="User menu"
+              aria-expanded={dropdownOpen}
+              aria-haspopup="true"
             >
               {learner.first_name?.[0]}
               {learner.last_name?.[0]}
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white border border-gray-200 shadow-lg py-1 z-50">
+              <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white border border-gray-200 shadow-lg py-1 z-50" role="menu">
                 <Link
                   href="/profile"
                   onClick={() => setDropdownOpen(false)}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
                 >
                   <User className="h-4 w-4" />
                   Profile
@@ -101,6 +104,7 @@ export default function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
                   href="/settings"
                   onClick={() => setDropdownOpen(false)}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
                 >
                   <Settings className="h-4 w-4" />
                   Settings
@@ -108,6 +112,7 @@ export default function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  role="menuitem"
                 >
                   <LogOut className="h-4 w-4" />
                   Log out

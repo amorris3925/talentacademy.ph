@@ -122,7 +122,7 @@ export default function CommunityPage() {
 
   const handleAcceptAnswer = async (answerId: string) => {
     try {
-      await academyApi.patch(`/community/posts/${answerId}/accept`);
+      await academyApi.post(`/community/posts/${answerId}/accept`);
       await fetchPosts();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to accept answer');
