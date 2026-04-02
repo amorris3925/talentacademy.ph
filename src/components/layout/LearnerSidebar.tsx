@@ -27,7 +27,7 @@ const navItems = [
   { href: '/community', label: 'Community', icon: Users },
   { href: '/certificates', label: 'Certificates', icon: Award },
   { href: '/profile', label: 'Profile', icon: User },
-  { href: '/incubator', label: 'Incubator', icon: Rocket },
+  { href: '/incubator', label: 'Incubator', icon: Rocket, comingSoon: true },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -71,6 +71,21 @@ export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps)
           <ul className="space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+
+              if (item.comingSoon) {
+                return (
+                  <li key={item.href}>
+                    <div
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium opacity-50 cursor-not-allowed text-gray-600"
+                    >
+                      <item.icon className="h-5 w-5 text-gray-400" />
+                      {item.label}
+                      <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">Soon</span>
+                    </div>
+                  </li>
+                )
+              }
+
               return (
                 <li key={item.href}>
                   <Link

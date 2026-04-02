@@ -31,18 +31,16 @@ export const useLessonStore = create<LessonState>((set, get) => ({
   async loadLesson(trackSlug: string, moduleSlug: string, lessonSlug: string) {
     set({ isLoading: true });
     try {
-      const data = await academyApi.get<{
-        lesson: AcademyLesson;
-        module: AcademyModule;
-        track: AcademyTrack;
-        progress: LessonProgress | null;
-      }>(`/tracks/${trackSlug}/modules/${moduleSlug}/lessons/${lessonSlug}`);
-
+      const [lessonRes, trackRes] = await Promise.all([
+        academyApi.get<any>(`/lessons/${lessonSlug}`),
+        academyApi.get<any>(`/tracks/${trackSlug}`),
+      ]);
+      const mod = (trackRes.modules || []).find((m: any) => m.slug === moduleSlug);
       set({
-        currentLesson: data.lesson,
-        currentModule: data.module,
-        currentTrack: data.track,
-        progress: data.progress,
+        currentLesson: lessonRes.lesson,
+        currentModule: mod ?? null,
+        currentTrack: trackRes.track,
+        progress: null,
       });
     } finally {
       set({ isLoading: false });
@@ -50,11 +48,12 @@ export const useLessonStore = create<LessonState>((set, get) => ({
   },
 
   async markComplete() {
-    const { currentLesson, progress } = get();
+    const { currentLesson } = get();
     if (!currentLesson) return;
 
     const updated = await academyApi.post<LessonProgress>(
-      `/lessons/${currentLesson.id}/complete`,
+      `/learner/progress/${currentLesson.id}`,
+      { status: 'completed' },
     );
     set({ progress: updated });
   },
@@ -63,8 +62,8 @@ export const useLessonStore = create<LessonState>((set, get) => ({
     const { currentLesson } = get();
     if (!currentLesson) return;
 
-    const updated = await academyApi.patch<LessonProgress>(
-      `/lessons/${currentLesson.id}/progress`,
+    const updated = await academyApi.post<LessonProgress>(
+      `/learner/progress/${currentLesson.id}`,
       data,
     );
     set({ progress: updated });

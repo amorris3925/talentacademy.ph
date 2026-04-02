@@ -86,7 +86,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
     async register(data: RegisterPayload) {
       // Let the backend handle auth user creation to avoid double creation
-      await academyApi.post<AcademyLearner>('/register', data);
+      await academyApi.post<{ learner_id: string; auth_user_id: string }>('/register', data);
 
       // Establish session by signing in with the credentials
       const supabase = createBrowserClient();

@@ -65,14 +65,18 @@ export default function GenerationsPage() {
         if (activeTab !== 'all') params.type = activeTab;
         if (!reset && cursor) params.cursor = cursor;
 
-        const res = await academyApi.get<PaginatedResponse<AcademyGeneration>>(
+        const res = await academyApi.get<any>(
           '/learner/generations',
           params,
         );
 
-        setItems((prev) => (reset ? res.data : [...prev, ...res.data]));
-        setCursor(res.cursor);
-        setHasMore(res.has_more);
+        const generations = (res.generations || []).map((g: any) => ({
+          ...g,
+          id: g.generation_id ?? g.id,
+        })) as AcademyGeneration[];
+        setItems((prev) => (reset ? generations : [...prev, ...generations]));
+        setCursor(res.next_cursor ?? null);
+        setHasMore(!!res.next_cursor);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load generations');
       } finally {

@@ -1,6 +1,9 @@
 'use client'
 
-import { Menu, Bell, Flame } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Menu, Bell, Flame, LogOut, User, Settings } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 
 interface LearnerHeaderProps {
@@ -9,6 +12,29 @@ interface LearnerHeaderProps {
 
 export default function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
   const learner = useAuthStore((s) => s.learner)
+  const logout = useAuthStore((s) => s.logout)
+  const router = useRouter()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [dropdownOpen])
+
+  const handleLogout = async () => {
+    setDropdownOpen(false)
+    await logout()
+    router.push('/login')
+  }
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white border-b border-gray-200">
@@ -33,9 +59,12 @@ export default function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
 
         {/* XP */}
         {learner && (
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-indigo-50 rounded-full text-sm font-semibold text-indigo-700">
+          <Link
+            href="/profile"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-indigo-50 rounded-full text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+          >
             {learner.xp_total.toLocaleString()} XP
-          </div>
+          </Link>
         )}
 
         {/* Notifications */}
@@ -46,11 +75,45 @@ export default function LearnerHeader({ onMenuClick }: LearnerHeaderProps) {
           <Bell className="h-5 w-5" />
         </button>
 
-        {/* Avatar */}
+        {/* Avatar with dropdown */}
         {learner && (
-          <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
-            {learner.first_name?.[0]}
-            {learner.last_name?.[0]}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen((prev) => !prev)}
+              className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
+              aria-label="User menu"
+            >
+              {learner.first_name?.[0]}
+              {learner.last_name?.[0]}
+            </button>
+
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white border border-gray-200 shadow-lg py-1 z-50">
+                <Link
+                  href="/profile"
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <User className="h-4 w-4" />
+                  Profile
+                </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Log out
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

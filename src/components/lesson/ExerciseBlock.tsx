@@ -106,22 +106,18 @@ export function ExerciseBlock({ content, metadata }: ExerciseBlockProps) {
         <Button
           variant="primary"
           size="sm"
-          onClick={handleRun}
-          isLoading={isRunning}
-          disabled={!code.trim()}
+          disabled
         >
           <Play className="h-3.5 w-3.5" />
-          Run
+          Run (Coming Soon)
         </Button>
         <Button
           variant="secondary"
           size="sm"
-          onClick={handleSubmit}
-          isLoading={isSubmitting}
-          disabled={!code.trim()}
+          disabled
         >
           <Send className="h-3.5 w-3.5" />
-          Submit
+          Submit (Coming Soon)
         </Button>
         <Button variant="ghost" size="sm" onClick={handleReset}>
           <RotateCcw className="h-3.5 w-3.5" />

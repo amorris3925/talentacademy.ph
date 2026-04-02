@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { academyApi } from '@/lib/api';
+import { createBrowserClient } from '@/lib/supabase';
 import type { AcademyLearner, LearnerSettings } from '@/types';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -28,19 +29,19 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   saveStatus: 'idle',
 
   async loadSettings() {
-    const [profile, settings] = await Promise.all([
-      academyApi.get<AcademyLearner>('/learner/profile'),
-      academyApi.get<LearnerSettings>('/learner/settings'),
-    ]);
-
-    set({ profile, settings });
+    const res = await academyApi.get<{ profile: AcademyLearner; settings: LearnerSettings }>('/settings');
+    set({ profile: res.profile, settings: res.settings });
   },
 
   async updateProfile(updates: Partial<AcademyLearner>) {
     set({ isSaving: true, saveStatus: 'saving' });
     try {
-      const updated = await academyApi.patch<AcademyLearner>('/learner/profile', updates);
-      set({ profile: updated, isSaving: false, saveStatus: 'saved' });
+      await academyApi.patch<{ updated: boolean }>('/settings', updates);
+      set((state) => ({
+        profile: { ...state.profile, ...updates },
+        isSaving: false,
+        saveStatus: 'saved',
+      }));
       setTimeout(() => set({ saveStatus: 'idle' }), 2000);
     } catch {
       set({ isSaving: false, saveStatus: 'error' });
@@ -51,8 +52,12 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   async updateSettings(updates: Partial<LearnerSettings>) {
     set({ isSaving: true, saveStatus: 'saving' });
     try {
-      const updated = await academyApi.patch<LearnerSettings>('/learner/settings', updates);
-      set({ settings: updated, isSaving: false, saveStatus: 'saved' });
+      await academyApi.patch<{ updated: boolean }>('/settings', updates);
+      set((state) => ({
+        settings: state.settings ? { ...state.settings, ...updates } : null,
+        isSaving: false,
+        saveStatus: 'saved',
+      }));
       setTimeout(() => set({ saveStatus: 'idle' }), 2000);
     } catch {
       set({ isSaving: false, saveStatus: 'error' });
@@ -60,58 +65,29 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     }
   },
 
-  async uploadCv(file: File) {
-    set({ isSaving: true, saveStatus: 'saving' });
-    try {
-      const result = await academyApi.upload<{ cv_url: string }>('/learner/upload-cv', file, 'cv');
-      set((state) => ({
-        profile: { ...state.profile, cv_url: result.cv_url },
-        isSaving: false,
-        saveStatus: 'saved',
-      }));
-      setTimeout(() => set({ saveStatus: 'idle' }), 2000);
-    } catch {
-      set({ isSaving: false, saveStatus: 'error' });
-      throw new Error('Failed to upload CV');
-    }
+  async uploadCv(_file: File) {
+    throw new Error('CV upload coming soon');
   },
 
-  async uploadAvatar(file: File) {
-    set({ isSaving: true, saveStatus: 'saving' });
-    try {
-      const result = await academyApi.upload<{ avatar_url: string }>(
-        '/learner/upload-avatar',
-        file,
-        'avatar',
-      );
-      set((state) => ({
-        profile: { ...state.profile, avatar_url: result.avatar_url },
-        isSaving: false,
-        saveStatus: 'saved',
-      }));
-      setTimeout(() => set({ saveStatus: 'idle' }), 2000);
-    } catch {
-      set({ isSaving: false, saveStatus: 'error' });
-      throw new Error('Failed to upload avatar');
-    }
+  async uploadAvatar(_file: File) {
+    throw new Error('Avatar upload coming soon');
   },
 
-  async changePassword(oldPassword: string, newPassword: string) {
+  async changePassword(_oldPassword: string, newPassword: string) {
     set({ isSaving: true, saveStatus: 'saving' });
     try {
-      await academyApi.post('/learner/change-password', {
-        old_password: oldPassword,
-        new_password: newPassword,
-      });
+      const sb = createBrowserClient();
+      const { error } = await sb.auth.updateUser({ password: newPassword });
+      if (error) throw error;
       set({ isSaving: false, saveStatus: 'saved' });
       setTimeout(() => set({ saveStatus: 'idle' }), 2000);
-    } catch {
+    } catch (err) {
       set({ isSaving: false, saveStatus: 'error' });
-      throw new Error('Failed to change password');
+      throw err instanceof Error ? err : new Error('Failed to change password');
     }
   },
 
   async deleteAccount() {
-    await academyApi.del('/learner/account');
+    await academyApi.del('/account');
   },
 }));

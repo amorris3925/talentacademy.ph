@@ -28,11 +28,10 @@ async function startGeneration(
   prompt: string,
   params?: Record<string, unknown>,
 ): Promise<AcademyGeneration> {
-  return academyApi.post<AcademyGeneration>('/generate', {
-    type: genType,
-    prompt,
-    params: params ?? {},
-  });
+  const body: Record<string, unknown> = { prompt, ...params };
+  const res = await academyApi.post<any>(`/generate/${genType}`, body);
+  // Map generation_id to id for consistency with frontend type
+  return { ...res, id: res.generation_id ?? res.id } as AcademyGeneration;
 }
 
 export const useGenerationStore = create<GenerationState>((set, get) => ({
@@ -105,7 +104,8 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
     const MAX_POLLS = 150; // 5 minutes max
 
     for (let i = 0; i < MAX_POLLS; i++) {
-      const gen = await academyApi.get<AcademyGeneration>(`/generate/${generationId}/status`);
+      const res = await academyApi.get<any>(`/generate/${generationId}/status`);
+      const gen = { ...res, id: res.generation_id ?? res.id } as AcademyGeneration;
 
       // Update in state
       set((state) => ({
@@ -127,7 +127,11 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
     const params: Record<string, string> = {};
     if (type) params.type = type;
 
-    const data = await academyApi.get<AcademyGeneration[]>('/generate/history', params);
-    set({ generations: data });
+    const res = await academyApi.get<any>('/learner/generations', params);
+    const generations = (res.generations ?? []).map((g: any) => ({
+      ...g,
+      id: g.generation_id ?? g.id,
+    })) as AcademyGeneration[];
+    set({ generations });
   },
 }));

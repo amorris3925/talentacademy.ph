@@ -42,8 +42,8 @@ export default function TracksPage() {
 
   const fetchTracks = async () => {
     try {
-      const res = await academyApi.get<TrackWithMeta[]>('/tracks');
-      setTracks(res);
+      const res = await academyApi.get<any>('/tracks');
+      setTracks(res.tracks || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load tracks');
     } finally {

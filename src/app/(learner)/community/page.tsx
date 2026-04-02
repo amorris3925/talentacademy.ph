@@ -37,7 +37,8 @@ export default function CommunityPage() {
 
   const fetchPosts = useCallback(async () => {
     try {
-      const posts = await academyApi.get<CommunityPost[]>('/community/posts');
+      const res = await academyApi.get<any>('/community/posts');
+      const posts: CommunityPost[] = res.posts || [];
 
       // Group answers under questions
       const questionMap = new Map<string, QuestionWithAnswers>();

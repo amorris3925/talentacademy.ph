@@ -36,11 +36,11 @@ export default function ProfilePage() {
     let cancelled = false;
     (async () => {
       try {
-        const [profileRes, enrollments] = await Promise.all([
+        const [profileRes, enrollmentsRes] = await Promise.all([
           academyApi.get<ProfileResponse>('/learner/profile'),
-          academyApi.get<(AcademyEnrollment & { track_title?: string; track_slug?: string })[]>('/enrollments'),
+          academyApi.get<any>('/enrollments'),
         ]);
-        if (!cancelled) setData({ ...profileRes, enrollments });
+        if (!cancelled) setData({ ...profileRes, enrollments: enrollmentsRes.enrollments || [] });
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load profile');
       } finally {

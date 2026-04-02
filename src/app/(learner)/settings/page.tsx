@@ -25,7 +25,6 @@ import {
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import type { AcademyLearner, LearnerSettings } from '@/types';
-import { academyApi } from '@/lib/api';
 
 export default function SettingsPage() {
   const { profile, settings, isSaving, saveStatus, loadSettings } =
@@ -482,21 +481,8 @@ function AccountManagementSection() {
     window.location.href = '/login';
   };
 
-  const handleExportData = async () => {
-    try {
-      const data = await academyApi.get<Record<string, unknown>>('/learner/export');
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: 'application/json',
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'my-data.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      // Export failed silently
-    }
+  const handleExportData = () => {
+    // Export endpoint not implemented yet
   };
 
   return (
@@ -515,9 +501,9 @@ function AccountManagementSection() {
             <Key className="h-4 w-4" />
             Change Password
           </Button>
-          <Button variant="outline" size="md" onClick={handleExportData}>
+          <Button variant="outline" size="md" onClick={handleExportData} disabled>
             <Download className="h-4 w-4" />
-            Export My Data
+            Export My Data (Coming Soon)
           </Button>
           <Button
             variant="danger"

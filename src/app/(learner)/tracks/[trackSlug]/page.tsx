@@ -43,8 +43,8 @@ export default function TrackDetailPage() {
 
   const fetchTrack = async () => {
     try {
-      const res = await academyApi.get<TrackDetail>(`/tracks/${params.trackSlug}`);
-      setTrack(res);
+      const res = await academyApi.get<any>(`/tracks/${params.trackSlug}`);
+      setTrack({ ...res.track, modules: res.modules || [] } as TrackDetail);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load track');
     } finally {

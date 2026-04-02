@@ -100,12 +100,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  async loadHistory(lessonId?: string) {
-    const params: Record<string, string> = {};
-    if (lessonId) params.lesson_id = lessonId;
-
-    const data = await academyApi.get<AcademyChatMessage[]>('/chat/history', params);
-    set({ messages: data });
+  async loadHistory(_lessonId?: string) {
+    // No chat history endpoint exists — start fresh each session
+    set({ messages: [] });
   },
 
   clearHistory() {

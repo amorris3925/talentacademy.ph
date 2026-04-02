@@ -39,7 +39,7 @@ export default function RegisterPage() {
   const [maritalStatus, setMaritalStatus] = useState('')
 
   // Step 2: Professional Profile
-  const [profileMode, setProfileMode] = useState<'cv' | 'website'>('cv')
+  const [profileMode, setProfileMode] = useState<'cv' | 'website'>('website')
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [cvUrl, setCvUrl] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
@@ -269,15 +269,11 @@ export default function RegisterPage() {
               {/* Mode Toggle */}
               <div className="flex rounded-lg border border-gray-200 mb-6">
                 <button
-                  onClick={() => setProfileMode('cv')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-l-lg transition-colors ${
-                    profileMode === 'cv'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-white text-gray-600 hover:bg-gray-50'
-                  }`}
+                  disabled
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-l-lg bg-white text-gray-600 opacity-50 cursor-not-allowed"
                 >
                   <Upload className="h-4 w-4" />
-                  Upload CV
+                  Upload CV (Coming Soon)
                 </button>
                 <button
                   onClick={() => setProfileMode('website')}
