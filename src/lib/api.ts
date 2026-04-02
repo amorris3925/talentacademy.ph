@@ -142,6 +142,7 @@ export const academyApi = {
     onChunk?: (chunk: string) => void,
   ): Promise<void> {
     const headers = await getAuthHeaders();
+    headers['Accept'] = 'text/event-stream';
     const response = await fetch(buildUrl(path), {
       method: 'POST',
       headers,

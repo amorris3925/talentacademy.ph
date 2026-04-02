@@ -83,7 +83,7 @@ export default function DashboardPage() {
     );
   }
 
-  const xpProgress = getXpProgress(data.xp, data.level);
+  const xpProgress = getXpProgress(data.xp_total, data.level);
   const nextLevel = getNextLevel(data.level);
 
   return (
@@ -103,7 +103,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">XP Progress</p>
-              <p className="mt-1 text-2xl font-bold text-gray-900">{formatXp(data.xp)}</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900">{formatXp(data.xp_total)}</p>
             </div>
             <div className={`flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 ${getLevelColor(data.level)}`}>
               <Trophy className="h-5 w-5" />
@@ -126,7 +126,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">Current Streak</p>
-              <p className="mt-1 text-2xl font-bold text-gray-900">{data.streak} days</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900">{data.current_streak} days</p>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-500">
               <Flame className="h-5 w-5" />
@@ -167,7 +167,7 @@ export default function DashboardPage() {
             View all
           </Link>
         </div>
-        {data.enrolled_tracks.length === 0 ? (
+        {data.enrollments.length === 0 ? (
           <Card>
             <p className="py-6 text-center text-sm text-gray-500">
               You are not enrolled in any tracks yet.{' '}
@@ -178,31 +178,21 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {data.enrolled_tracks.map((enrollment) => {
-              const summary = data.progress_summary.find(
-                (s) => s.track_slug === enrollment.track_id,
-              );
-              return (
+            {data.enrollments.map((enrollment) => (
                 <Card key={enrollment.id} hover>
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-gray-900 capitalize">
-                        {summary?.track_slug?.replace(/-/g, ' ') ?? 'Track'}
+                        {enrollment.track_id?.replace(/-/g, ' ') ?? 'Track'}
                       </h3>
                       <Badge variant={enrollment.status === 'active' ? 'success' : 'default'}>
                         {enrollment.status}
                       </Badge>
                     </div>
                     <ProgressBar value={enrollment.progress_pct} showLabel />
-                    {summary && (
-                      <p className="text-xs text-gray-400">
-                        {summary.completed} / {summary.total} lessons completed
-                      </p>
-                    )}
                   </div>
                 </Card>
-              );
-            })}
+              ))}
           </div>
         )}
       </section>

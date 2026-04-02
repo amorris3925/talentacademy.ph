@@ -39,11 +39,11 @@ async function proxyToHenry(req: NextRequest, method: string) {
   const user = await getSupabaseUser()
 
   const headers: Record<string, string> = {
-    'X-Academy-API-Key': ACADEMY_API_KEY,
+    'Authorization': `Bearer ${ACADEMY_API_KEY}`,
   }
 
   if (user) {
-    headers['X-Academy-Learner-ID'] = user.id
+    headers['X-Academy-Auth-User-ID'] = user.id
   }
 
   // Determine content type and body

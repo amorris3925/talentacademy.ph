@@ -6,7 +6,7 @@ import { academyApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
 import { formatXp, getLevelColor } from '@/lib/utils';
 import { Card, Spinner, Avatar, Badge, Button, Select } from '@/components/ui';
-import type { LeaderboardEntry, PaginatedResponse } from '@/types';
+import type { LeaderboardEntry, LeaderboardResponse } from '@/types';
 
 const RANK_STYLES: Record<number, { bg: string; text: string; label: string }> = {
   1: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Gold' },
@@ -42,14 +42,14 @@ export default function LeaderboardPage() {
         if (cohortFilter) params.cohort = cohortFilter;
         if (trackFilter) params.track = trackFilter;
 
-        const res = await academyApi.get<PaginatedResponse<LeaderboardEntry>>(
+        const res = await academyApi.get<LeaderboardResponse>(
           '/leaderboard',
           params,
         );
 
-        setEntries((prev) => (reset ? res.data : [...prev, ...res.data]));
-        setCursor(res.cursor);
-        setHasMore(res.has_more);
+        setEntries((prev) => (reset ? res.leaderboard : [...prev, ...res.leaderboard]));
+        setCursor(res.next_cursor);
+        setHasMore(!!res.next_cursor);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load leaderboard');
       } finally {
@@ -132,13 +132,14 @@ export default function LeaderboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {entries.map((entry) => {
-                const isMe = entry.learner_id === learner?.id;
-                const rankStyle = RANK_STYLES[entry.rank];
+              {entries.map((entry, index) => {
+                const rank = index + 1;
+                const isMe = entry.id === learner?.id;
+                const rankStyle = RANK_STYLES[rank];
 
                 return (
                   <tr
-                    key={entry.learner_id}
+                    key={entry.id}
                     className={`transition-colors ${
                       isMe
                         ? 'bg-indigo-50/50'
@@ -150,11 +151,11 @@ export default function LeaderboardPage() {
                         <span
                           className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${rankStyle.bg} ${rankStyle.text}`}
                         >
-                          {entry.rank}
+                          {rank}
                         </span>
                       ) : (
                         <span className="inline-flex h-7 w-7 items-center justify-center text-sm font-medium text-gray-500">
-                          {entry.rank}
+                          {rank}
                         </span>
                       )}
                     </td>

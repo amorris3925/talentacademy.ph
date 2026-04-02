@@ -261,14 +261,13 @@ export interface CommunityPost {
 }
 
 export interface LeaderboardEntry {
-  learner_id: string;
+  id: string;
   first_name: string;
   last_name: string;
   avatar_url: string | null;
   xp_total: number;
   level: string;
   current_streak: number;
-  rank: number;
 }
 
 export interface TalentReview {
@@ -298,16 +297,12 @@ export interface RegisterPayload {
 // ─── Dashboard ──────────────────────────────────────────────────────────────
 
 export interface DashboardData {
-  xp: number;
+  xp_total: number;
   level: string;
-  streak: number;
-  enrolled_tracks: AcademyEnrollment[];
+  current_streak: number;
+  enrollments: AcademyEnrollment[];
   recent_badges: LearnerBadge[];
-  progress_summary: {
-    track_slug: string;
-    completed: number;
-    total: number;
-  }[];
+  recent_xp: { amount: number; reason: string; created_at: string }[];
 }
 
 // ─── Pagination ─────────────────────────────────────────────────────────────
@@ -316,4 +311,9 @@ export interface PaginatedResponse<T> {
   data: T[];
   cursor: string | null;
   has_more: boolean;
+}
+
+export interface LeaderboardResponse {
+  leaderboard: LeaderboardEntry[];
+  next_cursor: string | null;
 }

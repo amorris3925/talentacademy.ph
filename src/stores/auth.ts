@@ -39,8 +39,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
         if (session) {
           set({ session });
           try {
-            const learner = await academyApi.get<AcademyLearner>('/learner/profile');
-            set({ learner, isAuthenticated: true });
+            const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
+            set({ learner: res.learner, isAuthenticated: true });
           } catch {
             set({ learner: null, isAuthenticated: false });
           }
@@ -57,8 +57,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
               set({ learner: null, isAuthenticated: false });
             } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
               try {
-                const learner = await academyApi.get<AcademyLearner>('/learner/profile');
-                set({ learner, isAuthenticated: true });
+                const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
+                set({ learner: res.learner, isAuthenticated: true });
               } catch {
                 set({ learner: null, isAuthenticated: false });
               }
@@ -80,13 +80,17 @@ export const useAuthStore = create<AuthState>((set, get) => {
       } = await supabase.auth.getSession();
       set({ session });
 
-      const learner = await academyApi.get<AcademyLearner>('/learner/profile');
-      set({ learner, isAuthenticated: true });
+      const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
+      set({ learner: res.learner, isAuthenticated: true });
     },
 
     async register(data: RegisterPayload) {
+      // Let the backend handle auth user creation to avoid double creation
+      await academyApi.post<AcademyLearner>('/register', data);
+
+      // Establish session by signing in with the credentials
       const supabase = createBrowserClient();
-      const { error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
@@ -97,9 +101,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
       } = await supabase.auth.getSession();
       set({ session });
 
-      // Create learner profile on the Henry API side
-      const learner = await academyApi.post<AcademyLearner>('/register', data);
-      set({ learner, isAuthenticated: true });
+      const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
+      set({ learner: res.learner, isAuthenticated: true });
     },
 
     async logout() {
@@ -111,8 +114,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
     async refreshProfile() {
       if (!get().session) return;
       try {
-        const learner = await academyApi.get<AcademyLearner>('/learner/profile');
-        set({ learner, isAuthenticated: true });
+        const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
+        set({ learner: res.learner, isAuthenticated: true });
       } catch {
         // Profile fetch failed — leave current state
       }

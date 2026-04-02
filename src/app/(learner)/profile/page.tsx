@@ -6,8 +6,6 @@ import {
   Trophy,
   Star,
   Award,
-  Briefcase,
-  ExternalLink,
 } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 import { formatXp, formatDate, getLevelColor } from '@/lib/utils';
@@ -18,11 +16,15 @@ import type {
   AcademyEnrollment,
 } from '@/types';
 
+interface ProfileResponse {
+  learner: AcademyLearner;
+  badges: LearnerBadge[];
+}
+
 interface ProfileData {
   learner: AcademyLearner;
   badges: LearnerBadge[];
   enrollments: (AcademyEnrollment & { track_title?: string; track_slug?: string })[];
-  portfolio: { id: string; title: string; track_title: string; completed_at: string; url?: string }[];
 }
 
 export default function ProfilePage() {
@@ -34,8 +36,11 @@ export default function ProfilePage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await academyApi.get<ProfileData>('/learner/profile');
-        if (!cancelled) setData(res);
+        const [profileRes, enrollments] = await Promise.all([
+          academyApi.get<ProfileResponse>('/learner/profile'),
+          academyApi.get<(AcademyEnrollment & { track_title?: string; track_slug?: string })[]>('/enrollments'),
+        ]);
+        if (!cancelled) setData({ ...profileRes, enrollments });
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load profile');
       } finally {
@@ -61,7 +66,7 @@ export default function ProfilePage() {
     );
   }
 
-  const { learner, badges, enrollments, portfolio } = data;
+  const { learner, badges, enrollments } = data;
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -184,42 +189,6 @@ export default function ProfilePage() {
         )}
       </section>
 
-      {/* Portfolio */}
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Portfolio</h2>
-        {(!portfolio || portfolio.length === 0) ? (
-          <EmptyState
-            icon={Briefcase}
-            title="No projects yet"
-            description="Completed projects from your tracks will appear here."
-          />
-        ) : (
-          <div className="space-y-3">
-            {portfolio.map((project) => (
-              <Card key={project.id} hover>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{project.title}</p>
-                    <p className="text-xs text-gray-400">
-                      {project.track_title} &middot; {formatDate(project.completed_at)}
-                    </p>
-                  </div>
-                  {project.url && (
-                    <a
-                      href={project.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 hover:text-indigo-700"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }
