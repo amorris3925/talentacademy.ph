@@ -1,7 +1,10 @@
 import { createBrowserClient } from './supabase';
 
 function getApiUrl(): string {
-  return process.env.NEXT_PUBLIC_HENRY_API_URL ?? '';
+  // Always use relative path — requests go through the Next.js catch-all proxy
+  // at /api/academy/[...path] which forwards to Henry Bot with proper auth headers.
+  // NEVER call Henry directly from the browser.
+  return '';
 }
 
 const BASE_PATH = '/api/academy';
