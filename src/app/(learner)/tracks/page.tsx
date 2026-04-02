@@ -58,8 +58,25 @@ export default function TracksPage() {
   const handleEnroll = async (track: TrackWithMeta) => {
     setEnrolling(track.id);
     try {
-      await academyApi.post(`/enroll/${track.slug}`);
-      await fetchTracks();
+      const res = await academyApi.post<{ enrollment_id: string; track_slug: string; status: string }>(`/enroll/${track.slug}`);
+      // Optimistic update: mark the track as enrolled locally
+      setTracks((prev) =>
+        prev.map((t) =>
+          t.id === track.id
+            ? {
+                ...t,
+                enrollment: {
+                  id: res.enrollment_id,
+                  track_id: track.id,
+                  track_slug: track.slug,
+                  status: res.status || 'active',
+                  progress_pct: 0,
+                  enrolled_at: new Date().toISOString(),
+                } as AcademyEnrollment,
+              }
+            : t
+        )
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to enroll');
     } finally {

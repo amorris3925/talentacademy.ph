@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -27,7 +28,7 @@ const navItems = [
   { href: '/community', label: 'Community', icon: Users },
   { href: '/certificates', label: 'Certificates', icon: Award },
   { href: '/profile', label: 'Profile', icon: User },
-  { href: '/incubator', label: 'Incubator', icon: Rocket, comingSoon: true },
+  { href: '/incubator', label: 'Incubator', icon: Rocket, comingSoon: true, tooltip: 'App Incubator \u2014 Build production web apps, get assigned project briefs, and earn profit-sharing. Available at Expert level (5,000 XP).' },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -38,6 +39,15 @@ interface LearnerSidebarProps {
 
 export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps) {
   const pathname = usePathname()
+  const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
+
+  const handleMouseMove = useCallback((e: React.MouseEvent, text: string) => {
+    setTooltip({ text, x: e.clientX + 12, y: e.clientY - 8 })
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltip(null)
+  }, [])
 
   return (
     <>
@@ -77,6 +87,8 @@ export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps)
                   <li key={item.href}>
                     <div
                       className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium opacity-50 cursor-not-allowed text-gray-600"
+                      onMouseMove={item.tooltip ? (e) => handleMouseMove(e, item.tooltip!) : undefined}
+                      onMouseLeave={item.tooltip ? handleMouseLeave : undefined}
                     >
                       <item.icon className="h-5 w-5 text-gray-400" />
                       {item.label}
@@ -106,6 +118,16 @@ export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps)
           </ul>
         </nav>
       </aside>
+
+      {/* Mouse-following tooltip for coming-soon items */}
+      {tooltip && (
+        <div
+          className="pointer-events-none fixed z-[100] max-w-xs rounded-lg bg-gray-900 px-3 py-2 text-xs leading-relaxed text-white shadow-lg"
+          style={{ left: tooltip.x, top: tooltip.y }}
+        >
+          {tooltip.text}
+        </div>
+      )}
     </>
   )
 }

@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   Send,
   MessageSquare,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
@@ -19,11 +21,14 @@ interface QuestionWithAnswers extends CommunityPost {
   answers: CommunityPost[];
 }
 
+type FilterMode = 'recent' | 'popular' | 'unanswered';
+
 export default function CommunityPage() {
   const { learner } = useAuthStore();
   const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filterMode, setFilterMode] = useState<FilterMode>('recent');
 
   // New question form
   const [showAskForm, setShowAskForm] = useState(false);
@@ -34,6 +39,11 @@ export default function CommunityPage() {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [answerInputs, setAnswerInputs] = useState<Record<string, string>>({});
   const [submittingAnswer, setSubmittingAnswer] = useState<string | null>(null);
+
+  // Local votes: { [postId]: 1 | -1 | 0 }
+  const [votes, setVotes] = useState<Record<string, number>>({});
+  // Accumulated vote counts (visual only)
+  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -83,6 +93,21 @@ export default function CommunityPage() {
     });
   };
 
+  const handleVote = (postId: string, direction: 1 | -1) => {
+    setVotes((prev) => {
+      const current = prev[postId] ?? 0;
+      const newVote = current === direction ? 0 : direction;
+      return { ...prev, [postId]: newVote };
+    });
+    setVoteCounts((prev) => {
+      const currentVote = votes[postId] ?? 0;
+      const currentCount = prev[postId] ?? 0;
+      // Remove old vote, apply new
+      const newVote = currentVote === direction ? 0 : direction;
+      return { ...prev, [postId]: currentCount - currentVote + newVote };
+    });
+  };
+
   const handleAskQuestion = async () => {
     if (!newQuestion.trim()) return;
     setSubmittingQuestion(true);
@@ -112,6 +137,8 @@ export default function CommunityPage() {
         parent_id: questionId,
       });
       setAnswerInputs((prev) => ({ ...prev, [questionId]: '' }));
+      // Auto-expand the question to show the new answer
+      setExpandedIds((prev) => new Set(prev).add(questionId));
       await fetchPosts();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to post answer');
@@ -127,6 +154,67 @@ export default function CommunityPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to accept answer');
     }
+  };
+
+  // Filter and sort questions
+  const filteredQuestions = (() => {
+    let list = [...questions];
+    switch (filterMode) {
+      case 'popular':
+        list.sort((a, b) => {
+          const scoreA = (a.helpfulness_score ?? 0) + (voteCounts[a.id] ?? 0);
+          const scoreB = (b.helpfulness_score ?? 0) + (voteCounts[b.id] ?? 0);
+          return scoreB - scoreA;
+        });
+        break;
+      case 'unanswered':
+        list = list.filter((q) => q.answers.length === 0);
+        break;
+      case 'recent':
+      default:
+        // Already sorted by created_at desc from fetchPosts
+        break;
+    }
+    return list;
+  })();
+
+  const VoteButtons = ({ postId }: { postId: string }) => {
+    const myVote = votes[postId] ?? 0;
+    const count = voteCounts[postId] ?? 0;
+
+    return (
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); handleVote(postId, 1); }}
+          className={`rounded p-1 transition-colors ${
+            myVote === 1
+              ? 'text-indigo-600 bg-indigo-50'
+              : 'text-gray-400 hover:text-indigo-600 hover:bg-indigo-50'
+          }`}
+          title="Upvote"
+        >
+          <ThumbsUp className="h-3.5 w-3.5" />
+        </button>
+        <span className={`text-xs font-medium tabular-nums min-w-[1.25rem] text-center ${
+          count > 0 ? 'text-indigo-600' : count < 0 ? 'text-red-500' : 'text-gray-400'
+        }`}>
+          {count}
+        </span>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); handleVote(postId, -1); }}
+          className={`rounded p-1 transition-colors ${
+            myVote === -1
+              ? 'text-red-500 bg-red-50'
+              : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+          }`}
+          title="Downvote"
+        >
+          <ThumbsDown className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
   };
 
   if (loading) {
@@ -152,6 +240,28 @@ export default function CommunityPage() {
           <MessageCircleQuestion className="h-4 w-4" />
           Ask a Question
         </Button>
+      </div>
+
+      {/* Filter Buttons */}
+      <div className="flex gap-2">
+        {([
+          { key: 'recent', label: 'Most Recent' },
+          { key: 'popular', label: 'Most Popular' },
+          { key: 'unanswered', label: 'Unanswered' },
+        ] as const).map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => setFilterMode(f.key)}
+            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+              filterMode === f.key
+                ? 'bg-indigo-100 text-indigo-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {error && (
@@ -188,16 +298,16 @@ export default function CommunityPage() {
       )}
 
       {/* Questions List */}
-      {questions.length === 0 ? (
+      {filteredQuestions.length === 0 ? (
         <EmptyState
           icon={MessageSquare}
-          title="No questions yet"
-          description="Be the first to ask a question!"
+          title={filterMode === 'unanswered' ? 'No unanswered questions' : 'No questions yet'}
+          description={filterMode === 'unanswered' ? 'All questions have been answered!' : 'Be the first to ask a question!'}
           action={{ label: 'Ask a Question', onClick: () => setShowAskForm(true) }}
         />
       ) : (
         <div className="space-y-4">
-          {questions.map((q) => {
+          {filteredQuestions.map((q) => {
             const isExpanded = expandedIds.has(q.id);
             const isMyQuestion = q.author_id === learner?.id;
             const acceptedAnswer = q.answers.find((a) => a.is_accepted);
@@ -210,6 +320,11 @@ export default function CommunityPage() {
                   className="flex w-full items-start gap-3 text-left"
                   onClick={() => toggleExpanded(q.id)}
                 >
+                  {/* Vote buttons on left */}
+                  <div className="flex flex-col items-center pt-0.5">
+                    <VoteButtons postId={q.id} />
+                  </div>
+
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">{q.content}</p>
                     <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
@@ -233,7 +348,7 @@ export default function CommunityPage() {
                   )}
                 </button>
 
-                {/* Answers */}
+                {/* Answers (shown inline when expanded) */}
                 {isExpanded && (
                   <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
                     {q.answers.length === 0 && (
@@ -244,46 +359,58 @@ export default function CommunityPage() {
                       .sort((a, b) => {
                         if (a.is_accepted && !b.is_accepted) return -1;
                         if (!a.is_accepted && b.is_accepted) return 1;
+                        // Sort by vote count, then by date
+                        const aVotes = voteCounts[a.id] ?? 0;
+                        const bVotes = voteCounts[b.id] ?? 0;
+                        if (bVotes !== aVotes) return bVotes - aVotes;
                         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
                       })
                       .map((answer) => (
                         <div
                           key={answer.id}
-                          className={`rounded-lg border p-3 ${
+                          className={`ml-6 rounded-lg border p-3 ${
                             answer.is_accepted
                               ? 'border-green-200 bg-green-50/50'
                               : 'border-gray-100 bg-gray-50/50'
                           }`}
                         >
-                          <p className="text-sm text-gray-700">{answer.content}</p>
-                          <div className="mt-2 flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-xs text-gray-400">
-                              <span>{answer.author_name}</span>
-                              <span>{formatDate(answer.created_at)}</span>
+                          <div className="flex gap-3">
+                            {/* Vote buttons for answer */}
+                            <div className="flex flex-col items-center pt-0.5">
+                              <VoteButtons postId={answer.id} />
                             </div>
-                            <div className="flex items-center gap-2">
-                              {answer.is_accepted && (
-                                <Badge variant="success" size="sm">
-                                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                                  Accepted
-                                </Badge>
-                              )}
-                              {isMyQuestion && !acceptedAnswer && !answer.is_accepted && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleAcceptAnswer(answer.id)}
-                                >
-                                  Accept
-                                </Button>
-                              )}
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-700">{answer.content}</p>
+                              <div className="mt-2 flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-xs text-gray-400">
+                                  <span>{answer.author_name}</span>
+                                  <span>{formatDate(answer.created_at)}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {answer.is_accepted && (
+                                    <Badge variant="success" size="sm">
+                                      <CheckCircle2 className="mr-1 h-3 w-3" />
+                                      Accepted
+                                    </Badge>
+                                  )}
+                                  {isMyQuestion && !acceptedAnswer && !answer.is_accepted && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleAcceptAnswer(answer.id)}
+                                    >
+                                      Accept
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       ))}
 
                     {/* Answer input */}
-                    <div className="flex gap-2">
+                    <div className="ml-6 flex gap-2">
                       <input
                         type="text"
                         value={answerInputs[q.id] ?? ''}

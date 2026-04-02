@@ -122,12 +122,16 @@ export interface LessonProgress {
 
 export interface AcademyEnrollment {
   id: string;
-  learner_id: string;
+  learner_id?: string;
   track_id: string;
+  track_slug?: string;
+  track_title?: string;
+  track_icon?: string;
   status: string;
   progress_pct: number;
-  started_at: string;
-  completed_at: string | null;
+  started_at?: string;
+  enrolled_at?: string;
+  completed_at?: string | null;
 }
 
 // ─── Chat ───────────────────────────────────────────────────────────────────

@@ -176,11 +176,12 @@ export const academyApi = {
 
       buffer += decoder.decode(value, { stream: true });
 
-      // Process SSE lines
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
+      // Process complete SSE lines (delimited by \n\n or \n)
+      let newlineIdx: number;
+      while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
+        const line = buffer.slice(0, newlineIdx).trimEnd();
+        buffer = buffer.slice(newlineIdx + 1);
 
-      for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
           if (data === '[DONE]') return;
@@ -190,8 +191,9 @@ export const academyApi = {
     }
 
     // Flush remaining buffer
-    if (buffer.startsWith('data: ')) {
-      const data = buffer.slice(6);
+    const remaining = buffer.trim();
+    if (remaining.startsWith('data: ')) {
+      const data = remaining.slice(6);
       if (data !== '[DONE]') {
         onChunk?.(data);
       }

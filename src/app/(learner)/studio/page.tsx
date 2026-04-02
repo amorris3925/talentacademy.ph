@@ -16,7 +16,7 @@ export default function StudioPage() {
               Generation Studio
             </h1>
             <p className="text-sm text-gray-500">
-              Create images, videos, audio, and music with AI
+              Generate text, images, videos, audio, and music with AI
             </p>
           </div>
         </div>

@@ -82,27 +82,7 @@ async function proxyToHenry(req: NextRequest, method: string) {
     const response = await fetch(henryUrl, fetchOptions)
 
     if (isSSE && response.ok && response.body) {
-      // Stream SSE responses back
-      const stream = new ReadableStream({
-        async start(controller) {
-          const reader = response.body!.getReader()
-          const decoder = new TextDecoder()
-          try {
-            while (true) {
-              const { done, value } = await reader.read()
-              if (done) break
-              controller.enqueue(new TextEncoder().encode(decoder.decode(value, { stream: true })))
-            }
-          } catch (err) {
-            console.error('SSE stream error:', err)
-            controller.enqueue(new TextEncoder().encode('data: {"error":"Stream interrupted"}\n\n'))
-          } finally {
-            controller.close()
-          }
-        },
-      })
-
-      return new Response(stream, {
+      return new Response(response.body, {
         headers: {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',

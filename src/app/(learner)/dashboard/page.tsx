@@ -179,19 +179,21 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data.enrollments.map((enrollment) => (
-                <Card key={enrollment.id} hover>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-gray-900 capitalize">
-                        {enrollment.track_id?.replace(/-/g, ' ') ?? 'Track'}
-                      </h3>
-                      <Badge variant={enrollment.status === 'active' ? 'success' : 'default'}>
-                        {enrollment.status}
-                      </Badge>
+                <Link key={enrollment.id} href={`/tracks/${enrollment.track_slug || ''}`}>
+                  <Card hover>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-gray-900">
+                          {enrollment.track_title ?? enrollment.track_slug?.replace(/-/g, ' ') ?? 'Track'}
+                        </h3>
+                        <Badge variant={enrollment.status === 'active' ? 'success' : 'default'}>
+                          {enrollment.status}
+                        </Badge>
+                      </div>
+                      <ProgressBar value={enrollment.progress_pct} showLabel />
                     </div>
-                    <ProgressBar value={enrollment.progress_pct} showLabel />
-                  </div>
-                </Card>
+                  </Card>
+                </Link>
               ))}
           </div>
         )}
