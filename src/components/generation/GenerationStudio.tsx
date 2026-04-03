@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { MessageSquare, Image as ImageIcon, Video, Mic, Music } from 'lucide-react';
+import { MessageSquare, Image as ImageIcon, Video } from 'lucide-react';
 import { Tabs } from '@/components/ui';
 
 const LoadingSpinner = () => (
@@ -23,21 +23,11 @@ const VideoGenerator = dynamic(
   () => import('./VideoGenerator').then((m) => m.VideoGenerator),
   { ssr: false, loading: LoadingSpinner }
 );
-const AudioGenerator = dynamic(
-  () => import('./AudioGenerator').then((m) => m.AudioGenerator),
-  { ssr: false, loading: LoadingSpinner }
-);
-const MusicGenerator = dynamic(
-  () => import('./MusicGenerator').then((m) => m.MusicGenerator),
-  { ssr: false, loading: LoadingSpinner }
-);
 
 const tabs = [
   { key: 'chat', label: 'Chat', icon: <MessageSquare className="h-4 w-4" /> },
   { key: 'image', label: 'Image', icon: <ImageIcon className="h-4 w-4" /> },
   { key: 'video', label: 'Video', icon: <Video className="h-4 w-4" /> },
-  { key: 'audio', label: 'Audio', icon: <Mic className="h-4 w-4" /> },
-  { key: 'music', label: 'Music', icon: <Music className="h-4 w-4" /> },
 ];
 
 export function GenerationStudio() {
@@ -51,8 +41,6 @@ export function GenerationStudio() {
         {activeTab === 'chat' && <TextGenerator />}
         {activeTab === 'image' && <ImageGenerator />}
         {activeTab === 'video' && <VideoGenerator />}
-        {activeTab === 'audio' && <AudioGenerator />}
-        {activeTab === 'music' && <MusicGenerator />}
       </div>
     </div>
   );
