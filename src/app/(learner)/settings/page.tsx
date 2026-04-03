@@ -23,7 +23,6 @@ import {
   Modal,
   Spinner,
 } from '@/components/ui';
-import { cn } from '@/lib/utils';
 import type { AcademyLearner, LearnerSettings } from '@/types';
 
 export default function SettingsPage() {
@@ -339,11 +338,10 @@ function TrackPreferencesSection({
         }
         placeholder="No preference"
         options={[
-          { value: 'leadership', label: 'Leadership' },
-          { value: 'management', label: 'Management' },
-          { value: 'talent', label: 'Talent Development' },
-          { value: 'innovation', label: 'Innovation' },
-          { value: 'communications', label: 'Communications' },
+          { value: 'foundation', label: 'AI Foundation' },
+          { value: 'graphic-design', label: 'Graphic Design' },
+          { value: 'marketing', label: 'Marketing' },
+          { value: 'operations', label: 'Operations' },
         ]}
         disabled={isSaving}
       />
@@ -451,6 +449,7 @@ function AccountManagementSection() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleChangePassword = async () => {
@@ -464,7 +463,7 @@ function AccountManagementSection() {
       return;
     }
     try {
-      await changePassword(newPassword);
+      await changePassword(oldPassword, newPassword);
       setShowPasswordModal(false);
       setOldPassword('');
       setNewPassword('');
@@ -477,10 +476,10 @@ function AccountManagementSection() {
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') return;
+    if (deleteConfirmText !== 'DELETE' || !deletePassword) return;
     setDeleteError(null);
     try {
-      await deleteAccount();
+      await deleteAccount(deletePassword);
       window.location.href = '/login';
     } catch (err) {
       setDeleteError(
@@ -490,7 +489,7 @@ function AccountManagementSection() {
   };
 
   const handleExportData = () => {
-    // Export endpoint not implemented yet
+    // TODO: implement data export
   };
 
   return (
@@ -583,6 +582,7 @@ function AccountManagementSection() {
         onClose={() => {
           setShowDeleteModal(false);
           setDeleteConfirmText('');
+          setDeletePassword('');
         }}
         title="Delete Account"
         size="sm"
@@ -600,6 +600,13 @@ function AccountManagementSection() {
               </p>
             </div>
           </div>
+
+          <Input
+            label="Enter your password to confirm"
+            type="password"
+            value={deletePassword}
+            onChange={(e) => setDeletePassword(e.target.value)}
+          />
 
           <Input
             label='Type "DELETE" to confirm'
@@ -624,7 +631,7 @@ function AccountManagementSection() {
               variant="danger"
               size="sm"
               onClick={handleDeleteAccount}
-              disabled={deleteConfirmText !== 'DELETE'}
+              disabled={deleteConfirmText !== 'DELETE' || !deletePassword}
               isLoading={isSaving}
             >
               Delete My Account

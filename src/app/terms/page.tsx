@@ -23,7 +23,7 @@ export default function TermsPage() {
           <h2>1. Use of Service</h2>
           <p>
             AI Talent Academy provides an online learning platform for talent development. You must
-            be at least 18 years old to create an account and use the service.
+            be at least 16 years old to create an account and use the service.
           </p>
 
           <h2>2. User Accounts</h2>

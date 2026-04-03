@@ -43,7 +43,7 @@ export default function TrackDetailPage() {
 
   const fetchTrack = async () => {
     try {
-      const res = await academyApi.get<any>(`/tracks/${params.trackSlug}`);
+      const res = await academyApi.get<{ track: AcademyTrack; modules: ModuleWithLessons[] }>(`/tracks/${params.trackSlug}`);
       setTrack({ ...res.track, modules: res.modules || [] } as TrackDetail);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load track');
@@ -54,6 +54,7 @@ export default function TrackDetailPage() {
 
   useEffect(() => {
     fetchTrack();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.trackSlug]);
 
   const handleEnroll = async () => {

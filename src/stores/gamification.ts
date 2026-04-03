@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { toast } from 'sonner';
 import { academyApi } from '@/lib/api';
 import { formatXp } from '@/lib/utils';
-import type { LearnerBadge, XpLogEntry } from '@/types';
+import type { DashboardData, LearnerBadge, XpLogEntry } from '@/types';
 
 interface GamificationState {
   xp: number;
@@ -26,17 +26,14 @@ export const useGamificationStore = create<GamificationState>((set) => ({
 
   async loadStats() {
     try {
-      const [dashboard, profileRes] = await Promise.all([
-        academyApi.get<any>('/learner/dashboard'),
-        academyApi.get<any>('/learner/profile'),
-      ]);
+      const dashboard = await academyApi.get<DashboardData>('/learner/dashboard');
 
       set({
         xp: dashboard.xp_total ?? 0,
         level: dashboard.level ?? 'beginner',
         currentStreak: dashboard.current_streak ?? 0,
-        badges: profileRes.badges ?? [],
-        recentXpGains: (dashboard.recent_xp ?? []).map((x: any, i: number) => ({
+        badges: dashboard.recent_badges ?? [],
+        recentXpGains: (dashboard.recent_xp ?? []).map((x: { amount: number; source: string; created_at: string }, i: number) => ({
           id: String(i),
           learner_id: '',
           amount: x.amount,
@@ -47,13 +44,6 @@ export const useGamificationStore = create<GamificationState>((set) => ({
       });
     } catch (err) {
       console.error('Failed to load gamification stats:', err);
-      set({
-        xp: 0,
-        level: 'beginner',
-        currentStreak: 0,
-        badges: [],
-        recentXpGains: [],
-      });
     }
   },
 

@@ -23,7 +23,9 @@ export function AudioGenerator() {
   const [result, setResult] = useState<AcademyGeneration | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { generateAudio, isGenerating } = useGenerationStore();
+  const { generateAudio } = useGenerationStore();
+  const generatingTypes = useGenerationStore((s) => s.generatingTypes);
+  const isGenerating = generatingTypes.includes('audio');
 
   const handleGenerate = async () => {
     if (!text.trim()) return;
@@ -53,6 +55,7 @@ export function AudioGenerator() {
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter the text you want to convert to speech..."
           rows={4}
+          maxLength={2000}
           className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
         />
       </div>

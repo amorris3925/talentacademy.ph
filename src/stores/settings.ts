@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { academyApi } from '@/lib/api';
 import { createBrowserClient } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/auth';
 import type { AcademyLearner, LearnerSettings } from '@/types';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -18,8 +19,8 @@ interface SettingsState {
   updateSettings: (updates: Partial<LearnerSettings>) => Promise<void>;
   uploadCv: (file: File) => Promise<void>;
   uploadAvatar: (file: File) => Promise<void>;
-  changePassword: (newPassword: string) => Promise<void>;
-  deleteAccount: () => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -41,6 +42,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   },
 
   async updateProfile(updates: Partial<AcademyLearner>) {
+    if (saveTimer) clearTimeout(saveTimer);
     set({ isSaving: true, saveStatus: 'saving' });
     try {
       await academyApi.patch<{ updated: boolean }>('/settings', updates);
@@ -58,11 +60,12 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   },
 
   async updateSettings(updates: Partial<LearnerSettings>) {
+    if (saveTimer) clearTimeout(saveTimer);
     set({ isSaving: true, saveStatus: 'saving' });
     try {
       await academyApi.patch<{ updated: boolean }>('/settings', updates);
       set((state) => ({
-        settings: state.settings ? { ...state.settings, ...updates } : null,
+        settings: { ...(state.settings ?? {}), ...updates } as LearnerSettings,
         isSaving: false,
         saveStatus: 'saved',
       }));
@@ -74,18 +77,28 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     }
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async uploadCv(_file: File) {
     throw new Error('CV upload coming soon');
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async uploadAvatar(_file: File) {
     throw new Error('Avatar upload coming soon');
   },
 
-  async changePassword(newPassword: string) {
+  async changePassword(oldPassword: string, newPassword: string) {
     set({ isSaving: true, saveStatus: 'saving' });
     try {
       const sb = createBrowserClient();
+      const { data: userData } = await sb.auth.getUser();
+      if (userData.user?.email) {
+        const { error: reAuthError } = await sb.auth.signInWithPassword({
+          email: userData.user.email,
+          password: oldPassword,
+        });
+        if (reAuthError) throw new Error('Current password is incorrect');
+      }
       const { error } = await sb.auth.updateUser({ password: newPassword });
       if (error) throw error;
       set({ isSaving: false, saveStatus: 'saved' });
@@ -97,7 +110,17 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     }
   },
 
-  async deleteAccount() {
+  async deleteAccount(password: string) {
+    const sb = createBrowserClient();
+    const { data: userData } = await sb.auth.getUser();
+    if (userData.user?.email) {
+      const { error: reAuthError } = await sb.auth.signInWithPassword({
+        email: userData.user.email,
+        password,
+      });
+      if (reAuthError) throw new Error('Current password is incorrect');
+    }
     await academyApi.del('/account');
+    await useAuthStore.getState().logout();
   },
 }));

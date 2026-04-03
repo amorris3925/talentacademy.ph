@@ -53,7 +53,7 @@ const musicGenres = [
 
 export function GenerationBlock({ metadata }: GenerationBlockProps) {
   const [prompt, setPrompt] = useState('');
-  const [style, setStyle] = useState('');
+  const [style, setStyle] = useState('realistic');
   const [voice, setVoice] = useState('alloy');
   const [genre, setGenre] = useState('ambient');
   const [result, setResult] = useState<AcademyGeneration | null>(null);

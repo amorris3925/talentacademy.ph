@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Flame, Trophy } from 'lucide-react';
+import { Flame } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
 import { formatXp, getLevelColor } from '@/lib/utils';
-import { Card, Spinner, Avatar, Badge, Button, Select } from '@/components/ui';
+import { Card, Spinner, Badge, Button, Select, Avatar } from '@/components/ui';
 import type { LeaderboardEntry, LeaderboardResponse } from '@/types';
 
 const RANK_STYLES: Record<number, { bg: string; text: string; label: string }> = {
@@ -20,7 +20,6 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cursor, setCursor] = useState<string | null>(null);
   const cursorRef = useRef<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [cohortFilter, setCohortFilter] = useState('');
@@ -51,7 +50,6 @@ export default function LeaderboardPage() {
 
         setEntries((prev) => (reset ? res.leaderboard : [...prev, ...res.leaderboard]));
         const nextCursor = res.next_cursor ?? null;
-        setCursor(nextCursor);
         cursorRef.current = nextCursor;
         setHasMore(!!res.next_cursor);
       } catch (err) {
@@ -66,7 +64,7 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     fetchLeaderboard(true);
-  }, [cohortFilter, trackFilter]);
+  }, [fetchLeaderboard]);
 
   if (loading) {
     return (
@@ -137,7 +135,7 @@ export default function LeaderboardPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {entries.map((entry, index) => {
-                const rank = index + 1;
+                const rank = (entry as LeaderboardEntry & { rank?: number }).rank ?? index + 1;
                 const isMe = entry.id === learner?.id;
                 const rankStyle = RANK_STYLES[rank];
 

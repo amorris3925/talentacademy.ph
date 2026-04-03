@@ -13,6 +13,7 @@ export default function PromptChips({ prompts }: { prompts: Prompt[] }) {
     <div className="flex flex-wrap gap-2 my-4">
       {prompts.map((p, i) => (
         <button
+          type="button"
           key={i}
           onClick={() => triggerPrompt(p.text)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"

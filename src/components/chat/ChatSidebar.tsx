@@ -11,9 +11,10 @@ import OutputRating from './OutputRating';
 
 interface ChatSidebarProps {
   lessonId?: string;
+  lessonTitle?: string;
 }
 
-export function ChatSidebar({ lessonId }: ChatSidebarProps) {
+export function ChatSidebar({ lessonId, lessonTitle }: ChatSidebarProps) {
   const {
     messages,
     isStreaming,
@@ -26,18 +27,23 @@ export function ChatSidebar({ lessonId }: ChatSidebarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const didLoad = useRef(false);
 
+  // Reset didLoad when lessonId changes so history re-fetches
+  useEffect(() => {
+    didLoad.current = false;
+  }, [lessonId]);
+
   // Load chat history and set lesson context
   useEffect(() => {
     if (didLoad.current) return;
     didLoad.current = true;
 
     if (lessonId) {
-      setLessonContext({ lessonId, lessonTitle: '' });
+      setLessonContext({ lessonId, lessonTitle: lessonTitle || '' });
     }
     loadHistory(lessonId).catch(() => {
       // Failed to load history — start fresh
     });
-  }, [lessonId, loadHistory, setLessonContext]);
+  }, [lessonId, lessonTitle, loadHistory, setLessonContext]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -56,7 +62,7 @@ export function ChatSidebar({ lessonId }: ChatSidebarProps) {
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-3">
+      <div ref={scrollRef} role="log" aria-live="polite" className="flex-1 space-y-2 overflow-y-auto p-3">
         {messages.length === 0 && !isStreaming && (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100">

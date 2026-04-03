@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/utils';
@@ -10,7 +11,7 @@ interface ChatMessageProps {
   message: AcademyChatMessage;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export const ChatMessage = memo(function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
 
   return (
@@ -61,4 +62,4 @@ export function ChatMessage({ message }: ChatMessageProps) {
       </div>
     </div>
   );
-}
+});

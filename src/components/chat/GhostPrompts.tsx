@@ -27,6 +27,7 @@ export default function GhostPrompts() {
       <Lightbulb className="h-3.5 w-3.5 text-amber-500 mt-1 shrink-0" />
       {prompts.map((p, i) => (
         <button
+          type="button"
           key={i}
           onClick={() => triggerPrompt(p)}
           className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"

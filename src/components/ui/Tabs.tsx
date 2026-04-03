@@ -35,6 +35,7 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
             aria-selected={isActive}
             tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(tab.key)}
+            data-key={tab.key}
             onKeyDown={(e) => {
               const idx = tabs.findIndex((t) => t.key === tab.key);
               let nextIdx = -1;
@@ -43,6 +44,7 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
               if (nextIdx >= 0) {
                 e.preventDefault();
                 onChange(tabs[nextIdx].key);
+                (document.querySelector(`[role="tab"][data-key="${tabs[nextIdx].key}"]`) as HTMLElement)?.focus();
               }
             }}
             className={cn(

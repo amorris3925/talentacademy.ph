@@ -52,11 +52,18 @@ export default function RegisterPage() {
   const [acceptTerms, setAcceptTerms] = useState(false)
 
   function canProceedStep1() {
-    return firstName && lastName && email && age && sex && maritalStatus
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const ageNum = parseInt(age);
+    return firstName.trim() && lastName.trim() && emailRegex.test(email) && ageNum >= 16 && ageNum <= 65 && sex && maritalStatus
   }
 
   function canProceedStep2() {
-    return (profileMode === 'cv' && cvUrl) || (profileMode === 'website' && websiteUrl)
+    if (profileMode === 'cv') return !!cvUrl;
+    if (profileMode === 'website') {
+      try { const u = new URL(websiteUrl); return ['http:', 'https:'].includes(u.protocol); }
+      catch { return false; }
+    }
+    return false;
   }
 
   function canProceedStep3() {
@@ -64,6 +71,7 @@ export default function RegisterPage() {
   }
 
   async function handleCvUpload(file: File) {
+    if (file.size > 10 * 1024 * 1024) { setError('File size must be under 10MB'); return; }
     setIsUploading(true)
     setError('')
     try {
@@ -152,7 +160,7 @@ export default function RegisterPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>
+            <div role="alert" className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>
           )}
 
           {/* Step 1: Personal Info */}
@@ -164,34 +172,39 @@ export default function RegisterPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="register-firstName" className="block text-sm font-medium text-gray-700 mb-1">
                       First Name *
                     </label>
                     <input
+                      id="register-firstName"
                       type="text"
                       required
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
+                      maxLength={100}
                       className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="register-lastName" className="block text-sm font-medium text-gray-700 mb-1">
                       Last Name *
                     </label>
                     <input
+                      id="register-lastName"
                       type="text"
                       required
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
+                      maxLength={100}
                       className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <label htmlFor="register-email" className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                   <input
+                    id="register-email"
                     type="email"
                     required
                     value={email}
@@ -201,10 +214,11 @@ export default function RegisterPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Age *</label>
+                    <label htmlFor="register-age" className="block text-sm font-medium text-gray-700 mb-1">Age *</label>
                     <input
+                      id="register-age"
                       type="number"
                       min="16"
                       max="65"
@@ -215,8 +229,9 @@ export default function RegisterPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Sex *</label>
+                    <label htmlFor="register-sex" className="block text-sm font-medium text-gray-700 mb-1">Sex *</label>
                     <select
+                      id="register-sex"
                       required
                       value={sex}
                       onChange={(e) => setSex(e.target.value)}
@@ -229,10 +244,11 @@ export default function RegisterPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="register-maritalStatus" className="block text-sm font-medium text-gray-700 mb-1">
                       Marital Status *
                     </label>
                     <select
+                      id="register-maritalStatus"
                       required
                       value={maritalStatus}
                       onChange={(e) => setMaritalStatus(e.target.value)}
@@ -347,10 +363,11 @@ export default function RegisterPage() {
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="register-websiteUrl" className="block text-sm font-medium text-gray-700 mb-1">
                     Website URL *
                   </label>
                   <input
+                    id="register-websiteUrl"
                     type="url"
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
@@ -388,10 +405,11 @@ export default function RegisterPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="register-password" className="block text-sm font-medium text-gray-700 mb-1">
                     Password *
                   </label>
                   <input
+                    id="register-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -401,10 +419,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="register-confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                     Confirm Password *
                   </label>
                   <input
+                    id="register-confirmPassword"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -420,10 +439,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="register-phone" className="block text-sm font-medium text-gray-700 mb-1">
                     Phone Number (optional)
                   </label>
                   <input
+                    id="register-phone"
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}

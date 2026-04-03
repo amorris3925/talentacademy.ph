@@ -14,6 +14,7 @@ export default function AdminLearnersPage() {
 
   useEffect(() => {
     loadLearners()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function loadLearners(loadMore = false) {

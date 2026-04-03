@@ -40,7 +40,7 @@ export default function ModulePage() {
   useEffect(() => {
     async function fetchModule() {
       try {
-        const res = await academyApi.get<any>(`/tracks/${params.trackSlug}`);
+        const res = await academyApi.get<{ track: AcademyTrack; modules: ModuleWithLessons[] }>(`/tracks/${params.trackSlug}`);
         const trackData = res.track as AcademyTrack;
         const modules = (res.modules || []) as ModuleWithLessons[];
         const mod = modules.find((m) => m.slug === params.moduleSlug) ?? null;

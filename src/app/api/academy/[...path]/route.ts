@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
-const HENRY_API_URL = process.env.NEXT_PUBLIC_HENRY_API_URL || 'http://localhost:8081'
+const HENRY_API_URL = process.env.HENRY_API_URL || process.env.NEXT_PUBLIC_HENRY_API_URL || 'http://localhost:8081'
 const ACADEMY_API_KEY = process.env.ACADEMY_API_KEY || ''
 
 async function getSupabaseUser() {
@@ -42,6 +42,19 @@ async function proxyToHenry(req: NextRequest, method: string) {
 
   const url = new URL(req.url)
   const pathSegments = url.pathname.replace('/api/academy/', '')
+
+  // SECURITY: Prevent SSRF via path traversal
+  if (
+    pathSegments.includes('..') ||
+    pathSegments.startsWith('/') ||
+    pathSegments.includes('\\')
+  ) {
+    return NextResponse.json(
+      { error: 'Invalid path', code: 'INVALID_PATH' },
+      { status: 400 }
+    )
+  }
+
   const henryUrl = `${HENRY_API_URL}/api/academy/${pathSegments}${url.search}`
 
   const user = await getSupabaseUser()

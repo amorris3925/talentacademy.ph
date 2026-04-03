@@ -25,6 +25,10 @@ function toEmbedUrl(url: string): string {
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
   if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
 
+  // Loom
+  const loomMatch = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/);
+  if (loomMatch) return `https://www.loom.com/embed/${loomMatch[1]}`;
+
   return url;
 }
 
@@ -43,6 +47,8 @@ export function VideoBlock({ content, metadata }: VideoBlockProps) {
             title={metadata.title || 'Video'}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            loading="lazy"
             className="absolute inset-0 h-full w-full rounded-lg"
           />
         </div>

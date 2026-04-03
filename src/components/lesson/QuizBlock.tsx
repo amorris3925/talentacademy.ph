@@ -66,7 +66,7 @@ export function QuizBlock({ content, metadata }: QuizBlockProps) {
 
       {/* Options */}
       <div className="space-y-2 p-4">
-        {metadata.options.map((option, index) => {
+        {(Array.isArray(metadata.options) ? metadata.options : []).map((option, index) => {
           const isSelected = selectedIndex === index;
           const isCorrectOption = index === metadata.correct_index;
 

@@ -40,9 +40,11 @@ export function Avatar({
       aria-label={alt || fallback}
     >
       {showImage ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
         <img
           src={src}
           alt={alt}
+          aria-hidden="true"
           onError={() => setImgError(true)}
           className="h-full w-full object-cover"
         />

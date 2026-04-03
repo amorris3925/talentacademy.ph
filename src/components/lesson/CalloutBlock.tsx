@@ -46,7 +46,7 @@ const calloutConfig: Record<
 
 export function CalloutBlock({ content, metadata }: CalloutBlockProps) {
   const type = metadata.type || 'info';
-  const config = calloutConfig[type];
+  const config = calloutConfig[type] ?? calloutConfig.info;
   const Icon = config.icon;
 
   return (

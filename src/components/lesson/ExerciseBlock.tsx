@@ -1,10 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Play, Send, RotateCcw, CheckCircle2, XCircle } from 'lucide-react';
-import { academyApi } from '@/lib/api';
+import { Play, Send, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui';
-import { cn } from '@/lib/utils';
 
 interface ExerciseBlockProps {
   content: string;
@@ -15,67 +13,11 @@ interface ExerciseBlockProps {
   };
 }
 
-interface SandboxResult {
-  output: string;
-  error?: string;
-}
-
-interface GradeResult {
-  passed: boolean;
-  score: number;
-  feedback: string;
-}
-
 export function ExerciseBlock({ content, metadata }: ExerciseBlockProps) {
   const [code, setCode] = useState(metadata.starter_code || '');
-  const [output, setOutput] = useState<string | null>(null);
-  const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleRun = async () => {
-    setIsRunning(true);
-    setOutput(null);
-    setGradeResult(null);
-    try {
-      const result = await academyApi.post<SandboxResult>('/sandbox', {
-        code,
-        language: metadata.language || 'python',
-      });
-      setOutput(result.error || result.output);
-    } catch (err) {
-      setOutput(
-        `Error: ${err instanceof Error ? err.message : 'Failed to run code'}`,
-      );
-    } finally {
-      setIsRunning(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    setGradeResult(null);
-    try {
-      const result = await academyApi.post<GradeResult>('/grade', {
-        lesson_id: metadata.lesson_id,
-        submission_data: { code, language: metadata.language || 'python' },
-      });
-      setGradeResult(result);
-    } catch (err) {
-      setGradeResult({
-        passed: false,
-        score: 0,
-        feedback: err instanceof Error ? err.message : 'Grading failed',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleReset = () => {
     setCode(metadata.starter_code || '');
-    setOutput(null);
-    setGradeResult(null);
   };
 
   return (
@@ -126,53 +68,6 @@ export function ExerciseBlock({ content, metadata }: ExerciseBlockProps) {
         </Button>
       </div>
 
-      {/* Output Panel */}
-      {output !== null && (
-        <div className="border-t border-gray-200 bg-gray-950 p-4">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500">
-            Output
-          </p>
-          <pre className="whitespace-pre-wrap font-mono text-sm text-gray-300">
-            {output || '(no output)'}
-          </pre>
-        </div>
-      )}
-
-      {/* Grading Feedback */}
-      {gradeResult && (
-        <div
-          className={cn(
-            'border-t p-4',
-            gradeResult.passed
-              ? 'border-green-200 bg-green-50'
-              : 'border-red-200 bg-red-50',
-          )}
-        >
-          <div className="flex items-start gap-2">
-            {gradeResult.passed ? (
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-            ) : (
-              <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-            )}
-            <div>
-              <p
-                className={cn(
-                  'text-sm font-semibold',
-                  gradeResult.passed ? 'text-green-800' : 'text-red-800',
-                )}
-              >
-                {gradeResult.passed ? 'Passed!' : 'Not quite right'}{' '}
-                <span className="font-normal text-gray-600">
-                  (Score: {gradeResult.score}%)
-                </span>
-              </p>
-              <p className="mt-1 text-sm text-gray-700">
-                {gradeResult.feedback}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

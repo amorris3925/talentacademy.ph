@@ -18,6 +18,9 @@ interface ModalProps {
   size?: keyof typeof sizeClasses;
 }
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function Modal({
   isOpen,
   onClose,
@@ -25,22 +28,69 @@ export function Modal({
   children,
   size = 'md',
 }: ModalProps) {
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<Element | null>(null);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      // Focus trap: cycle Tab within the modal
+      if (e.key === 'Tab' && panelRef.current) {
+        const focusable = panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
     },
     [onClose],
   );
 
   useEffect(() => {
     if (!isOpen) return;
+
+    // Save the element that had focus before the modal opened
+    previousFocusRef.current = document.activeElement;
+
     document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
+
+    // Auto-focus the first focusable element inside the modal
+    requestAnimationFrame(() => {
+      if (panelRef.current) {
+        const focusable = panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+        if (focusable.length > 0) {
+          focusable[0].focus();
+        } else {
+          panelRef.current.focus();
+        }
+      }
+    });
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
+
+      // Restore focus to the element that opened the modal
+      if (previousFocusRef.current instanceof HTMLElement) {
+        previousFocusRef.current.focus();
+      }
     };
   }, [isOpen, handleKeyDown]);
 
@@ -48,10 +98,6 @@ export function Modal({
 
   return (
     <div
-      ref={overlayRef}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
       {/* Backdrop */}
@@ -63,6 +109,11 @@ export function Modal({
 
       {/* Panel */}
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || 'Dialog'}
+        tabIndex={-1}
         className={cn(
           'relative z-10 w-full rounded-xl bg-white shadow-xl',
           'animate-in fade-in zoom-in-95 duration-200',
@@ -79,7 +130,7 @@ export function Modal({
               className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               aria-label="Close dialog"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
         )}
@@ -95,7 +146,7 @@ export function Modal({
             className="absolute right-3 top-3 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             aria-label="Close dialog"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         )}
       </div>

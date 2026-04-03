@@ -40,7 +40,7 @@ export default function ProfilePage() {
       try {
         const [profileRes, enrollmentsRes] = await Promise.all([
           academyApi.get<ProfileResponse>('/learner/profile'),
-          academyApi.get<any>('/enrollments'),
+          academyApi.get<{ enrollments: (AcademyEnrollment & { track_title?: string; track_slug?: string })[] }>('/enrollments'),
         ]);
         if (!cancelled) setData({ ...profileRes, enrollments: enrollmentsRes.enrollments || [] });
       } catch (err) {
@@ -190,10 +190,10 @@ export default function ProfilePage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-50 text-xl">
                   {lb.badge.icon ?? '🏅'}
                 </div>
-                <span className="text-center text-[10px] font-semibold text-gray-800 leading-tight">
+                <span className="text-center text-xs font-semibold text-gray-800 leading-tight">
                   {lb.badge.title}
                 </span>
-                <span className="text-[9px] text-gray-400">{formatDate(lb.earned_at)}</span>
+                <span className="text-xs text-gray-500">{formatDate(lb.earned_at)}</span>
               </div>
             ))}
           </div>

@@ -1,29 +1,33 @@
 'use client'
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { useInteractionStore } from '@/stores/interaction'
 
 export default function HighlightToAsk() {
   const { selectedText, selectedRect, setSelectedText, triggerPrompt } = useInteractionStore()
+  const popupRef = useRef<HTMLDivElement>(null)
 
   const handleMouseUp = useCallback(() => {
     const selection = window.getSelection()
-    const text = selection?.toString().trim()
+    if (!selection || selection.rangeCount === 0) return
+
+    const text = selection.toString().trim()
 
     if (!text || text.length < 3) {
-      setSelectedText(null)
       return
     }
 
-    const range = selection?.getRangeAt(0)
-    const rect = range?.getBoundingClientRect()
+    const range = selection.getRangeAt(0)
+    const rect = range.getBoundingClientRect()
     if (rect) {
-      setSelectedText(text, { top: rect.top + window.scrollY, left: rect.left, bottom: rect.bottom + window.scrollY })
+      // Store viewport-relative coords for fixed positioning
+      setSelectedText(text, { top: rect.top, left: rect.left, bottom: rect.bottom })
     }
   }, [setSelectedText])
 
-  const handleMouseDown = useCallback(() => {
-    // Clear selection on new click
+  const handleMouseDown = useCallback((e: MouseEvent) => {
+    // Don't clear selection if clicking inside the popup (prevents click race)
+    if (popupRef.current?.contains(e.target as Node)) return
     setSelectedText(null)
   }, [setSelectedText])
 
@@ -50,6 +54,7 @@ export default function HighlightToAsk() {
 
   return (
     <div
+      ref={popupRef}
       className="fixed z-50 animate-in fade-in"
       style={{
         top: selectedRect.bottom + 8,
@@ -57,10 +62,11 @@ export default function HighlightToAsk() {
       }}
     >
       <button
+        type="button"
         onClick={handleAskAI}
         className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow-lg hover:bg-indigo-500 transition-colors"
       >
-        <MessageCircle className="h-4 w-4" />
+        <MessageCircle className="h-4 w-4" aria-hidden="true" />
         Ask AI about this
       </button>
     </div>

@@ -29,6 +29,7 @@ export function ProgressBar({
         aria-valuenow={clamped}
         aria-valuemin={0}
         aria-valuemax={100}
+        aria-label="Progress"
         className={cn(
           'w-full overflow-hidden rounded-full bg-gray-200',
           sizeClasses[size],

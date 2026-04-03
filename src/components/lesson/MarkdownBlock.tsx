@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import DOMPurify from 'dompurify';
 import { useInteractionStore } from '@/stores/interaction';
 
@@ -8,16 +8,28 @@ interface MarkdownBlockProps {
   content: string;
 }
 
-export function MarkdownBlock({ content }: MarkdownBlockProps) {
+export const MarkdownBlock = memo(function MarkdownBlock({ content }: MarkdownBlockProps) {
   const triggerPrompt = useInteractionStore((s) => s.triggerPrompt);
 
   const processedContent = useMemo(() => {
-    let html = DOMPurify.sanitize(content);
-    // Replace {{prompt: "text"}} with clickable elements
-    html = html.replace(
+    if (typeof window === 'undefined') return content;
+
+    // SECURITY: Replace {{prompt: "text"}} BEFORE sanitization so DOMPurify
+    // can sanitize the injected button elements. This prevents post-sanitization XSS.
+    let html = content.replace(
       /\{\{prompt:\s*"([^"]+)"\}\}/g,
-      '<button class="inline-prompt-chip" data-prompt="$1">\uD83D\uDCAD $1</button>',
+      (_match: string, p1: string) => {
+        // Escape the prompt text for safe HTML attribute/content insertion
+        const escaped = p1.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<button type="button" class="inline-prompt-chip" data-prompt="${escaped}">\uD83D\uDCAD ${escaped}</button>`;
+      },
     );
+    html = DOMPurify.sanitize(html, {
+      ADD_TAGS: ['button'],
+      ADD_ATTR: ['data-prompt'],
+      FORBID_TAGS: ['form', 'input', 'textarea', 'select', 'style', 'iframe', 'object', 'embed'],
+      FORBID_ATTR: ['style'],
+    });
     return html;
   }, [content]);
 
@@ -36,4 +48,4 @@ export function MarkdownBlock({ content }: MarkdownBlockProps) {
       dangerouslySetInnerHTML={{ __html: processedContent }}
     />
   );
-}
+});

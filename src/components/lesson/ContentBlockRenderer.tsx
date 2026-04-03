@@ -1,17 +1,34 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import type { ContentBlock } from '@/types';
 import { MarkdownBlock } from './MarkdownBlock';
-import { CodeBlock } from './CodeBlock';
-import { VideoBlock } from './VideoBlock';
 import { ImageBlock } from './ImageBlock';
 import { CalloutBlock } from './CalloutBlock';
-import { ExerciseBlock } from './ExerciseBlock';
-import { QuizBlock } from './QuizBlock';
-import { GenerationBlock } from './GenerationBlock';
 import PromptChips from './PromptChips';
 import ProgressiveHints from './ProgressiveHints';
 import Checkpoint from './Checkpoint';
+
+const CodeBlock = dynamic(
+  () => import('./CodeBlock').then((m) => m.CodeBlock),
+  { ssr: false }
+);
+const VideoBlock = dynamic(
+  () => import('./VideoBlock').then((m) => m.VideoBlock),
+  { ssr: false }
+);
+const ExerciseBlock = dynamic(
+  () => import('./ExerciseBlock').then((m) => m.ExerciseBlock),
+  { ssr: false }
+);
+const QuizBlock = dynamic(
+  () => import('./QuizBlock').then((m) => m.QuizBlock),
+  { ssr: false }
+);
+const GenerationBlock = dynamic(
+  () => import('./GenerationBlock').then((m) => m.GenerationBlock),
+  { ssr: false }
+);
 
 interface ContentBlockRendererProps {
   blocks: ContentBlock[];

@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState } from 'react';
 import { Download, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { AcademyGeneration } from '@/types';
 
 function WaveformVisualizer() {
-  const waveformHeights = useMemo(() => Array.from({ length: 40 }, () => Math.random() * 100), []);
+  const [waveformHeights] = useState(() => Array.from({ length: 40 }, () => Math.random() * 100));
   return (
     <div className="flex h-12 items-end justify-center gap-0.5">
       {waveformHeights.map((h, i) => (

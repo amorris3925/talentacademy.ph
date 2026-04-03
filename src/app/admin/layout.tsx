@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useAuthStore } from '@/stores/auth'
 import {
   LayoutDashboard,
   Users,
@@ -22,6 +24,28 @@ const adminNav = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { learner, isLoading, initialize } = useAuthStore()
+
+  useEffect(() => {
+    initialize()
+  }, [initialize])
+
+  useEffect(() => {
+    if (!isLoading && !learner) {
+      router.push('/login')
+    }
+  }, [isLoading, learner, router])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent" />
+      </div>
+    )
+  }
+
+  if (!learner) return null
 
   return (
     <div className="min-h-screen bg-gray-50">

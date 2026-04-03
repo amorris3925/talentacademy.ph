@@ -5,7 +5,6 @@ import {
   Award,
   Share2,
   CheckCircle2,
-  BookOpen,
 } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
@@ -22,7 +21,7 @@ export default function CertificatesPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await academyApi.get<any>('/learner/certificates');
+        const res = await academyApi.get<{ certificates: Certificate[] }>('/learner/certificates');
         if (!cancelled) setCertificates(res.certificates || []);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load certificates');

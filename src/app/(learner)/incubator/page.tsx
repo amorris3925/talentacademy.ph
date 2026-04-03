@@ -1,6 +1,6 @@
 'use client';
 
-import { Rocket, Lock } from 'lucide-react';
+import { Rocket } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { formatXp } from '@/lib/utils';
 import { Card, Badge, ProgressBar } from '@/components/ui';

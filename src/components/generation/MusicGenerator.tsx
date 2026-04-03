@@ -28,7 +28,9 @@ export function MusicGenerator() {
   const [result, setResult] = useState<AcademyGeneration | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { generateMusic, isGenerating } = useGenerationStore();
+  const { generateMusic } = useGenerationStore();
+  const generatingTypes = useGenerationStore((s) => s.generatingTypes);
+  const isGenerating = generatingTypes.includes('music');
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -59,6 +61,7 @@ export function MusicGenerator() {
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="A calming lo-fi track with soft piano and rain sounds..."
           rows={4}
+          maxLength={2000}
           className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
         />
       </div>

@@ -79,6 +79,8 @@ function summarizeContentBlocks(blocks: ContentBlock[]): string {
   return parts.join('\n');
 }
 
+let streamAbortController: AbortController | null = null;
+
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isStreaming: false,
@@ -86,6 +88,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
   lessonContext: null,
 
   async sendMessage(content: string) {
+    if (get().isStreaming) return;
+    streamAbortController?.abort();
+    streamAbortController = new AbortController();
     const { messages, lessonContext } = get();
 
     // Add user message optimistically
@@ -104,6 +109,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }));
 
     let accumulated = '';
+    let rafId: number | null = null;
+    let pendingContent = '';
 
     try {
       await academyApi.stream(
@@ -124,15 +131,25 @@ export const useChatStore = create<ChatState>((set, get) => ({
             const parsed = JSON.parse(chunk);
             if (parsed.content) {
               accumulated += parsed.content;
-              set({ streamingContent: accumulated });
             }
           } catch {
             // Plain text chunk
             accumulated += chunk;
-            set({ streamingContent: accumulated });
+          }
+          pendingContent = accumulated;
+          if (!rafId) {
+            rafId = requestAnimationFrame(() => {
+              set({ streamingContent: pendingContent });
+              rafId = null;
+            });
           }
         },
+        streamAbortController.signal,
       );
+
+      // Flush any pending RAF update
+      if (rafId) cancelAnimationFrame(rafId);
+      set({ streamingContent: accumulated });
 
       // Streaming complete — push assistant message
       const assistantMsg: AcademyChatMessage = {
@@ -149,6 +166,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
         streamingContent: '',
       }));
     } catch (err) {
+      // Flush any pending RAF update
+      if (rafId) cancelAnimationFrame(rafId);
+
       // On error, add an error message from assistant
       const errorMsg: AcademyChatMessage = {
         id: `temp-${Date.now()}-error`,
@@ -163,23 +183,28 @@ export const useChatStore = create<ChatState>((set, get) => ({
         isStreaming: false,
         streamingContent: '',
       }));
+    } finally {
+      streamAbortController = null;
     }
   },
 
   async sendFromInteraction() {
-    const { pendingPrompt, pendingPromptContext, clearPendingPrompt } = useInteractionStore.getState()
+    const { pendingPrompt, clearPendingPrompt } = useInteractionStore.getState()
     if (!pendingPrompt) return
     clearPendingPrompt()
     // Call the existing sendMessage logic with the prompt
-    get().sendMessage(pendingPrompt)
+    await get().sendMessage(pendingPrompt)
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async loadHistory(_lessonId?: string) {
     // No chat history endpoint exists — start fresh each session
     set({ messages: [] });
   },
 
   clearHistory() {
+    streamAbortController?.abort();
+    streamAbortController = null;
     set({ messages: [], streamingContent: '' });
   },
 

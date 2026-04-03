@@ -16,17 +16,15 @@ export default function Checkpoint({ id, title, instructions, keywords }: Checkp
   const { completedCheckpoints, completeCheckpoint, triggerPrompt } = useInteractionStore()
   const messages = useChatStore((s) => s.messages)
 
-  const isUnlocked = completedCheckpoints.has(id)
+  const isUnlocked = completedCheckpoints.includes(id)
 
   // Monitor chat messages for keyword matches
   useEffect(() => {
     if (isUnlocked) return
 
-    const lowerKeywords = keywords.map((k) => k.toLowerCase())
-
     for (const msg of messages) {
-      const lowerContent = msg.content.toLowerCase()
-      if (lowerKeywords.some((kw) => lowerContent.includes(kw))) {
+      if (typeof msg.content !== 'string') continue
+      if (keywords.some((kw) => new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i').test(msg.content))) {
         completeCheckpoint(id)
         break
       }

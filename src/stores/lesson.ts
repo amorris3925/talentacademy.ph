@@ -38,8 +38,8 @@ export const useLessonStore = create<LessonState>((set, get) => {
     set({ isLoading: true, error: null });
     try {
       const [lessonRes, trackRes] = await Promise.all([
-        academyApi.get<any>(`/lessons/${lessonSlug}`),
-        academyApi.get<any>(`/tracks/${trackSlug}`),
+        academyApi.get<{ lesson: AcademyLesson }>(`/lessons/${lessonSlug}`),
+        academyApi.get<{ track: AcademyTrack; modules: AcademyModule[] }>(`/tracks/${trackSlug}`),
       ]);
       // Discard result if a newer request was started
       if (requestId !== currentRequestId) return;
@@ -54,7 +54,7 @@ export const useLessonStore = create<LessonState>((set, get) => {
         lesson.content_blocks = []
       }
 
-      const mod = (trackRes.modules || []).find((m: any) => m.slug === moduleSlug);
+      const mod = (trackRes.modules || []).find((m: AcademyModule) => m.slug === moduleSlug);
       set({
         currentLesson: lesson,
         currentModule: mod ?? null,
@@ -64,7 +64,7 @@ export const useLessonStore = create<LessonState>((set, get) => {
 
       // Fetch progress for this lesson (non-blocking)
       try {
-        const progressRes = await academyApi.get<any>(`/learner/progress/${lesson.id}`);
+        const progressRes = await academyApi.get<LessonProgress>(`/learner/progress/${lesson.id}`);
         if (requestId !== currentRequestId) return;
         set({ progress: progressRes ?? null });
       } catch {
@@ -72,7 +72,7 @@ export const useLessonStore = create<LessonState>((set, get) => {
         if (requestId !== currentRequestId) return;
         set({ progress: null });
       }
-    } catch (err) {
+    } catch {
       if (requestId !== currentRequestId) return;
       set({ error: 'Failed to load lesson', isLoading: false });
     }
@@ -81,6 +81,7 @@ export const useLessonStore = create<LessonState>((set, get) => {
   async markComplete() {
     const { currentLesson } = get();
     if (!currentLesson) return;
+    set({ error: null });
 
     try {
       const updated = await academyApi.post<LessonProgress>(
@@ -97,6 +98,7 @@ export const useLessonStore = create<LessonState>((set, get) => {
   async updateProgress(data: Partial<LessonProgress>) {
     const { currentLesson } = get();
     if (!currentLesson) return;
+    set({ error: null });
 
     try {
       const updated = await academyApi.post<LessonProgress>(

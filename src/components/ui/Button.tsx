@@ -54,6 +54,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           sizeClasses[size],
           className,
         )}
+        type="button"
         {...props}
       >
         {isLoading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}

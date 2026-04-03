@@ -29,7 +29,9 @@ export function ImageGenerator() {
   const [result, setResult] = useState<AcademyGeneration | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { generateImage, isGenerating } = useGenerationStore();
+  const { generateImage } = useGenerationStore();
+  const generatingTypes = useGenerationStore((s) => s.generatingTypes);
+  const isGenerating = generatingTypes.includes('image');
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -60,6 +62,7 @@ export function ImageGenerator() {
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="A vibrant sunset over a tropical beach with palm trees..."
           rows={4}
+          maxLength={2000}
           className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
         />
       </div>

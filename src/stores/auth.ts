@@ -117,11 +117,15 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
     async logout() {
       const supabase = createBrowserClient();
+      authSubscription?.unsubscribe();
+      authSubscription = null;
+      listenerSetUp = false;
       await supabase.auth.signOut();
       set({ learner: null, session: null, isAuthenticated: false });
       useChatStore.setState({ messages: [], isStreaming: false, streamingContent: '' });
       useGamificationStore.setState({ xp: 0, level: 'beginner', currentStreak: 0, badges: [], recentXpGains: [] });
-      useGenerationStore.setState({ generations: [], activeGeneration: null, isGenerating: false });
+      useGenerationStore.getState().cancelPolling();
+      useGenerationStore.setState({ generations: [], activeGeneration: null, isGenerating: false, generatingTypes: [] });
       useInteractionStore.getState().reset();
       useLessonStore.setState({ currentLesson: null, currentModule: null, currentTrack: null, progress: null });
       useSettingsStore.setState({ profile: {}, settings: null, isSaving: false, saveStatus: 'idle' });

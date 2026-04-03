@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 import { Lightbulb, ChevronDown } from 'lucide-react'
 import { useInteractionStore } from '@/stores/interaction'
 
@@ -20,7 +19,7 @@ export default function ProgressiveHints({ hints, blockId }: ProgressiveHintsPro
     <div className="my-4 rounded-lg border-l-4 border-amber-400 bg-amber-50 p-4">
       {/* Revealed hints */}
       {revealedCount > 0 && (
-        <div className="mb-3 space-y-2">
+        <div className="mb-3 space-y-2" aria-live="polite">
           {hints.slice(0, revealedCount).map((hint, i) => (
             <div key={i} className="flex gap-2 text-sm text-amber-900">
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-200 text-xs font-bold text-amber-800">
@@ -35,6 +34,7 @@ export default function ProgressiveHints({ hints, blockId }: ProgressiveHintsPro
       {/* Reveal button */}
       {remaining > 0 && (
         <button
+          type="button"
           onClick={() => revealHint(blockId)}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 hover:text-amber-900 transition-colors"
         >

@@ -11,16 +11,24 @@ export default function AdminTalentPage() {
   const [filter, setFilter] = useState<'all' | 'talent' | 'leader'>('all')
 
   useEffect(() => {
-    setIsLoading(true)
+    let cancelled = false
     const params: Record<string, string> = { limit: '50' }
+    if (filter === 'all') params.flagged = 'true'
     if (filter === 'talent') params.flagged_talent = 'true'
     if (filter === 'leader') params.flagged_leader = 'true'
 
-    academyApi
-      .get<PaginatedResponse<AcademyLearner>>('/admin/learners', params)
-      .then((res) => setLearners(res.data))
-      .catch(console.error)
-      .finally(() => setIsLoading(false))
+    async function fetchLearners() {
+      try {
+        const res = await academyApi.get<PaginatedResponse<AcademyLearner>>('/admin/learners', params)
+        if (!cancelled) setLearners(res.data)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    }
+    fetchLearners()
+    return () => { cancelled = true }
   }, [filter])
 
   return (

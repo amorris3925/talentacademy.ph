@@ -100,15 +100,16 @@ export default function ResetPasswordPage() {
               <p className="text-gray-600 mb-6">Enter your new password below.</p>
 
               {error && (
-                <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>
+                <div role="alert" className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
                     New Password
                   </label>
                   <input
+                    id="new-password"
                     type="password"
                     required
                     value={password}
@@ -119,10 +120,11 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
                     Confirm Password
                   </label>
                   <input
+                    id="confirm-password"
                     type="password"
                     required
                     value={confirmPassword}

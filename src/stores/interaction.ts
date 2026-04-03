@@ -15,7 +15,7 @@ interface InteractionState {
   pendingPromptContext: string | null
 
   // Checkpoint tracking
-  completedCheckpoints: Set<string>
+  completedCheckpoints: string[]
 
   // Hint usage tracking
   hintUsage: Record<string, number> // blockId -> hints revealed count
@@ -37,7 +37,7 @@ export const useInteractionStore = create<InteractionState>((set, get) => ({
   selectedRect: null,
   pendingPrompt: null,
   pendingPromptContext: null,
-  completedCheckpoints: new Set(),
+  completedCheckpoints: [],
   hintUsage: {},
 
   setActiveBlock: (id, type = null) => set({ activeBlockId: id, activeBlockType: type }),
@@ -49,9 +49,8 @@ export const useInteractionStore = create<InteractionState>((set, get) => ({
   clearPendingPrompt: () => set({ pendingPrompt: null, pendingPromptContext: null }),
 
   completeCheckpoint: (id) => set((state) => {
-    const newSet = new Set(state.completedCheckpoints)
-    newSet.add(id)
-    return { completedCheckpoints: newSet }
+    if (state.completedCheckpoints.includes(id)) return state;
+    return { completedCheckpoints: [...state.completedCheckpoints, id] }
   }),
 
   revealHint: (blockId) => {
@@ -68,7 +67,7 @@ export const useInteractionStore = create<InteractionState>((set, get) => ({
     selectedRect: null,
     pendingPrompt: null,
     pendingPromptContext: null,
-    completedCheckpoints: new Set(),
+    completedCheckpoints: [],
     hintUsage: {},
   }),
 }))

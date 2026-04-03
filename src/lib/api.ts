@@ -1,18 +1,10 @@
 import { createBrowserClient } from './supabase';
 
-function getApiUrl(): string {
-  // Always use relative path — requests go through the Next.js catch-all proxy
-  // at /api/academy/[...path] which forwards to Henry Bot with proper auth headers.
-  // NEVER call Henry directly from the browser.
-  return '';
-}
-
 const BASE_PATH = '/api/academy';
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+async function getAuthHeaders(includeContentType = true): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
+  if (includeContentType) headers['Content-Type'] = 'application/json';
 
   try {
     const supabase = createBrowserClient();
@@ -29,24 +21,8 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   return headers;
 }
 
-async function getAuthHeaderOnly(): Promise<Record<string, string>> {
-  const headers: Record<string, string> = {};
-  try {
-    const supabase = createBrowserClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (session?.access_token) {
-      headers['Authorization'] = `Bearer ${session.access_token}`;
-    }
-  } catch {
-    // noop
-  }
-  return headers;
-}
-
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(`${getApiUrl()}${BASE_PATH}${path}`, window.location.origin);
+  const url = new URL(`${BASE_PATH}${path}`, window.location.origin);
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined) {
@@ -88,7 +64,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
     throw new Error(formatErrorMessage(response.status, text));
   }
   if (response.status === 204 || response.headers.get('content-length') === '0') {
-    return null as T;
+    return undefined as unknown as T;
   }
   return response.json() as Promise<T>;
 }
@@ -139,7 +115,7 @@ export const academyApi = {
   },
 
   async upload<T>(path: string, file: File, fieldName: string = 'file'): Promise<T> {
-    const headers = await getAuthHeaderOnly();
+    const headers = await getAuthHeaders(false);
     const formData = new FormData();
     formData.append(fieldName, file);
     const response = await fetch(buildUrl(path), {
@@ -155,13 +131,19 @@ export const academyApi = {
     path: string,
     body?: unknown,
     onChunk?: (chunk: string) => void,
+    signal?: AbortSignal,
   ): Promise<void> {
     const headers = await getAuthHeaders();
     headers['Accept'] = 'text/event-stream';
+
+    // Use provided signal, or default to 2-minute timeout for streaming
+    const streamSignal = signal ?? AbortSignal.timeout(120000);
+
     const response = await fetch(buildUrl(path), {
       method: 'POST',
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: streamSignal,
     });
 
     if (!response.ok) {

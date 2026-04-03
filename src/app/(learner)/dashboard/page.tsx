@@ -16,7 +16,7 @@ import { academyApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
 import { useChatStore } from '@/stores/chat';
 import { formatXp, formatDate, getLevelColor } from '@/lib/utils';
-import { Card, Spinner, Badge, ProgressBar, Avatar } from '@/components/ui';
+import { Card, Spinner, Badge, ProgressBar } from '@/components/ui';
 import { ChatMarkdown } from '@/components/chat/ChatMarkdown';
 import type { DashboardData } from '@/types';
 
@@ -116,7 +116,7 @@ export default function DashboardPage() {
           <div className="mt-3">
             <ProgressBar value={xpProgress.pct} showLabel />
             {nextLevel && (
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-gray-500">
                 {xpProgress.current} / {xpProgress.target} XP to{' '}
                 <span className="capitalize">{nextLevel}</span>
               </p>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
               <Flame className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-3 text-xs text-gray-400">Keep learning daily to grow your streak!</p>
+          <p className="mt-3 text-xs text-gray-500">Keep learning daily to grow your streak!</p>
         </Card>
 
         {/* Level Card */}
@@ -153,12 +153,12 @@ export default function DashboardPage() {
             </div>
           </div>
           {nextLevel ? (
-            <p className="mt-3 text-xs text-gray-400">
+            <p className="mt-3 text-xs text-gray-500">
               Reach {formatXp(XP_THRESHOLDS[nextLevel])} to unlock{' '}
               <span className="capitalize">{nextLevel}</span>
             </p>
           ) : (
-            <p className="mt-3 text-xs text-gray-400">You have reached the highest level!</p>
+            <p className="mt-3 text-xs text-gray-500">You have reached the highest level!</p>
           )}
         </Card>
       </div>
@@ -217,7 +217,7 @@ export default function DashboardPage() {
                   {lb.badge.icon ?? '🏅'}
                 </div>
                 <span className="text-xs font-semibold text-gray-800">{lb.badge.title}</span>
-                <span className="text-[10px] text-gray-400">{formatDate(lb.earned_at)}</span>
+                <span className="text-[10px] text-gray-500">{formatDate(lb.earned_at)}</span>
               </div>
             ))}
           </div>
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-semibold text-gray-900">Continue Learning</p>
                     <p className="text-xs text-gray-500">Pick up where you left off</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-4 w-4 text-gray-500 transition-transform group-hover:translate-x-1" />
                 </div>
               </Card>
             </Link>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-semibold text-gray-900">AI Studio</p>
                     <p className="text-xs text-gray-500">Create with AI tools</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-4 w-4 text-gray-500 transition-transform group-hover:translate-x-1" />
                 </div>
               </Card>
             </Link>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-semibold text-gray-900">Community</p>
                     <p className="text-xs text-gray-500">Ask questions &amp; connect</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-4 w-4 text-gray-500 transition-transform group-hover:translate-x-1" />
                 </div>
               </Card>
             </Link>
@@ -402,10 +402,11 @@ function DashboardChat() {
           <textarea
             ref={inputRef}
             onKeyDown={handleKeyDown}
+            aria-label="Chat with AI assistant"
             placeholder="Ask something..."
             rows={1}
             disabled={isStreaming}
-            className="flex-1 resize-none rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 disabled:opacity-60"
+            className="flex-1 resize-none rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 disabled:opacity-60"
           />
           <button
             type="button"

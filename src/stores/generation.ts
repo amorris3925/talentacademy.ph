@@ -14,7 +14,7 @@ interface GenerationState {
   generations: AcademyGeneration[];
   activeGeneration: AcademyGeneration | null;
   isGenerating: boolean;
-  generatingTypes: Set<string>;
+  generatingTypes: string[];
   cancelPolling: () => void;
 
   generateImage: (prompt: string, params?: ImageGenParams) => Promise<AcademyGeneration>;
@@ -32,27 +32,26 @@ async function startGeneration(
 ): Promise<AcademyGeneration> {
   const body: Record<string, unknown> =
     genType === 'audio' ? { text: prompt, ...params } : { prompt, ...params };
-  const res = await academyApi.post<any>(`/generate/${genType}`, body);
+  const res = await academyApi.post<AcademyGeneration & { generation_id?: string }>(`/generate/${genType}`, body);
   // Map generation_id to id for consistency with frontend type
   return { ...res, id: res.generation_id ?? res.id } as AcademyGeneration;
 }
 
 export const useGenerationStore = create<GenerationState>((set, get) => {
-  let pollAbortController: AbortController | null = null;
+  const pollControllers = new Map<string, AbortController>();
 
   function addGeneratingType(type: string) {
     set((state) => {
-      const next = new Set(state.generatingTypes);
-      next.add(type);
+      if (state.generatingTypes.includes(type)) return state;
+      const next = [...state.generatingTypes, type];
       return { generatingTypes: next, isGenerating: true };
     });
   }
 
   function removeGeneratingType(type: string) {
     set((state) => {
-      const next = new Set(state.generatingTypes);
-      next.delete(type);
-      return { generatingTypes: next, isGenerating: next.size > 0 };
+      const next = state.generatingTypes.filter((t) => t !== type);
+      return { generatingTypes: next, isGenerating: next.length > 0 };
     });
   }
 
@@ -60,11 +59,11 @@ export const useGenerationStore = create<GenerationState>((set, get) => {
   generations: [],
   activeGeneration: null,
   isGenerating: false,
-  generatingTypes: new Set<string>(),
+  generatingTypes: [],
 
   cancelPolling() {
-    pollAbortController?.abort();
-    pollAbortController = null;
+    pollControllers.forEach((c) => c.abort());
+    pollControllers.clear();
   },
 
   async generateImage(prompt: string, params?: ImageGenParams) {
@@ -131,17 +130,17 @@ export const useGenerationStore = create<GenerationState>((set, get) => {
     const POLL_INTERVAL = 2000;
     const MAX_POLLS = 150; // 5 minutes max
 
-    // Cancel any previous polling
-    pollAbortController?.abort();
+    // Cancel any previous polling for this generation
+    pollControllers.get(generationId)?.abort();
     const controller = new AbortController();
-    pollAbortController = controller;
+    pollControllers.set(generationId, controller);
 
     for (let i = 0; i < MAX_POLLS; i++) {
       if (controller.signal.aborted) {
         throw new Error('Polling cancelled');
       }
 
-      const res = await academyApi.get<any>(`/generate/${generationId}/status`);
+      const res = await academyApi.get<AcademyGeneration & { generation_id?: string }>(`/generate/${generationId}/status`);
       const gen = { ...res, id: res.generation_id ?? res.id } as AcademyGeneration;
 
       if (controller.signal.aborted) {
@@ -155,6 +154,7 @@ export const useGenerationStore = create<GenerationState>((set, get) => {
       }));
 
       if (gen.status === 'completed' || gen.status === 'failed') {
+        pollControllers.delete(generationId);
         return gen;
       }
 
@@ -167,6 +167,7 @@ export const useGenerationStore = create<GenerationState>((set, get) => {
       });
     }
 
+    pollControllers.delete(generationId);
     throw new Error('Generation timed out');
   },
 
@@ -175,8 +176,8 @@ export const useGenerationStore = create<GenerationState>((set, get) => {
       const params: Record<string, string> = {};
       if (type) params.type = type;
 
-      const res = await academyApi.get<any>('/learner/generations', params);
-      const generations = (res.generations ?? []).map((g: any) => ({
+      const res = await academyApi.get<{ generations: (AcademyGeneration & { generation_id?: string })[] }>('/learner/generations', params);
+      const generations = (res.generations ?? []).map((g: AcademyGeneration & { generation_id?: string }) => ({
         ...g,
         id: g.generation_id ?? g.id,
       })) as AcademyGeneration[];

@@ -34,6 +34,8 @@ export function VideoGenerator() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 10 * 1024 * 1024) { setError('Image must be under 10MB'); return; }
     setSourceImageName(file.name);
     const reader = new FileReader();
     reader.onload = () => {
@@ -70,6 +72,7 @@ export function VideoGenerator() {
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="A drone shot flying over a mountain range at golden hour..."
           rows={4}
+          maxLength={2000}
           className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
         />
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   ChevronRight,
   ChevronLeft,
@@ -19,7 +20,7 @@ import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { Button, Spinner } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { formatXp } from '@/lib/utils';
-import type { AcademyLesson } from '@/types';
+import type { AcademyLesson, AcademyModule } from '@/types';
 
 export default function LessonPage() {
   const params = useParams<{
@@ -99,7 +100,7 @@ export default function LessonPage() {
       const modules = currentTrack.modules || [];
 
       for (const mod of modules) {
-        const modLessons = (mod as any).lessons || [];
+        const modLessons = (mod as AcademyModule & { lessons?: AcademyLesson[] }).lessons || [];
         for (const l of modLessons) {
           allLessons.push({ slug: l.slug, moduleSlug: mod.slug });
         }
@@ -159,14 +160,14 @@ export default function LessonPage() {
     <div className="-m-4 sm:-m-6 lg:-m-8 flex h-[calc(100vh-4rem)] flex-col">
       {/* Breadcrumb + Navigation */}
       <div className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-2.5 md:px-6">
-        <nav className="flex items-center gap-1 text-sm">
-          <span className="text-gray-500 hover:text-gray-700">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm">
+          <Link href={`/tracks/${params.trackSlug}`} className="text-gray-500 hover:text-gray-700">
             {currentTrack?.title || 'Track'}
-          </span>
+          </Link>
           <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
-          <span className="text-gray-500 hover:text-gray-700">
+          <Link href={`/tracks/${params.trackSlug}/${params.moduleSlug}`} className="text-gray-500 hover:text-gray-700">
             {currentModule?.title || 'Module'}
-          </span>
+          </Link>
           <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
           <span className="font-medium text-gray-900">
             {currentLesson.title}
@@ -187,9 +188,11 @@ export default function LessonPage() {
       </div>
 
       {/* Mobile Tab Toggle */}
-      <div className="flex shrink-0 border-b border-gray-200 bg-white md:hidden">
+      <div role="tablist" className="flex shrink-0 border-b border-gray-200 bg-white md:hidden">
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'lesson'}
           onClick={() => setActiveTab('lesson')}
           className={cn(
             'flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors',
@@ -203,6 +206,8 @@ export default function LessonPage() {
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'chat'}
           onClick={() => setActiveTab('chat')}
           className={cn(
             'flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors',
