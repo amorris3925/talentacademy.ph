@@ -42,7 +42,7 @@ export default function OnboardingPage() {
     setError('');
 
     try {
-      await academyApi.patch('/learner/profile', {
+      await academyApi.patch('/settings', {
         work_type: workType,
         specialization: specialization || null,
       });
