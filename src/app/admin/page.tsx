@@ -5,12 +5,18 @@ import { Users, BookOpen, Trophy, TrendingUp, AlertTriangle } from 'lucide-react
 import { academyApi } from '@/lib/api'
 
 interface AdminStats {
-  total_learners: number
-  active_learners: number
-  total_enrollments: number
-  completion_rate: number
-  flagged_talent: number
-  flagged_leaders: number
+  // Backend returns these fields
+  total_registered?: number
+  total_learners?: number
+  active_learners?: number
+  total_enrollments?: number
+  total_completions?: number
+  completion_rate?: number
+  total_flagged_talent?: number
+  flagged_talent?: number
+  total_flagged_leaders?: number
+  flagged_leaders?: number
+  // Funnel fields (may or may not exist)
   registered?: number
   onboarded?: number
   foundation_enrolled?: number
@@ -20,10 +26,12 @@ interface AdminStats {
 }
 
 interface ActivityEvent {
-  timestamp: string
+  timestamp?: string
+  created_at?: string
+  client_ts?: string
   event_type: string
   learner_name: string
-  metadata?: Record<string, string>
+  metadata?: Record<string, unknown>
 }
 
 const EVENT_COLORS: Record<string, string> = {
@@ -37,8 +45,15 @@ const EVENT_COLORS: Record<string, string> = {
   logout: 'bg-red-100 text-red-700',
 }
 
+function getEventTime(event: ActivityEvent): string {
+  return event.created_at || event.client_ts || event.timestamp || ''
+}
+
 function relativeTime(timestamp: string): string {
-  const diff = Date.now() - new Date(timestamp).getTime()
+  if (!timestamp) return ''
+  const date = new Date(timestamp)
+  if (isNaN(date.getTime())) return ''
+  const diff = Date.now() - date.getTime()
   const seconds = Math.floor(diff / 1000)
   if (seconds < 60) return `${seconds}s ago`
   const minutes = Math.floor(seconds / 60)
@@ -79,7 +94,7 @@ export default function AdminOverview() {
   const statCards = [
     {
       label: 'Total Learners',
-      value: stats?.total_learners ?? 0,
+      value: stats?.total_registered ?? stats?.total_learners ?? 0,
       icon: Users,
       color: 'bg-blue-500',
     },
@@ -97,13 +112,13 @@ export default function AdminOverview() {
     },
     {
       label: 'Flagged Talent',
-      value: stats?.flagged_talent ?? 0,
+      value: stats?.total_flagged_talent ?? stats?.flagged_talent ?? 0,
       icon: Trophy,
       color: 'bg-amber-500',
     },
     {
       label: 'Flagged Leaders',
-      value: stats?.flagged_leaders ?? 0,
+      value: stats?.total_flagged_leaders ?? stats?.flagged_leaders ?? 0,
       icon: AlertTriangle,
       color: 'bg-red-500',
     },
@@ -111,10 +126,10 @@ export default function AdminOverview() {
 
   const funnelSteps = stats
     ? [
-        { label: 'Registered', value: stats.registered ?? 0 },
+        { label: 'Registered', value: stats.total_registered ?? stats.registered ?? 0 },
         { label: 'Onboarded', value: stats.onboarded ?? 0 },
-        { label: 'Foundation Enrolled', value: stats.foundation_enrolled ?? 0 },
-        { label: 'Foundation Completed', value: stats.foundation_completed ?? 0 },
+        { label: 'Enrolled', value: stats.total_enrollments ?? stats.foundation_enrolled ?? 0 },
+        { label: 'Completed', value: stats.total_completions ?? stats.foundation_completed ?? 0 },
         { label: 'Specialty Enrolled', value: stats.specialty_enrolled ?? 0 },
         { label: 'Specialty Completed', value: stats.specialty_completed ?? 0 },
       ]
@@ -159,11 +174,11 @@ export default function AdminOverview() {
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {activity.map((event, i) => (
                 <div
-                  key={`${event.timestamp}-${i}`}
+                  key={`${getEventTime(event)}-${i}`}
                   className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0"
                 >
                   <span className="text-xs text-gray-400 w-16 shrink-0">
-                    {relativeTime(event.timestamp)}
+                    {relativeTime(getEventTime(event))}
                   </span>
                   <span
                     className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${EVENT_COLORS[event.event_type] ?? 'bg-gray-100 text-gray-700'}`}
@@ -173,9 +188,9 @@ export default function AdminOverview() {
                   <span className="text-sm font-medium text-gray-700 truncate">
                     {event.learner_name}
                   </span>
-                  {event.metadata?.lesson_name && (
+                  {typeof event.metadata?.lesson_name === 'string' && (
                     <span className="text-xs text-gray-400 truncate ml-auto">
-                      {event.metadata.lesson_name}
+                      {String(event.metadata.lesson_name)}
                     </span>
                   )}
                 </div>

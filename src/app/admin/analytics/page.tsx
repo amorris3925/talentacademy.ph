@@ -17,12 +17,16 @@ import {
 } from 'recharts'
 
 interface FunnelData {
-  registered: number
-  onboarded: number
-  foundation_enrolled: number
-  foundation_completed: number
-  specialty_enrolled: number
-  specialty_completed: number
+  total_registered?: number
+  registered?: number
+  onboarded?: number
+  total_enrollments?: number
+  foundation_enrolled?: number
+  total_completions?: number
+  foundation_completed?: number
+  specialty_enrolled?: number
+  specialty_completed?: number
+  [key: string]: unknown
 }
 
 interface ScoreDistribution {
@@ -36,8 +40,10 @@ interface DailyActive {
 }
 
 interface DeviceEntry {
-  device: string
-  count: number
+  device?: string
+  device_type?: string
+  count?: number
+  session_count?: number
 }
 
 const DEVICE_COLORS: Record<string, string> = {
@@ -82,7 +88,11 @@ export default function AdminAnalyticsPage() {
           setScores([])
         }
         setDailyActive(Array.isArray(dauData) ? dauData : (dauData as { data: DailyActive[] })?.data ?? [])
-        setDevices(Array.isArray(deviceData) ? deviceData : (deviceData as { breakdown: DeviceEntry[] })?.breakdown ?? [])
+        const rawDevices = Array.isArray(deviceData) ? deviceData : (deviceData as { breakdown: DeviceEntry[] })?.breakdown ?? []
+        setDevices(rawDevices.map((d: DeviceEntry) => ({
+          device: d.device ?? d.device_type ?? 'unknown',
+          count: d.count ?? d.session_count ?? 0,
+        })))
       })
       .finally(() => setIsLoading(false))
   }, [])
@@ -97,12 +107,12 @@ export default function AdminAnalyticsPage() {
 
   const funnelSteps = funnel
     ? [
-        { label: 'Registered', value: funnel.registered ?? 0 },
-        { label: 'Onboarded', value: funnel.onboarded ?? 0 },
-        { label: 'Foundation Enrolled', value: funnel.foundation_enrolled ?? 0 },
-        { label: 'Foundation Completed', value: funnel.foundation_completed ?? 0 },
-        { label: 'Specialty Enrolled', value: funnel.specialty_enrolled ?? 0 },
-        { label: 'Specialty Completed', value: funnel.specialty_completed ?? 0 },
+        { label: 'Registered', value: (funnel.total_registered ?? funnel.registered ?? 0) as number },
+        { label: 'Onboarded', value: (funnel.onboarded ?? 0) as number },
+        { label: 'Enrolled', value: (funnel.total_enrollments ?? funnel.foundation_enrolled ?? 0) as number },
+        { label: 'Completed', value: (funnel.total_completions ?? funnel.foundation_completed ?? 0) as number },
+        { label: 'Specialty Enrolled', value: (funnel.specialty_enrolled ?? 0) as number },
+        { label: 'Specialty Completed', value: (funnel.specialty_completed ?? 0) as number },
       ]
     : []
 
@@ -236,8 +246,8 @@ export default function AdminAnalyticsPage() {
                   >
                     {devices.map((entry) => (
                       <Cell
-                        key={entry.device}
-                        fill={DEVICE_COLORS[entry.device] ?? DEVICE_COLORS.unknown}
+                        key={entry.device ?? 'unknown'}
+                        fill={DEVICE_COLORS[entry.device ?? 'unknown'] ?? DEVICE_COLORS.unknown}
                       />
                     ))}
                   </Pie>
