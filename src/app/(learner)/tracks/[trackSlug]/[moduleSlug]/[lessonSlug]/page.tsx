@@ -116,7 +116,13 @@ export default function LessonPage() {
       if (currentIdx === -1) return;
 
       const targetIdx = direction === 'prev' ? currentIdx - 1 : currentIdx + 1;
-      if (targetIdx < 0 || targetIdx >= allLessons.length) return;
+
+      if (targetIdx >= allLessons.length) {
+        // Last lesson in track — go to tracks page to pick next track
+        router.push('/tracks');
+        return;
+      }
+      if (targetIdx < 0) return;
 
       const target = allLessons[targetIdx];
       router.push(`/tracks/${params.trackSlug}/${target.moduleSlug}/${target.slug}`);
