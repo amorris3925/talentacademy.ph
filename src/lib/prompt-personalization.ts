@@ -62,12 +62,18 @@ export function getPersonalizedPrompts(
   specialization: string | null | undefined,
   lessonTitle?: string,
 ): Prompt[] {
-  if (!workType) return basePrompts;
+  if (!workType) {
+    return basePrompts.length > 0 ? basePrompts : [
+      { label: 'Explain this', text: 'Can you explain this concept simply?' },
+      { label: 'Real-world example', text: 'Give me a real-world example' },
+      { label: 'Practice exercise', text: 'Give me a practice exercise for this topic' },
+    ];
+  }
 
   const key = workType.toLowerCase();
   const personalizedPrompts = WORK_TYPE_PROMPTS[key];
 
-  if (!personalizedPrompts) return basePrompts;
+  if (!personalizedPrompts) return basePrompts.length > 0 ? basePrompts : personalizedPrompts ?? [];
 
   // Mix: keep 1 base prompt if available, add 2 personalized ones
   const result: Prompt[] = [];
@@ -77,12 +83,14 @@ export function getPersonalizedPrompts(
   }
 
   // Add up to 2 personalized prompts
-  result.push(...personalizedPrompts.slice(0, 2));
+  const personalized = personalizedPrompts.slice(0, basePrompts.length > 0 ? 2 : 3);
+  result.push(...personalized);
 
-  // If specialization is set, customize the last prompt
-  if (specialization && result.length > 0) {
-    const last = result[result.length - 1];
-    result[result.length - 1] = {
+  // If specialization is set, customize the last personalized prompt (not base)
+  if (specialization && personalized.length > 0) {
+    const lastIdx = result.length - 1;
+    const last = result[lastIdx];
+    result[lastIdx] = {
       label: last.label,
       text: last.text.replace(/\?$/, ` specifically for ${specialization}?`),
     };
