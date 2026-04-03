@@ -58,12 +58,12 @@ export default function AdminOverview() {
     Promise.all([
       academyApi.get<AdminStats>('/admin/analytics/funnel').catch(() => null),
       academyApi
-        .get<ActivityEvent[]>('/admin/analytics/recent-activity', { limit: '20' })
-        .catch(() => []),
+        .get<{ events: ActivityEvent[] }>('/admin/analytics/recent-activity', { limit: '20' })
+        .catch(() => ({ events: [] })),
     ])
       .then(([statsData, activityData]) => {
         setStats(statsData)
-        setActivity(activityData)
+        setActivity(Array.isArray(activityData) ? activityData : activityData?.events ?? [])
       })
       .finally(() => setIsLoading(false))
   }, [])

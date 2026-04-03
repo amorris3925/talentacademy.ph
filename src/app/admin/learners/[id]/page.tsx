@@ -161,14 +161,14 @@ export default function AdminLearnerDetailPage() {
     setTabLoading(true)
     try {
       if (tab === 'sessions') {
-        const res = await academyApi.get<Session[]>(`/admin/analytics/learner/${id}/sessions`)
-        setSessions(res)
+        const res = await academyApi.get<{ sessions: Session[] } | Session[]>(`/admin/analytics/learner/${id}/sessions`)
+        setSessions(Array.isArray(res) ? res : res?.sessions ?? [])
       } else if (tab === 'quizzes') {
-        const res = await academyApi.get<QuizAttempt[]>(`/admin/analytics/learner/${id}/quiz-attempts`)
-        setQuizAttempts(res)
+        const res = await academyApi.get<{ attempts: QuizAttempt[] } | QuizAttempt[]>(`/admin/analytics/learner/${id}/quiz-attempts`)
+        setQuizAttempts(Array.isArray(res) ? res : res?.attempts ?? [])
       } else if (tab === 'chat') {
-        const res = await academyApi.get<ChatMessage[]>(`/admin/analytics/learner/${id}/chat-messages`)
-        setChatMessages(res)
+        const res = await academyApi.get<{ messages: ChatMessage[] } | ChatMessage[]>(`/admin/analytics/learner/${id}/chat-messages`)
+        setChatMessages(Array.isArray(res) ? res : res?.messages ?? [])
       }
     } catch (err) {
       console.error(err)

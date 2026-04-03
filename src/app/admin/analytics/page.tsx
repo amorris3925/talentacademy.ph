@@ -57,20 +57,20 @@ export default function AdminAnalyticsPage() {
   useEffect(() => {
     Promise.all([
       academyApi.get<FunnelData>('/admin/analytics/funnel').catch(() => null),
-      academyApi.get<ScoreDistribution[]>('/admin/analytics/scores').catch(() => []),
+      academyApi.get<{ talent_scores: unknown; management_scores: unknown } | ScoreDistribution[]>('/admin/analytics/scores').catch(() => []),
       academyApi
-        .get<DailyActive[]>('/admin/analytics/daily-active', {
+        .get<{ data: DailyActive[] } | DailyActive[]>('/admin/analytics/daily-active', {
           from_date: '2026-03-01',
           to_date: '2026-04-03',
         })
         .catch(() => []),
-      academyApi.get<DeviceEntry[]>('/admin/analytics/device-breakdown').catch(() => []),
+      academyApi.get<{ breakdown: DeviceEntry[] } | DeviceEntry[]>('/admin/analytics/device-breakdown').catch(() => []),
     ])
       .then(([funnelData, scoreData, dauData, deviceData]) => {
         setFunnel(funnelData)
-        setScores(scoreData)
-        setDailyActive(dauData)
-        setDevices(deviceData)
+        setScores(Array.isArray(scoreData) ? scoreData : [])
+        setDailyActive(Array.isArray(dauData) ? dauData : (dauData as { data: DailyActive[] })?.data ?? [])
+        setDevices(Array.isArray(deviceData) ? deviceData : (deviceData as { breakdown: DeviceEntry[] })?.breakdown ?? [])
       })
       .finally(() => setIsLoading(false))
   }, [])

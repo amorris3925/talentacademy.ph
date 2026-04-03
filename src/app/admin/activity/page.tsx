@@ -57,11 +57,11 @@ export default function AdminActivityPage() {
       const params: Record<string, string> = { limit: '100' }
       if (filterType !== 'all') params.event_type = filterType
       if (filterDate) params.date = filterDate
-      const data = await academyApi.get<ActivityEvent[]>(
+      const data = await academyApi.get<{ events: ActivityEvent[] } | ActivityEvent[]>(
         '/admin/analytics/recent-activity',
         params
       )
-      setEvents(data)
+      setEvents(Array.isArray(data) ? data : data?.events ?? [])
     } catch {
       setEvents([])
     } finally {
