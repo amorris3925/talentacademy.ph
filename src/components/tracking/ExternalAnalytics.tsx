@@ -8,6 +8,7 @@ import posthog from 'posthog-js'
 // ─── Environment Variables ─────────────────────────────────────────────────
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || ''
 const CLARITY_PROJECT_ID = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID || ''
+const HOTJAR_ID = process.env.NEXT_PUBLIC_HOTJAR_ID || ''
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY || ''
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
 
@@ -110,6 +111,22 @@ export default function ExternalAnalytics() {
               t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
               y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
             })(window,document,"clarity","script","${CLARITY_PROJECT_ID}");
+          `}
+        </Script>
+      )}
+
+      {/* ── Hotjar ─────────────────────────────────────────────────────────── */}
+      {HOTJAR_ID && (
+        <Script id="hotjar-init" strategy="afterInteractive">
+          {`
+            (function(h,o,t,j,a,r){
+              h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+              h._hjSettings={hjid:${HOTJAR_ID},hjsv:6};
+              a=o.getElementsByTagName('head')[0];
+              r=o.createElement('script');r.async=1;
+              r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+              a.appendChild(r);
+            })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
           `}
         </Script>
       )}
