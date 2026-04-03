@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth'
+import { analytics } from '@/lib/analytics'
 import LearnerSidebar from '@/components/layout/LearnerSidebar'
 import LearnerHeader from '@/components/layout/LearnerHeader'
 
@@ -10,6 +11,8 @@ export default function LearnerLayout({ children }: { children: React.ReactNode 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { learner, isLoading, initialize } = useAuthStore()
   const router = useRouter()
+  const pathname = usePathname()
+  const prevPathname = useRef(pathname)
 
   useEffect(() => {
     initialize()
@@ -20,6 +23,13 @@ export default function LearnerLayout({ children }: { children: React.ReactNode 
       router.push('/login')
     }
   }, [isLoading, learner, router])
+
+  // Track page views on route change
+  useEffect(() => {
+    if (!learner || pathname === prevPathname.current) return
+    prevPathname.current = pathname
+    analytics.trackEvent('page_view', undefined, { path: pathname })
+  }, [pathname, learner])
 
   if (isLoading) {
     return (

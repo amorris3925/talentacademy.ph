@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { academyApi } from '@/lib/api';
+import { analytics } from '@/lib/analytics';
 import type { AcademyLesson, AcademyModule, AcademyTrack, LessonProgress } from '@/types';
 
 type ActiveTab = 'lesson' | 'chat';
@@ -68,6 +69,13 @@ export const useLessonStore = create<LessonState>((set, get) => {
         isLoading: false,
       });
 
+      // Track lesson start
+      analytics.trackEvent('lesson_start', {
+        lesson_id: lesson.id,
+        module_id: mod?.id,
+        track_id: trackRes.track?.id,
+      });
+
       // Fetch progress for this lesson (non-blocking)
       try {
         const progressRes = await academyApi.get<LessonProgress>(`/learner/progress/${lesson.id}`);
@@ -95,6 +103,9 @@ export const useLessonStore = create<LessonState>((set, get) => {
         { status: 'completed' },
       );
       set({ progress: updated, showCompletionOverlay: true });
+
+      // Track lesson completion
+      analytics.trackEvent('lesson_complete', { lesson_id: currentLesson.id });
     } catch (err) {
       console.error('Failed to mark complete:', err);
       set({ error: 'Failed to mark lesson complete' });

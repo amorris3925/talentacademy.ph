@@ -1,5 +1,7 @@
 'use client'
 import { create } from 'zustand'
+import { analytics } from '@/lib/analytics'
+import type { ChatMessageSource } from '@/types'
 
 interface InteractionState {
   // Active block tracking (IntersectionObserver)
@@ -13,6 +15,7 @@ interface InteractionState {
   // Pending prompt (queued to send to chat)
   pendingPrompt: string | null
   pendingPromptContext: string | null
+  pendingPromptSource: ChatMessageSource | null
 
   // Checkpoint tracking
   completedCheckpoints: string[]
@@ -23,7 +26,7 @@ interface InteractionState {
   // Actions
   setActiveBlock: (id: string | null, type?: string | null) => void
   setSelectedText: (text: string | null, rect?: { top: number; left: number; bottom: number } | null) => void
-  triggerPrompt: (text: string, context?: string) => void
+  triggerPrompt: (text: string, context?: string, source?: ChatMessageSource) => void
   clearPendingPrompt: () => void
   completeCheckpoint: (id: string) => void
   revealHint: (blockId: string) => number // returns new hint level
@@ -37,6 +40,7 @@ export const useInteractionStore = create<InteractionState>((set, get) => ({
   selectedRect: null,
   pendingPrompt: null,
   pendingPromptContext: null,
+  pendingPromptSource: null,
   completedCheckpoints: [],
   hintUsage: {},
 
@@ -44,19 +48,26 @@ export const useInteractionStore = create<InteractionState>((set, get) => ({
 
   setSelectedText: (text, rect = null) => set({ selectedText: text, selectedRect: rect }),
 
-  triggerPrompt: (text, context) => set({ pendingPrompt: text, pendingPromptContext: context ?? null }),
-
-  clearPendingPrompt: () => set({ pendingPrompt: null, pendingPromptContext: null }),
-
-  completeCheckpoint: (id) => set((state) => {
-    if (state.completedCheckpoints.includes(id)) return state;
-    return { completedCheckpoints: [...state.completedCheckpoints, id] }
+  triggerPrompt: (text, context, source) => set({
+    pendingPrompt: text,
+    pendingPromptContext: context ?? null,
+    pendingPromptSource: source ?? 'typed',
   }),
+
+  clearPendingPrompt: () => set({ pendingPrompt: null, pendingPromptContext: null, pendingPromptSource: null }),
+
+  completeCheckpoint: (id) => {
+    const state = get()
+    if (state.completedCheckpoints.includes(id)) return state
+    set({ completedCheckpoints: [...state.completedCheckpoints, id] })
+    analytics.trackEvent('checkpoint_complete', undefined, { checkpoint_id: id })
+  },
 
   revealHint: (blockId) => {
     const current = get().hintUsage[blockId] || 0
     const next = current + 1
     set((state) => ({ hintUsage: { ...state.hintUsage, [blockId]: next } }))
+    analytics.trackEvent('hint_reveal', undefined, { block_id: blockId, hint_level: next })
     return next
   },
 
@@ -67,6 +78,7 @@ export const useInteractionStore = create<InteractionState>((set, get) => ({
     selectedRect: null,
     pendingPrompt: null,
     pendingPromptContext: null,
+    pendingPromptSource: null,
     completedCheckpoints: [],
     hintUsage: {},
   }),

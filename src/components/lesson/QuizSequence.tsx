@@ -13,6 +13,7 @@ interface QuizData {
     correct_index: number;
     explanation: string;
   };
+  blockIndex?: number;
 }
 
 interface QuizSequenceProps {
@@ -104,6 +105,7 @@ export function QuizSequence({ quizzes, onContinue }: QuizSequenceProps) {
           key={`quiz-seq-${currentIndex}`}
           content={quiz.content}
           metadata={quiz.metadata}
+          blockIndex={quiz.blockIndex}
           onContinue={onContinue}
           onCorrectAnswer={handleCorrectAnswer}
           isSequential

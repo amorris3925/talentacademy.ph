@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { academyApi } from '@/lib/api'
+import { analytics } from '@/lib/analytics'
 
 interface OutputRatingProps {
   messageId: string
@@ -20,7 +20,7 @@ export default function OutputRating({ messageId }: OutputRatingProps) {
           key={star}
           onClick={() => {
             setRating(star)
-            academyApi.post('/chat/rate', { message_id: messageId, rating: star }).catch(() => {})
+            void analytics.rateChatMessage(messageId, star)
           }}
           onMouseEnter={() => setHoveredStar(star)}
           onMouseLeave={() => setHoveredStar(0)}

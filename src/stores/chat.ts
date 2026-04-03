@@ -2,8 +2,9 @@
 
 import { create } from 'zustand';
 import { academyApi } from '@/lib/api';
+import { analytics } from '@/lib/analytics';
 import { useInteractionStore } from '@/stores/interaction';
-import type { AcademyChatMessage, ContentBlock } from '@/types';
+import type { AcademyChatMessage, ChatMessageSource, ContentBlock, PersistedChatMessage } from '@/types';
 
 interface LessonContextData {
   lessonId: string;
@@ -18,7 +19,7 @@ interface ChatState {
   streamingContent: string;
   lessonContext: LessonContextData | null;
 
-  sendMessage: (content: string, images?: File[]) => Promise<void>;
+  sendMessage: (content: string, images?: File[], source?: ChatMessageSource) => Promise<void>;
   sendFromInteraction: () => Promise<void>;
   loadHistory: (lessonId?: string) => Promise<void>;
   clearHistory: () => void;
@@ -87,7 +88,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   streamingContent: '',
   lessonContext: null,
 
-  async sendMessage(content: string, _images?: File[]) {
+  async sendMessage(content: string, _images?: File[], source: ChatMessageSource = 'typed') {
     if (get().isStreaming) return;
     streamAbortController?.abort();
     streamAbortController = new AbortController();
@@ -107,6 +108,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
       isStreaming: true,
       streamingContent: '',
     }));
+
+    // Persist user message to analytics
+    const persistedId = await analytics.trackChatMessage(
+      lessonContext?.lessonId ?? null,
+      'user',
+      content,
+      source,
+    );
+    if (persistedId) {
+      userMsg.id = persistedId;
+    }
 
     let accumulated = '';
     let rafId: number | null = null;
@@ -160,6 +172,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
         created_at: new Date().toISOString(),
       };
 
+      // Persist assistant message to analytics
+      const assistantPersistedId = await analytics.trackChatMessage(
+        lessonContext?.lessonId ?? null,
+        'assistant',
+        accumulated,
+        source,
+      );
+      if (assistantPersistedId) {
+        assistantMsg.id = assistantPersistedId;
+      }
+
       set((state) => ({
         messages: [...state.messages, assistantMsg],
         isStreaming: false,
@@ -189,17 +212,42 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   async sendFromInteraction() {
-    const { pendingPrompt, clearPendingPrompt } = useInteractionStore.getState()
+    const { pendingPrompt, pendingPromptSource, clearPendingPrompt } = useInteractionStore.getState()
     if (!pendingPrompt) return
+    const source = pendingPromptSource ?? 'typed'
     clearPendingPrompt()
-    // Call the existing sendMessage logic with the prompt
-    await get().sendMessage(pendingPrompt)
+    // Call the existing sendMessage logic with the prompt and source
+    await get().sendMessage(pendingPrompt, undefined, source)
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async loadHistory(_lessonId?: string) {
-    // No chat history endpoint exists — start fresh each session
-    set({ messages: [] });
+  async loadHistory(lessonId?: string) {
+    if (!lessonId) {
+      set({ messages: [] });
+      return;
+    }
+
+    try {
+      const res = await academyApi.get<{ messages: PersistedChatMessage[] }>(
+        '/chat/history',
+        { lesson_id: lessonId },
+      );
+
+      if (res.messages && res.messages.length > 0) {
+        const messages: AcademyChatMessage[] = res.messages.map((m) => ({
+          id: m.id,
+          session_id: m.session_id,
+          role: m.role,
+          content: m.content,
+          created_at: m.created_at,
+        }));
+        set({ messages });
+      } else {
+        set({ messages: [] });
+      }
+    } catch {
+      // Chat history endpoint not available yet — start fresh
+      set({ messages: [] });
+    }
   },
 
   clearHistory() {

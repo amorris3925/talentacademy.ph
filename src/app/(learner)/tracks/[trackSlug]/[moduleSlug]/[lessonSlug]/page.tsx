@@ -49,7 +49,7 @@ export default function LessonPage() {
   const { clearHistory, sendMessage, setLessonContext } = useChatStore();
   const { pendingPrompt, reset: resetInteraction, clearPendingPrompt, setSelectedText } = useInteractionStore();
   const contentScrollRef = useRef<HTMLDivElement>(null);
-  useBlockObserver(contentScrollRef);
+  useBlockObserver(contentScrollRef, currentLesson?.id);
 
   // Reset interaction store on mount
   useEffect(() => {

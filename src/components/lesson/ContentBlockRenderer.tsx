@@ -100,6 +100,7 @@ function renderBlockInner(block: ContentBlock, index: number, onContinue?: () =>
           key={`${block.type}-${index}`}
           content={block.content}
           metadata={block.metadata as { options: string[]; correct_index: number; explanation: string }}
+          blockIndex={index}
           onContinue={onContinue}
         />
       );
@@ -172,6 +173,7 @@ export function ContentBlockRenderer({ blocks, onContinue }: ContentBlockRendere
                 correct_index: number;
                 explanation: string;
               },
+              blockIndex: i,
             }));
             return (
               <div key="quiz-sequence" data-block-id="quiz-sequence" data-block-type="quiz">

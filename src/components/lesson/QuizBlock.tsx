@@ -5,6 +5,7 @@ import { CheckCircle2, XCircle, Send, RotateCcw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { analytics } from '@/lib/analytics';
 import { useInteractionStore } from '@/stores/interaction';
 import { useLessonStore } from '@/stores/lesson';
 import { useChatStore } from '@/stores/chat';
@@ -16,6 +17,8 @@ interface QuizBlockProps {
     correct_index: number;
     explanation: string;
   };
+  /** Index of this block within the lesson's content_blocks array */
+  blockIndex?: number;
   onContinue?: () => void;
   /** Sequential quiz mode: called when user answers correctly */
   onCorrectAnswer?: () => void;
@@ -23,15 +26,23 @@ interface QuizBlockProps {
   isSequential?: boolean;
 }
 
-export function QuizBlock({ content, metadata, onContinue, onCorrectAnswer, isSequential }: QuizBlockProps) {
+export function QuizBlock({ content, metadata, blockIndex = 0, onContinue, onCorrectAnswer, isSequential }: QuizBlockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [reasoning, setReasoning] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [waitingForChat, setWaitingForChat] = useState(false);
+  const [attemptNumber, setAttemptNumber] = useState(1);
+  const [answerChanged, setAnswerChanged] = useState(false);
   const triggerPrompt = useInteractionStore((s) => s.triggerPrompt);
+  const currentLesson = useLessonStore((s) => s.currentLesson);
   const { updateProgress, markComplete } = useLessonStore();
   const isStreaming = useChatStore((s) => s.isStreaming);
   const prevStreamingRef = useRef(false);
+
+  // Timing refs
+  const quizDisplayedAt = useRef(performance.now());
+  const answerSelectedAt = useRef<number | null>(null);
+  const firstSelectionMade = useRef(false);
 
   const isCorrect = submitted && selectedIndex === metadata.correct_index;
   const canSubmit = selectedIndex !== null && reasoning.trim().length >= 5;
@@ -78,11 +89,12 @@ export function QuizBlock({ content, metadata, onContinue, onCorrectAnswer, isSe
     if (!canSubmit || selectedIndex === null) return;
     setSubmitted(true);
 
+    const now = performance.now();
     const correct = selectedIndex === metadata.correct_index;
     const selectedAnswer = metadata.options[selectedIndex];
     const correctAnswer = metadata.options[metadata.correct_index];
 
-    // Persist quiz answer + reasoning to backend
+    // Persist quiz answer + reasoning to backend (existing progress tracking)
     updateProgress({
       submission_data: {
         quiz_question: content,
@@ -93,10 +105,33 @@ export function QuizBlock({ content, metadata, onContinue, onCorrectAnswer, isSe
       },
     });
 
+    // Track detailed quiz attempt via analytics
+    void analytics.trackQuizAttempt({
+      lesson_id: currentLesson?.id ?? '',
+      block_index: blockIndex,
+      question_text: content,
+      options: metadata.options,
+      correct_index: metadata.correct_index,
+      selected_index: selectedIndex,
+      selected_answer: selectedAnswer,
+      reasoning: reasoning.trim(),
+      is_correct: correct,
+      attempt_number: attemptNumber,
+      time_to_answer_ms: answerSelectedAt.current
+        ? Math.round(answerSelectedAt.current - quizDisplayedAt.current)
+        : null,
+      time_to_reasoning_ms: answerSelectedAt.current
+        ? Math.round(now - answerSelectedAt.current)
+        : null,
+      answer_changed: answerChanged,
+    });
+
     // Send answer + reasoning to chat for AI to respond
     if (correct) {
       triggerPrompt(
         `Quiz: "${content}"\nMy answer: "${selectedAnswer}" (correct)\nMy reasoning: "${reasoning.trim()}"\n\nBriefly confirm why this is right and reinforce the key concept.`,
+        undefined,
+        'quiz_feedback',
       );
 
       // Wait for the chat response to finish before showing confetti
@@ -104,6 +139,8 @@ export function QuizBlock({ content, metadata, onContinue, onCorrectAnswer, isSe
     } else {
       triggerPrompt(
         `Quiz: "${content}"\nMy answer: "${selectedAnswer}" (wrong — correct answer is "${correctAnswer}")\nMy reasoning: "${reasoning.trim()}"\n\nHelp me understand why my reasoning was off and why "${correctAnswer}" is correct.`,
+        undefined,
+        'quiz_feedback',
       );
     }
   };
@@ -112,6 +149,11 @@ export function QuizBlock({ content, metadata, onContinue, onCorrectAnswer, isSe
     setSelectedIndex(null);
     setReasoning('');
     setSubmitted(false);
+    setAttemptNumber((n) => n + 1);
+    setAnswerChanged(false);
+    firstSelectionMade.current = false;
+    answerSelectedAt.current = null;
+    quizDisplayedAt.current = performance.now();
   };
 
   return (
@@ -146,7 +188,16 @@ export function QuizBlock({ content, metadata, onContinue, onCorrectAnswer, isSe
                 key={`option-${index}`}
                 type="button"
                 onClick={() => {
-                  if (!submitted) setSelectedIndex(index);
+                  if (!submitted) {
+                    if (firstSelectionMade.current && index !== selectedIndex) {
+                      setAnswerChanged(true);
+                    }
+                    if (!firstSelectionMade.current) {
+                      answerSelectedAt.current = performance.now();
+                      firstSelectionMade.current = true;
+                    }
+                    setSelectedIndex(index);
+                  }
                 }}
                 disabled={submitted}
                 className={cn(
