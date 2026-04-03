@@ -23,6 +23,7 @@ export interface AcademyLearner {
   management_score: number | null;
   is_flagged_talent: boolean;
   is_flagged_leader: boolean;
+  role: 'learner' | 'admin';
   onboarding_completed: boolean;
   selected_track: string | null;
   cohort: string | null;

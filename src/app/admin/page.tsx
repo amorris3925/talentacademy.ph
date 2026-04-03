@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, BookOpen, Trophy, TrendingUp } from 'lucide-react'
+import { Users, BookOpen, Trophy, TrendingUp, AlertTriangle } from 'lucide-react'
 import { academyApi } from '@/lib/api'
 
 interface AdminStats {
@@ -11,17 +11,60 @@ interface AdminStats {
   completion_rate: number
   flagged_talent: number
   flagged_leaders: number
+  registered?: number
+  onboarded?: number
+  foundation_enrolled?: number
+  foundation_completed?: number
+  specialty_enrolled?: number
+  specialty_completed?: number
+}
+
+interface ActivityEvent {
+  timestamp: string
+  event_type: string
+  learner_name: string
+  metadata?: Record<string, string>
+}
+
+const EVENT_COLORS: Record<string, string> = {
+  page_view: 'bg-gray-100 text-gray-700',
+  lesson_start: 'bg-blue-100 text-blue-700',
+  lesson_complete: 'bg-green-100 text-green-700',
+  quiz_submit: 'bg-amber-100 text-amber-700',
+  chat_send: 'bg-indigo-100 text-indigo-700',
+  hint_reveal: 'bg-purple-100 text-purple-700',
+  login: 'bg-emerald-100 text-emerald-700',
+  logout: 'bg-red-100 text-red-700',
+}
+
+function relativeTime(timestamp: string): string {
+  const diff = Date.now() - new Date(timestamp).getTime()
+  const seconds = Math.floor(diff / 1000)
+  if (seconds < 60) return `${seconds}s ago`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
 }
 
 export default function AdminOverview() {
   const [stats, setStats] = useState<AdminStats | null>(null)
+  const [activity, setActivity] = useState<ActivityEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    academyApi
-      .get<AdminStats>('/admin/analytics/funnel')
-      .then(setStats)
-      .catch(console.error)
+    Promise.all([
+      academyApi.get<AdminStats>('/admin/analytics/funnel').catch(() => null),
+      academyApi
+        .get<ActivityEvent[]>('/admin/analytics/recent-activity', { limit: '20' })
+        .catch(() => []),
+    ])
+      .then(([statsData, activityData]) => {
+        setStats(statsData)
+        setActivity(activityData)
+      })
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -58,13 +101,32 @@ export default function AdminOverview() {
       icon: Trophy,
       color: 'bg-amber-500',
     },
+    {
+      label: 'Flagged Leaders',
+      value: stats?.flagged_leaders ?? 0,
+      icon: AlertTriangle,
+      color: 'bg-red-500',
+    },
   ]
+
+  const funnelSteps = stats
+    ? [
+        { label: 'Registered', value: stats.registered ?? 0 },
+        { label: 'Onboarded', value: stats.onboarded ?? 0 },
+        { label: 'Foundation Enrolled', value: stats.foundation_enrolled ?? 0 },
+        { label: 'Foundation Completed', value: stats.foundation_completed ?? 0 },
+        { label: 'Specialty Enrolled', value: stats.specialty_enrolled ?? 0 },
+        { label: 'Specialty Completed', value: stats.specialty_completed ?? 0 },
+      ]
+    : []
+
+  const maxFunnel = funnelSteps[0]?.value || 1
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Admin Overview</h1>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {statCards.map((card) => (
           <div
             key={card.label}
@@ -86,17 +148,72 @@ export default function AdminOverview() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
+        {/* Recent Activity Feed */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
-          <p className="text-sm text-gray-500">
-            Activity feed will appear here once learners begin enrolling.
-          </p>
+          {activity.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              Activity feed will appear here once learners begin enrolling.
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {activity.map((event, i) => (
+                <div
+                  key={`${event.timestamp}-${i}`}
+                  className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0"
+                >
+                  <span className="text-xs text-gray-400 w-16 shrink-0">
+                    {relativeTime(event.timestamp)}
+                  </span>
+                  <span
+                    className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${EVENT_COLORS[event.event_type] ?? 'bg-gray-100 text-gray-700'}`}
+                  >
+                    {event.event_type.replace(/_/g, ' ')}
+                  </span>
+                  <span className="text-sm font-medium text-gray-700 truncate">
+                    {event.learner_name}
+                  </span>
+                  {event.metadata?.lesson_name && (
+                    <span className="text-xs text-gray-400 truncate ml-auto">
+                      {event.metadata.lesson_name}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Completion Funnel */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Completion Funnel</h2>
-          <p className="text-sm text-gray-500">
-            Funnel visualization will appear here once data is available.
-          </p>
+          {funnelSteps.length === 0 || maxFunnel === 0 ? (
+            <p className="text-sm text-gray-500">
+              Funnel visualization will appear here once data is available.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {funnelSteps.map((step) => {
+                const pct = Math.round((step.value / maxFunnel) * 100)
+                return (
+                  <div key={step.label}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="font-medium text-gray-700">{step.label}</span>
+                      <span className="text-gray-500">
+                        {step.value.toLocaleString()} ({pct}%)
+                      </span>
+                    </div>
+                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

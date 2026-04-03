@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, ChevronRight } from 'lucide-react'
 import { academyApi } from '@/lib/api'
 import type { AcademyLearner, PaginatedResponse } from '@/types'
 
 export default function AdminLearnersPage() {
+  const router = useRouter()
   const [learners, setLearners] = useState<AcademyLearner[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -87,7 +89,7 @@ export default function AdminLearnersPage() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {learners.map((l) => (
-              <tr key={l.id} className="hover:bg-gray-50">
+              <tr key={l.id} onClick={() => router.push(`/admin/learners/${l.id}`)} className="hover:bg-gray-50 cursor-pointer">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-700">

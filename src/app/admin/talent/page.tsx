@@ -1,14 +1,57 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Star, Users as UsersIcon } from 'lucide-react'
+import {
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts'
 import { academyApi } from '@/lib/api'
 import type { AcademyLearner, PaginatedResponse } from '@/types'
 
+type ScatterPoint = {
+  x: number
+  y: number
+  name: string
+  id: string
+  isTalent: boolean
+  isLeader: boolean
+}
+
+function getDotColor(point: ScatterPoint) {
+  if (point.isTalent && point.isLeader) return '#6366f1' // indigo — both
+  if (point.isTalent) return '#f59e0b' // amber — talent only
+  if (point.isLeader) return '#3b82f6' // blue — leader only
+  return '#9ca3af' // gray — neither
+}
+
 export default function AdminTalentPage() {
+  const router = useRouter()
   const [learners, setLearners] = useState<AcademyLearner[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'talent' | 'leader'>('all')
+
+  const scatterData = useMemo<ScatterPoint[]>(
+    () =>
+      learners
+        .filter((l) => l.talent_score != null && l.management_score != null)
+        .map((l) => ({
+          x: l.talent_score!,
+          y: l.management_score!,
+          name: `${l.first_name} ${l.last_name}`,
+          id: l.id,
+          isTalent: l.is_flagged_talent,
+          isLeader: l.is_flagged_leader,
+        })),
+    [learners],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -59,21 +102,87 @@ export default function AdminTalentPage() {
         ))}
       </div>
 
-      {/* Scatter Plot Placeholder */}
+      {/* Scatter Plot */}
       <div className="bg-white rounded-xl border border-gray-200 p-8 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Talent vs Management Score
         </h2>
-        <div className="relative h-64 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
-          <p className="text-sm text-gray-400">
-            2D scatter plot visualization — requires Chart.js or similar
-          </p>
-          {/* Axis labels */}
-          <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-gray-400">
-            Talent Score →
+        {scatterData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={400}>
+            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                type="number"
+                dataKey="x"
+                name="Talent Score"
+                domain={[0, 100]}
+                label={{ value: 'Talent Score', position: 'bottom', offset: 0 }}
+              />
+              <YAxis
+                type="number"
+                dataKey="y"
+                name="Management Score"
+                domain={[0, 100]}
+                label={{
+                  value: 'Management Score',
+                  angle: -90,
+                  position: 'insideLeft',
+                  offset: 10,
+                }}
+              />
+              <Tooltip
+                cursor={{ strokeDasharray: '3 3' }}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null
+                  const point = payload[0].payload as ScatterPoint
+                  return (
+                    <div className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-lg">
+                      <p className="font-semibold text-gray-900">{point.name}</p>
+                      <p className="text-gray-600">Talent Score: {point.x}</p>
+                      <p className="text-gray-600">Management Score: {point.y}</p>
+                    </div>
+                  )
+                }}
+              />
+              <Scatter
+                data={scatterData}
+                onClick={(_data: unknown, _index: number, e: unknown) => {
+                  const point = (_data as { payload?: ScatterPoint })?.payload
+                  if (point?.id) router.push(`/admin/learners/${point.id}`)
+                }}
+                style={{ cursor: 'pointer' }}
+              >
+                {scatterData.map((entry, index) => (
+                  <Cell key={index} fill={getDotColor(entry)} />
+                ))}
+              </Scatter>
+            </ScatterChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex h-64 items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
+            <p className="text-sm text-gray-400">
+              No learners with both scores available
+            </p>
+          </div>
+        )}
+
+        {/* Legend */}
+        <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#6366f1' }} />
+            Both Flags
           </span>
-          <span className="absolute left-2 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-gray-400">
-            Management Score →
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#f59e0b' }} />
+            Talent Only
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#3b82f6' }} />
+            Leader Only
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: '#9ca3af' }} />
+            Neither
           </span>
         </div>
       </div>

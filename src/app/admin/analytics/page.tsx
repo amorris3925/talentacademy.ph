@@ -2,6 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { academyApi } from '@/lib/api'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts'
 
 interface FunnelData {
   registered: number
@@ -17,19 +30,47 @@ interface ScoreDistribution {
   count: number
 }
 
+interface DailyActive {
+  day: string
+  active_count: number
+}
+
+interface DeviceEntry {
+  device: string
+  count: number
+}
+
+const DEVICE_COLORS: Record<string, string> = {
+  desktop: '#6366f1',
+  mobile: '#10b981',
+  tablet: '#f59e0b',
+  unknown: '#9ca3af',
+}
+
 export default function AdminAnalyticsPage() {
   const [funnel, setFunnel] = useState<FunnelData | null>(null)
   const [scores, setScores] = useState<ScoreDistribution[]>([])
+  const [dailyActive, setDailyActive] = useState<DailyActive[]>([])
+  const [devices, setDevices] = useState<DeviceEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     Promise.all([
       academyApi.get<FunnelData>('/admin/analytics/funnel').catch(() => null),
       academyApi.get<ScoreDistribution[]>('/admin/analytics/scores').catch(() => []),
+      academyApi
+        .get<DailyActive[]>('/admin/analytics/daily-active', {
+          from_date: '2026-03-01',
+          to_date: '2026-04-03',
+        })
+        .catch(() => []),
+      academyApi.get<DeviceEntry[]>('/admin/analytics/device-breakdown').catch(() => []),
     ])
-      .then(([funnelData, scoreData]) => {
+      .then(([funnelData, scoreData, dauData, deviceData]) => {
         setFunnel(funnelData)
         setScores(scoreData)
+        setDailyActive(dauData)
+        setDevices(deviceData)
       })
       .finally(() => setIsLoading(false))
   }, [])
@@ -118,12 +159,97 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      {/* Cohort Breakdown */}
+      {/* Daily Active Users */}
       <div className="mt-6 bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Cohort Breakdown</h2>
-        <p className="text-sm text-gray-500">
-          Cohort-level analytics will be available after the first cohort completes the Foundation Track.
-        </p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">Daily Active Users</h2>
+        {dailyActive.length === 0 ? (
+          <p className="text-sm text-gray-500">No daily active user data yet.</p>
+        ) : (
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={dailyActive}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 12, fill: '#6b7280' }}
+                  tickFormatter={(v: string) => {
+                    const d = new Date(v)
+                    return `${d.getMonth() + 1}/${d.getDate()}`
+                  }}
+                />
+                <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '13px',
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="active_count"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: '#6366f1' }}
+                  activeDot={{ r: 5 }}
+                  name="Active Users"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Device Breakdown */}
+      <div className="mt-6 grid lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">Device Breakdown</h2>
+          {devices.length === 0 ? (
+            <p className="text-sm text-gray-500">No device data yet.</p>
+          ) : (
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={devices}
+                    dataKey="count"
+                    nameKey="device"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    label={(props: any) =>
+                      `${props.device} ${((props.percent as number) * 100).toFixed(0)}%`
+                    }
+                  >
+                    {devices.map((entry) => (
+                      <Cell
+                        key={entry.device}
+                        fill={DEVICE_COLORS[entry.device] ?? DEVICE_COLORS.unknown}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '13px',
+                    }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+
+        {/* Cohort Breakdown */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Cohort Breakdown</h2>
+          <p className="text-sm text-gray-500">
+            Cohort-level analytics will be available after the first cohort completes the Foundation Track.
+          </p>
+        </div>
       </div>
     </div>
   )

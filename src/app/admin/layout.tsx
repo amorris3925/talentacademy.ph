@@ -10,6 +10,7 @@ import {
   Star,
   BookOpen,
   BarChart3,
+  Activity,
   Sparkles,
   ArrowLeft,
 } from 'lucide-react'
@@ -20,6 +21,7 @@ const adminNav = [
   { href: '/admin/talent', label: 'Talent Pool', icon: Star },
   { href: '/admin/content', label: 'Content', icon: BookOpen },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/activity', label: 'Activity', icon: Activity },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -34,6 +36,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!isLoading && !learner) {
       router.push('/login')
+    }
+    if (!isLoading && learner && learner.role !== 'admin') {
+      router.push('/dashboard')
     }
   }, [isLoading, learner, router])
 

@@ -12,8 +12,10 @@ import {
   Award,
   Rocket,
   User,
+  Shield,
   X,
 } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth'
 
 interface NavItem {
   href: string
@@ -53,6 +55,7 @@ interface LearnerSidebarProps {
 
 export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps) {
   const pathname = usePathname()
+  const { learner } = useAuthStore()
   const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
   const sidebarRef = useRef<HTMLElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -201,6 +204,7 @@ export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps)
           {/* Bottom items */}
           <div className="border-t border-gray-200 pt-3 mt-3">
             <ul className="space-y-0.5">
+              {learner?.role === 'admin' && renderItem({ href: '/admin', label: 'Admin', icon: Shield })}
               {bottomNav.map(renderItem)}
             </ul>
           </div>
