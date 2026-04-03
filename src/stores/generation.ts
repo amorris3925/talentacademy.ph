@@ -69,13 +69,22 @@ export const useGenerationStore = create<GenerationState>((set, get) => {
   async generateImage(prompt: string, params?: ImageGenParams) {
     addGeneratingType('image');
     try {
-      const gen = await startGeneration('image', prompt, params as unknown as Record<string, unknown>);
+      // Use direct Gemini endpoint (no polling needed — returns synchronously)
+      const res = await fetch('/api/generate/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, ...params }),
+        signal: AbortSignal.timeout(120000),
+      });
+      const gen = (await res.json()) as AcademyGeneration;
       set((state) => ({
         activeGeneration: gen,
         generations: [gen, ...state.generations],
       }));
-      const final = await get().pollStatus(gen.id);
-      return final;
+      if (gen.status === 'failed') {
+        throw new Error(gen.error || 'Image generation failed');
+      }
+      return gen;
     } finally {
       removeGeneratingType('image');
     }

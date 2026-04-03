@@ -249,16 +249,11 @@ export default function LessonPage() {
           {/* Bottom Bar */}
           <div className="flex shrink-0 items-center justify-between border-t border-gray-200 bg-white px-4 py-3 md:px-8">
             <div className="flex items-center gap-2">
-              {isCompleted ? (
+              {isCompleted && (
                 <div className="flex items-center gap-1.5 text-sm text-green-600">
                   <CheckCircle2 className="h-4 w-4" />
                   <span className="font-medium">Completed</span>
                 </div>
-              ) : (
-                <Button variant="primary" size="md" onClick={handleMarkComplete}>
-                  <CheckCircle2 className="h-4 w-4" />
-                  Mark Complete
-                </Button>
               )}
             </div>
 
