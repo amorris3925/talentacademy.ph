@@ -11,8 +11,8 @@ export default function AdminContentPage() {
 
   useEffect(() => {
     academyApi
-      .get<{ tracks: AcademyTrack[] }>('/tracks')
-      .then((res) => setTracks(res.tracks ?? []))
+      .get<{ tracks: AcademyTrack[] } | AcademyTrack[]>('/tracks')
+      .then((res) => setTracks(Array.isArray(res) ? res : res?.tracks ?? []))
       .catch(console.error)
       .finally(() => setIsLoading(false))
   }, [])

@@ -138,8 +138,18 @@ export default function AdminLearnerDetailPage() {
   async function loadLearner() {
     setIsLoading(true)
     try {
-      const res = await academyApi.get<LearnerDetail>(`/admin/learners/${id}`)
-      setLearner(res)
+      const res = await academyApi.get<
+        LearnerDetail | { learner: AcademyLearner; enrollments?: Enrollment[]; talent_reviews?: TalentReview[]; badges?: Badge[] }
+      >(`/admin/learners/${id}`)
+      // Backend may return { learner: {...}, enrollments: [...], ... } or flat LearnerDetail
+      if (res && 'learner' in res && res.learner) {
+        const { learner: l, enrollments, talent_reviews, badges } = res as {
+          learner: AcademyLearner; enrollments?: Enrollment[]; talent_reviews?: TalentReview[]; badges?: Badge[]
+        }
+        setLearner({ ...l, enrollments: enrollments ?? [], talent_reviews: talent_reviews ?? [], badges: badges ?? [] })
+      } else {
+        setLearner(res as LearnerDetail)
+      }
     } catch (err) {
       console.error(err)
     } finally {
@@ -241,7 +251,7 @@ export default function AdminLearnerDetailPage() {
               />
             ) : (
               <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center text-lg font-semibold text-indigo-700">
-                {learner.first_name[0]}{learner.last_name[0]}
+                {learner.first_name?.[0] ?? ''}{learner.last_name?.[0] ?? ''}
               </div>
             )}
             <div>
@@ -270,7 +280,7 @@ export default function AdminLearnerDetailPage() {
                   {learner.role === 'admin' ? 'Admin' : 'Learner'}
                 </span>
                 <span className="text-sm text-gray-500 ml-2">
-                  {learner.xp_total.toLocaleString()} XP
+                  {(learner.xp_total ?? 0).toLocaleString()} XP
                 </span>
               </div>
             </div>

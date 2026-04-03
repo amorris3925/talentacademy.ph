@@ -26,13 +26,19 @@ export default function AdminLearnersPage() {
       if (loadMore && cursor) params.cursor = cursor
       if (search) params.search = search
 
-      const res = await academyApi.get<PaginatedResponse<AcademyLearner>>(
-        '/admin/learners',
-        params
-      )
-      setLearners(loadMore ? [...learners, ...res.data] : res.data)
-      setCursor(res.cursor)
-      setHasMore(res.has_more)
+      const res = await academyApi.get<
+        PaginatedResponse<AcademyLearner> | { learners: AcademyLearner[]; next_cursor?: string | null }
+      >('/admin/learners', params)
+      const items = 'data' in res && Array.isArray(res.data)
+        ? res.data
+        : Array.isArray((res as { learners?: AcademyLearner[] }).learners)
+          ? (res as { learners: AcademyLearner[] }).learners
+          : []
+      const nextCursor = 'cursor' in res ? res.cursor : (res as { next_cursor?: string | null }).next_cursor ?? null
+      const more = 'has_more' in res ? res.has_more : !!nextCursor
+      setLearners(loadMore ? [...learners, ...items] : items)
+      setCursor(nextCursor)
+      setHasMore(more)
     } catch (err) {
       console.error(err)
     } finally {
@@ -93,8 +99,8 @@ export default function AdminLearnersPage() {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-700">
-                      {l.first_name[0]}
-                      {l.last_name[0]}
+                      {l.first_name?.[0] ?? ''}
+                      {l.last_name?.[0] ?? ''}
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">
@@ -114,7 +120,7 @@ export default function AdminLearnersPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-700">
-                  {l.xp_total.toLocaleString()}
+                  {(l.xp_total ?? 0).toLocaleString()}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">

@@ -62,8 +62,17 @@ export default function AdminTalentPage() {
 
     async function fetchLearners() {
       try {
-        const res = await academyApi.get<PaginatedResponse<AcademyLearner>>('/admin/learners', params)
-        if (!cancelled) setLearners(res.data)
+        const res = await academyApi.get<
+          PaginatedResponse<AcademyLearner> | { learners: AcademyLearner[]; next_cursor?: string | null }
+        >('/admin/learners', params)
+        if (!cancelled) {
+          const items = 'data' in res && Array.isArray(res.data)
+            ? res.data
+            : Array.isArray((res as { learners?: AcademyLearner[] }).learners)
+              ? (res as { learners: AcademyLearner[] }).learners
+              : []
+          setLearners(items)
+        }
       } catch (err) {
         console.error(err)
       } finally {
@@ -206,8 +215,8 @@ export default function AdminTalentPage() {
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-700">
-                  {l.first_name[0]}
-                  {l.last_name[0]}
+                  {l.first_name?.[0] ?? ''}
+                  {l.last_name?.[0] ?? ''}
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">
@@ -233,7 +242,7 @@ export default function AdminTalentPage() {
                 <div>
                   <p className="text-gray-500">XP</p>
                   <p className="font-medium text-gray-700">
-                    {l.xp_total.toLocaleString()}
+                    {(l.xp_total ?? 0).toLocaleString()}
                   </p>
                 </div>
               </div>

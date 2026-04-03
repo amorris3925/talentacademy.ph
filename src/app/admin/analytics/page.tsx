@@ -57,7 +57,7 @@ export default function AdminAnalyticsPage() {
   useEffect(() => {
     Promise.all([
       academyApi.get<FunnelData>('/admin/analytics/funnel').catch(() => null),
-      academyApi.get<{ talent_scores: unknown; management_scores: unknown } | ScoreDistribution[]>('/admin/analytics/scores').catch(() => []),
+      academyApi.get<{ talent_scores?: Record<string, number>; management_scores?: Record<string, number> } | ScoreDistribution[]>('/admin/analytics/scores').catch(() => []),
       academyApi
         .get<{ data: DailyActive[] } | DailyActive[]>('/admin/analytics/daily-active', {
           from_date: '2026-03-01',
@@ -68,7 +68,19 @@ export default function AdminAnalyticsPage() {
     ])
       .then(([funnelData, scoreData, dauData, deviceData]) => {
         setFunnel(funnelData)
-        setScores(Array.isArray(scoreData) ? scoreData : [])
+        if (Array.isArray(scoreData)) {
+          setScores(scoreData)
+        } else if (scoreData && typeof scoreData === 'object') {
+          // Convert { talent_scores: { "0-20": 5, ... }, management_scores: {...} } into ScoreDistribution[]
+          const talentScores = (scoreData as { talent_scores?: Record<string, number> }).talent_scores
+          if (talentScores && typeof talentScores === 'object') {
+            setScores(Object.entries(talentScores).map(([range, count]) => ({ range, count: count ?? 0 })))
+          } else {
+            setScores([])
+          }
+        } else {
+          setScores([])
+        }
         setDailyActive(Array.isArray(dauData) ? dauData : (dauData as { data: DailyActive[] })?.data ?? [])
         setDevices(Array.isArray(deviceData) ? deviceData : (deviceData as { breakdown: DeviceEntry[] })?.breakdown ?? [])
       })
@@ -85,12 +97,12 @@ export default function AdminAnalyticsPage() {
 
   const funnelSteps = funnel
     ? [
-        { label: 'Registered', value: funnel.registered },
-        { label: 'Onboarded', value: funnel.onboarded },
-        { label: 'Foundation Enrolled', value: funnel.foundation_enrolled },
-        { label: 'Foundation Completed', value: funnel.foundation_completed },
-        { label: 'Specialty Enrolled', value: funnel.specialty_enrolled },
-        { label: 'Specialty Completed', value: funnel.specialty_completed },
+        { label: 'Registered', value: funnel.registered ?? 0 },
+        { label: 'Onboarded', value: funnel.onboarded ?? 0 },
+        { label: 'Foundation Enrolled', value: funnel.foundation_enrolled ?? 0 },
+        { label: 'Foundation Completed', value: funnel.foundation_completed ?? 0 },
+        { label: 'Specialty Enrolled', value: funnel.specialty_enrolled ?? 0 },
+        { label: 'Specialty Completed', value: funnel.specialty_completed ?? 0 },
       ]
     : []
 
