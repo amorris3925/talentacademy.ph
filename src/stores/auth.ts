@@ -5,6 +5,7 @@ import type { Session } from '@supabase/supabase-js';
 import { createBrowserClient } from '@/lib/supabase';
 import { academyApi } from '@/lib/api';
 import { analytics } from '@/lib/analytics';
+import { identifyUser, resetUser } from '@/components/tracking/ExternalAnalytics';
 import { useChatStore } from '@/stores/chat';
 import { useGamificationStore } from '@/stores/gamification';
 import { useGenerationStore } from '@/stores/generation';
@@ -110,6 +111,14 @@ export const useAuthStore = create<AuthState>((set, get) => {
       // Start analytics session after successful login
       await analytics.startSession();
       analytics.trackEvent('login');
+
+      // Identify user in external analytics (PostHog, etc.)
+      identifyUser(res.learner.id, {
+        email: res.learner.email,
+        name: `${res.learner.first_name} ${res.learner.last_name}`,
+        cohort: res.learner.cohort,
+        specialization: res.learner.specialization,
+      });
     },
 
     async register(data: RegisterPayload) {
@@ -135,11 +144,22 @@ export const useAuthStore = create<AuthState>((set, get) => {
       // Start analytics session after successful registration
       await analytics.startSession();
       analytics.trackEvent('login');
+
+      // Identify user in external analytics
+      identifyUser(res.learner.id, {
+        email: res.learner.email,
+        name: `${res.learner.first_name} ${res.learner.last_name}`,
+        cohort: res.learner.cohort,
+        specialization: res.learner.specialization,
+      });
     },
 
     async logout() {
       // End analytics session before signing out
       await analytics.endSession();
+
+      // Reset external analytics identity
+      resetUser();
 
       const supabase = createBrowserClient();
       authSubscription?.unsubscribe();
