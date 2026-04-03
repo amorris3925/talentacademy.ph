@@ -14,11 +14,15 @@ interface LessonState {
   isLoading: boolean;
   error: string | null;
   activeTab: ActiveTab;
+  showCompletionOverlay: boolean;
+  completedQuizIndices: number[];
 
   loadLesson: (trackSlug: string, moduleSlug: string, lessonSlug: string) => Promise<void>;
   markComplete: () => Promise<void>;
   updateProgress: (data: Partial<LessonProgress>) => Promise<void>;
   setActiveTab: (tab: ActiveTab) => void;
+  setShowCompletionOverlay: (val: boolean) => void;
+  addCompletedQuiz: (index: number) => void;
 }
 
 export const useLessonStore = create<LessonState>((set, get) => {
@@ -32,10 +36,12 @@ export const useLessonStore = create<LessonState>((set, get) => {
   isLoading: false,
   error: null,
   activeTab: 'lesson',
+  showCompletionOverlay: false,
+  completedQuizIndices: [],
 
   async loadLesson(trackSlug: string, moduleSlug: string, lessonSlug: string) {
     const requestId = ++currentRequestId;
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, showCompletionOverlay: false, completedQuizIndices: [] });
     try {
       const [lessonRes, trackRes] = await Promise.all([
         academyApi.get<{ lesson: AcademyLesson }>(`/lessons/${lessonSlug}`),
@@ -88,7 +94,7 @@ export const useLessonStore = create<LessonState>((set, get) => {
         `/learner/progress/${currentLesson.id}`,
         { status: 'completed' },
       );
-      set({ progress: updated });
+      set({ progress: updated, showCompletionOverlay: true });
     } catch (err) {
       console.error('Failed to mark complete:', err);
       set({ error: 'Failed to mark lesson complete' });
@@ -114,6 +120,17 @@ export const useLessonStore = create<LessonState>((set, get) => {
 
   setActiveTab(tab: ActiveTab) {
     set({ activeTab: tab });
+  },
+
+  setShowCompletionOverlay(val: boolean) {
+    set({ showCompletionOverlay: val });
+  },
+
+  addCompletedQuiz(index: number) {
+    const { completedQuizIndices } = get();
+    if (!completedQuizIndices.includes(index)) {
+      set({ completedQuizIndices: [...completedQuizIndices, index] });
+    }
   },
 };
 });

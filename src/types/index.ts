@@ -26,6 +26,8 @@ export interface AcademyLearner {
   onboarding_completed: boolean;
   selected_track: string | null;
   cohort: string | null;
+  work_type: string | null;
+  specialization: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -300,6 +302,8 @@ export interface RegisterPayload {
   marital_status?: string;
   cv_url?: string;
   website_url?: string;
+  work_type?: string;
+  specialization?: string;
 }
 
 // ─── Dashboard ──────────────────────────────────────────────────────────────

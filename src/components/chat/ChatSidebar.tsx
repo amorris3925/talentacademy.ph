@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { MessageSquare, Bot } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { MessageSquare, Bot, Sparkles } from 'lucide-react';
 import { useChatStore } from '@/stores/chat';
+import { useInteractionStore } from '@/stores/interaction';
 import { ChatMessage } from './ChatMessage';
 import { ChatMarkdown } from './ChatMarkdown';
 import { ChatInput } from './ChatInput';
+import { cn } from '@/lib/utils';
 
 import OutputRating from './OutputRating';
 
@@ -24,8 +26,27 @@ export function ChatSidebar({ lessonId, lessonTitle }: ChatSidebarProps) {
     setLessonContext,
   } = useChatStore();
 
+  const activeBlockType = useInteractionStore((s) => s.activeBlockType);
   const scrollRef = useRef<HTMLDivElement>(null);
   const didLoad = useRef(false);
+  const [showGlowTip, setShowGlowTip] = useState(false);
+  const glowTipDismissed = useRef(false);
+
+  const shouldGlow = activeBlockType === 'generation';
+
+  // Show tooltip when glow activates (once per session)
+  useEffect(() => {
+    if (shouldGlow && !glowTipDismissed.current) {
+      setShowGlowTip(true);
+      const timer = setTimeout(() => {
+        setShowGlowTip(false);
+        glowTipDismissed.current = true;
+      }, 4000);
+      return () => clearTimeout(timer);
+    } else if (!shouldGlow) {
+      setShowGlowTip(false);
+    }
+  }, [shouldGlow]);
 
   // Reset didLoad when lessonId changes so history re-fetches
   useEffect(() => {
@@ -54,11 +75,24 @@ export function ChatSidebar({ lessonId, lessonTitle }: ChatSidebarProps) {
   }, [messages, streamingContent]);
 
   return (
-    <div className="flex h-full flex-col bg-gray-50">
+    <div className={cn(
+      'flex h-full flex-col bg-gray-50 transition-shadow duration-500',
+      shouldGlow && 'animate-chat-glow',
+    )}>
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-4 py-2.5">
+      <div className="relative flex items-center gap-2 border-b border-gray-200 bg-white px-4 py-2.5">
         <MessageSquare className="h-4 w-4 text-indigo-600" />
         <h3 className="text-sm font-semibold text-gray-900">AI Tutor</h3>
+
+        {/* Contextual glow tooltip */}
+        {showGlowTip && (
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-10 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-lg whitespace-nowrap">
+              <Sparkles className="h-3 w-3" />
+              Try it out here!
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Messages */}

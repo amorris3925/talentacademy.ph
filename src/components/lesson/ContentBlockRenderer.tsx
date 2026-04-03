@@ -5,6 +5,7 @@ import type { ContentBlock } from '@/types';
 import { MarkdownBlock } from './MarkdownBlock';
 import { ImageBlock } from './ImageBlock';
 import { CalloutBlock } from './CalloutBlock';
+import { QuizSequence } from './QuizSequence';
 import PromptChips from './PromptChips';
 import ProgressiveHints from './ProgressiveHints';
 import Checkpoint from './Checkpoint';
@@ -35,7 +36,21 @@ interface ContentBlockRendererProps {
   onContinue?: () => void;
 }
 
-function renderBlock(block: ContentBlock, index: number, onContinue?: () => void) {
+function renderBlock(block: ContentBlock, index: number, onContinue?: () => void, wrapWithData = false) {
+  const rendered = renderBlockInner(block, index, onContinue);
+  if (!rendered) return null;
+
+  if (wrapWithData) {
+    return (
+      <div key={`block-${index}`} data-block-id={`${block.type}-${index}`} data-block-type={block.type}>
+        {rendered}
+      </div>
+    );
+  }
+  return rendered;
+}
+
+function renderBlockInner(block: ContentBlock, index: number, onContinue?: () => void) {
   switch (block.type) {
     case 'markdown':
       return <MarkdownBlock key={`${block.type}-${index}`} content={block.content} />;
@@ -136,9 +151,42 @@ export function ContentBlockRenderer({ blocks, onContinue }: ContentBlockRendere
     );
   }
 
+  // Collect quiz blocks for sequential rendering
+  const quizIndices = safeBlocks.reduce<number[]>((acc, block, i) => {
+    if (block.type === 'quiz') acc.push(i);
+    return acc;
+  }, []);
+  const hasMultipleQuizzes = quizIndices.length >= 2;
+  const firstQuizIndex = quizIndices[0];
+
   return (
     <div className="space-y-6">
-      {safeBlocks.map((block, index) => renderBlock(block, index, onContinue))}
+      {safeBlocks.map((block, index) => {
+        // Sequential quiz mode: render QuizSequence at first quiz position, skip the rest
+        if (hasMultipleQuizzes && block.type === 'quiz') {
+          if (index === firstQuizIndex) {
+            const quizBlocks = quizIndices.map((i) => ({
+              content: safeBlocks[i].content,
+              metadata: safeBlocks[i].metadata as {
+                options: string[];
+                correct_index: number;
+                explanation: string;
+              },
+            }));
+            return (
+              <div key="quiz-sequence" data-block-id="quiz-sequence" data-block-type="quiz">
+                <QuizSequence
+                  quizzes={quizBlocks}
+                  onContinue={onContinue}
+                />
+              </div>
+            );
+          }
+          // Skip other quiz blocks — they're handled by QuizSequence
+          return null;
+        }
+        return renderBlock(block, index, onContinue, true);
+      })}
     </div>
   );
 }

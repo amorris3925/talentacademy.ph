@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -17,6 +17,8 @@ import { useChatStore, summarizeContentBlocks } from '@/stores/chat';
 import { useInteractionStore } from '@/stores/interaction';
 import { ContentBlockRenderer } from '@/components/lesson/ContentBlockRenderer';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
+import { LessonCompleteOverlay } from '@/components/lesson/LessonCompleteOverlay';
+import { useBlockObserver } from '@/hooks/useBlockObserver';
 import { Button, Spinner } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { formatXp } from '@/lib/utils';
@@ -37,13 +39,17 @@ export default function LessonPage() {
     progress,
     isLoading,
     activeTab,
+    showCompletionOverlay,
     loadLesson,
     markComplete,
     setActiveTab,
+    setShowCompletionOverlay,
   } = useLessonStore();
 
   const { clearHistory, sendMessage, setLessonContext } = useChatStore();
   const { pendingPrompt, reset: resetInteraction, clearPendingPrompt, setSelectedText } = useInteractionStore();
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+  useBlockObserver(contentScrollRef);
 
   // Reset interaction store on mount
   useEffect(() => {
@@ -152,6 +158,10 @@ export default function LessonPage() {
 
   const isCompleted = progress?.status === 'completed';
 
+  // Get the last quiz explanation for the completion overlay
+  const lastQuizBlock = [...(currentLesson.content_blocks || [])].reverse().find((b) => b.type === 'quiz');
+  const lastQuizExplanation = (lastQuizBlock?.metadata as { explanation?: string })?.explanation || '';
+
   const handleMarkComplete = async () => {
     await markComplete();
   };
@@ -231,7 +241,7 @@ export default function LessonPage() {
             activeTab === 'lesson' ? 'flex w-full' : 'hidden md:flex',
           )}
         >
-          <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8" onMouseUp={handleMouseUp}>
+          <div ref={contentScrollRef} className="flex-1 overflow-y-auto px-4 py-6 md:px-8" onMouseUp={handleMouseUp}>
             {/* Lesson Title */}
             <h1 className="mb-2 text-2xl font-bold text-gray-900">
               {currentLesson.title}
@@ -286,6 +296,18 @@ export default function LessonPage() {
           <ChatSidebar lessonId={currentLesson.id} />
         </div>
       </div>
+
+      {/* Lesson Complete Overlay */}
+      {showCompletionOverlay && (
+        <LessonCompleteOverlay
+          xpReward={currentLesson.xp_reward}
+          explanation={lastQuizExplanation}
+          onNextLesson={() => {
+            setShowCompletionOverlay(false);
+            navigateLesson('next');
+          }}
+        />
+      )}
     </div>
   );
 }

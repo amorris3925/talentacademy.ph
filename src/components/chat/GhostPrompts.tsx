@@ -2,25 +2,19 @@
 import { Lightbulb } from 'lucide-react'
 import { useInteractionStore } from '@/stores/interaction'
 import { useLessonStore } from '@/stores/lesson'
-
-const DEFAULT_PROMPTS = [
-  'Explain this concept simply',
-  'Give me a real-world example',
-  'Quiz me on what I just learned',
-]
+import { useAuthStore } from '@/stores/auth'
+import { getPersonalizedGhostPrompts } from '@/lib/prompt-personalization'
 
 export default function GhostPrompts() {
   const triggerPrompt = useInteractionStore((s) => s.triggerPrompt)
   const currentLesson = useLessonStore((s) => s.currentLesson)
+  const learner = useAuthStore((s) => s.learner)
 
-  // Use lesson-specific ghost prompts if available, otherwise defaults
-  const prompts = currentLesson?.ai_context
-    ? [
-        `Summarize "${currentLesson.title}" in 3 bullet points`,
-        'What should I focus on in this lesson?',
-        'Give me a practice exercise for this topic',
-      ]
-    : DEFAULT_PROMPTS
+  const prompts = getPersonalizedGhostPrompts(
+    learner?.work_type,
+    learner?.specialization,
+    currentLesson?.title,
+  )
 
   return (
     <div className="flex flex-wrap gap-1.5 px-2 py-2 border-t border-gray-100">

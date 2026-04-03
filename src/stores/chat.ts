@@ -18,7 +18,7 @@ interface ChatState {
   streamingContent: string;
   lessonContext: LessonContextData | null;
 
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, images?: File[]) => Promise<void>;
   sendFromInteraction: () => Promise<void>;
   loadHistory: (lessonId?: string) => Promise<void>;
   clearHistory: () => void;
@@ -87,7 +87,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   streamingContent: '',
   lessonContext: null,
 
-  async sendMessage(content: string) {
+  async sendMessage(content: string, _images?: File[]) {
     if (get().isStreaming) return;
     streamAbortController?.abort();
     streamAbortController = new AbortController();

@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Sparkles, ArrowLeft, ArrowRight, Upload, Globe, Check } from 'lucide-react'
+import { Sparkles, ArrowLeft, ArrowRight, Upload, Globe, Check, Briefcase } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2 | 3 | 4
 
 const sexOptions = [
   { value: 'male', label: 'Male' },
@@ -21,6 +21,20 @@ const maritalOptions = [
   { value: 'divorced', label: 'Divorced' },
   { value: 'widowed', label: 'Widowed' },
   { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+]
+
+const workTypeOptions = [
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'seo', label: 'SEO' },
+  { value: 'content writing', label: 'Content Writing' },
+  { value: 'design', label: 'Design' },
+  { value: 'development', label: 'Development' },
+  { value: 'product management', label: 'Product Management' },
+  { value: 'sales', label: 'Sales' },
+  { value: 'hr', label: 'HR / Recruitment' },
+  { value: 'finance', label: 'Finance' },
+  { value: 'education', label: 'Education' },
+  { value: 'other', label: 'Other' },
 ]
 
 export default function RegisterPage() {
@@ -38,14 +52,18 @@ export default function RegisterPage() {
   const [sex, setSex] = useState('')
   const [maritalStatus, setMaritalStatus] = useState('')
 
-  // Step 2: Professional Profile
+  // Step 2: Your Work & Experience
+  const [workType, setWorkType] = useState('')
+  const [specialization, setSpecialization] = useState('')
+
+  // Step 3: Professional Profile
   const [profileMode, setProfileMode] = useState<'cv' | 'website'>('website')
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [cvUrl, setCvUrl] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [isUploading, setIsUploading] = useState(false)
 
-  // Step 3: Account Creation
+  // Step 4: Account Creation
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [phone, setPhone] = useState('')
@@ -58,6 +76,10 @@ export default function RegisterPage() {
   }
 
   function canProceedStep2() {
+    return !!workType
+  }
+
+  function canProceedStep3() {
     if (profileMode === 'cv') return !!cvUrl;
     if (profileMode === 'website') {
       try { const u = new URL(websiteUrl); return ['http:', 'https:'].includes(u.protocol); }
@@ -66,7 +88,7 @@ export default function RegisterPage() {
     return false;
   }
 
-  function canProceedStep3() {
+  function canProceedStep4() {
     return password && confirmPassword && password === confirmPassword && password.length >= 8 && acceptTerms
   }
 
@@ -113,6 +135,8 @@ export default function RegisterPage() {
         marital_status: maritalStatus,
         cv_url: profileMode === 'cv' ? cvUrl : undefined,
         website_url: profileMode === 'website' ? websiteUrl : undefined,
+        work_type: workType || undefined,
+        specialization: specialization || undefined,
       })
       router.push('/dashboard')
     } catch (err: unknown) {
@@ -136,7 +160,7 @@ export default function RegisterPage() {
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
@@ -149,9 +173,9 @@ export default function RegisterPage() {
               >
                 {s < step ? <Check className="h-4 w-4" /> : s}
               </div>
-              {s < 3 && (
+              {s < 4 && (
                 <div
-                  className={`w-12 h-0.5 ${s < step ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                  className={`w-8 h-0.5 ${s < step ? 'bg-indigo-600' : 'bg-gray-200'}`}
                 />
               )}
             </div>
@@ -274,8 +298,86 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Step 2: Professional Profile */}
+          {/* Step 2: Your Work & Experience */}
           {step === 2 && (
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Your Work & Experience</h1>
+              <p className="text-gray-600 mb-6">
+                Help us personalize your learning experience.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="register-workType" className="block text-sm font-medium text-gray-700 mb-1">
+                    What type of work do you do? *
+                  </label>
+                  <select
+                    id="register-workType"
+                    required
+                    value={workType}
+                    onChange={(e) => setWorkType(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  >
+                    <option value="">Select your field</option>
+                    {workTypeOptions.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="register-specialization" className="block text-sm font-medium text-gray-700 mb-1">
+                    What&apos;s your specialization? (optional)
+                  </label>
+                  <input
+                    id="register-specialization"
+                    type="text"
+                    value={specialization}
+                    onChange={(e) => setSpecialization(e.target.value)}
+                    maxLength={100}
+                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="e.g., Technical SEO, UI Design, Data Analysis"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">
+                    This helps us tailor AI tool suggestions to your specific needs
+                  </p>
+                </div>
+
+                {workType && (
+                  <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Briefcase className="h-4 w-4 text-indigo-600" />
+                      <p className="text-sm font-medium text-indigo-800">Great choice!</p>
+                    </div>
+                    <p className="text-xs text-indigo-600">
+                      We&apos;ll customize your lesson prompts and AI suggestions for {workType}{specialization ? ` (${specialization})` : ''}.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!canProceedStep2()}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Professional Profile */}
+          {step === 3 && (
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Professional Profile</h1>
               <p className="text-gray-600 mb-6">
@@ -379,15 +481,15 @@ export default function RegisterPage() {
 
               <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(2)}
                   className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </button>
                 <button
-                  onClick={() => setStep(3)}
-                  disabled={!canProceedStep2()}
+                  onClick={() => setStep(4)}
+                  disabled={!canProceedStep3()}
                   className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
@@ -397,8 +499,8 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Step 3: Account Creation */}
-          {step === 3 && (
+          {/* Step 4: Account Creation */}
+          {step === 4 && (
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Create Your Account</h1>
               <p className="text-gray-600 mb-6">Set your password to get started.</p>
@@ -475,7 +577,7 @@ export default function RegisterPage() {
 
               <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(3)}
                   className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -483,7 +585,7 @@ export default function RegisterPage() {
                 </button>
                 <button
                   onClick={handleSubmit}
-                  disabled={!canProceedStep3() || isLoading}
+                  disabled={!canProceedStep4() || isLoading}
                   className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isLoading ? (

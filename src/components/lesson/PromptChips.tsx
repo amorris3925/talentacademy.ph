@@ -1,17 +1,29 @@
 'use client'
 import { Sparkles } from 'lucide-react'
 import { useInteractionStore } from '@/stores/interaction'
+import { useAuthStore } from '@/stores/auth'
+import { useLessonStore } from '@/stores/lesson'
+import { getPersonalizedPrompts } from '@/lib/prompt-personalization'
 
 interface Prompt { label: string; text: string }
 
 export default function PromptChips({ prompts }: { prompts: Prompt[] }) {
   const triggerPrompt = useInteractionStore((s) => s.triggerPrompt)
+  const learner = useAuthStore((s) => s.learner)
+  const currentLesson = useLessonStore((s) => s.currentLesson)
 
   if (!prompts || prompts.length === 0) return null
 
+  const personalizedPrompts = getPersonalizedPrompts(
+    prompts,
+    learner?.work_type,
+    learner?.specialization,
+    currentLesson?.title,
+  )
+
   return (
     <div className="flex flex-wrap gap-2 my-4">
-      {prompts.map((p, i) => (
+      {personalizedPrompts.map((p, i) => (
         <button
           type="button"
           key={i}

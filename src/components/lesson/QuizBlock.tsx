@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { CheckCircle2, XCircle, Send, Trophy, ChevronRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Send, RotateCcw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
@@ -17,16 +17,19 @@ interface QuizBlockProps {
     explanation: string;
   };
   onContinue?: () => void;
+  /** Sequential quiz mode: called when user answers correctly */
+  onCorrectAnswer?: () => void;
+  /** Whether this quiz is part of a sequential sequence */
+  isSequential?: boolean;
 }
 
-export function QuizBlock({ content, metadata, onContinue }: QuizBlockProps) {
+export function QuizBlock({ content, metadata, onContinue, onCorrectAnswer, isSequential }: QuizBlockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [reasoning, setReasoning] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [showCompletion, setShowCompletion] = useState(false);
   const [waitingForChat, setWaitingForChat] = useState(false);
   const triggerPrompt = useInteractionStore((s) => s.triggerPrompt);
-  const { updateProgress, markComplete, currentLesson } = useLessonStore();
+  const { updateProgress, markComplete } = useLessonStore();
   const isStreaming = useChatStore((s) => s.isStreaming);
   const prevStreamingRef = useRef(false);
 
@@ -61,12 +64,15 @@ export function QuizBlock({ content, metadata, onContinue }: QuizBlockProps) {
       setWaitingForChat(false);
       fireConfetti();
       setTimeout(() => {
-        setShowCompletion(true);
-        markComplete();
+        if (isSequential && onCorrectAnswer) {
+          onCorrectAnswer();
+        } else {
+          markComplete();
+        }
       }, 500);
     }
     prevStreamingRef.current = isStreaming;
-  }, [isStreaming, waitingForChat, fireConfetti, markComplete]);
+  }, [isStreaming, waitingForChat, fireConfetti, markComplete, isSequential, onCorrectAnswer]);
 
   const handleSubmit = () => {
     if (!canSubmit || selectedIndex === null) return;
@@ -109,7 +115,6 @@ export function QuizBlock({ content, metadata, onContinue }: QuizBlockProps) {
   };
 
   return (
-    <>
       <div className="overflow-hidden rounded-lg border border-gray-200">
         {/* Question */}
         <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
@@ -212,8 +217,14 @@ export function QuizBlock({ content, metadata, onContinue }: QuizBlockProps) {
 
         {/* After submission: try again (only if wrong) */}
         {submitted && !isCorrect && (
-          <div className="flex items-center gap-2 border-t border-gray-200 bg-gray-50 px-4 py-3">
-            <Button variant="secondary" size="sm" onClick={handleReset}>
+          <div className="border-t border-amber-200 bg-amber-50 px-4 py-3">
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleReset}
+              className="w-full animate-try-again bg-amber-500 hover:bg-amber-600"
+            >
+              <RotateCcw className="h-4 w-4" />
               Try Again
             </Button>
           </div>
@@ -243,40 +254,5 @@ export function QuizBlock({ content, metadata, onContinue }: QuizBlockProps) {
           </div>
         )}
       </div>
-
-      {/* Inline Lesson Complete card — shown after chat response finishes */}
-      {showCompletion && (
-        <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-5 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-              <Trophy className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-green-900">Lesson Complete!</h3>
-              <p className="text-sm text-green-700">Great work finishing this lesson.</p>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-white/70 p-3 mb-3">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Key Takeaway</p>
-            <p className="text-sm text-gray-700 leading-relaxed">{metadata.explanation}</p>
-          </div>
-
-          <div className="flex items-center justify-between">
-            {currentLesson && (
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 px-3 py-1">
-                <span className="text-xs font-semibold text-indigo-700">+{currentLesson.xp_reward} XP earned</span>
-              </div>
-            )}
-            {onContinue && (
-              <Button variant="primary" size="sm" onClick={onContinue}>
-                Next Lesson
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
-    </>
   );
 }
