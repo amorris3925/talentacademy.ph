@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, AlertCircle, Loader2 } from 'lucide-react';
+import { Download, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui';
+import { GenerationProgressBar } from './GenerationProgressBar';
 import type { AcademyGeneration } from '@/types';
 
 function WaveformVisualizer() {
@@ -27,15 +28,8 @@ interface GenerationPreviewProps {
 export function GenerationPreview({ generation }: GenerationPreviewProps) {
   if (generation.status === 'pending' || generation.status === 'processing') {
     return (
-      <div className="flex items-center justify-center rounded-lg bg-gray-50 py-12">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
-          <p className="text-sm text-gray-500">
-            {generation.status === 'pending'
-              ? 'Queued...'
-              : 'Processing...'}
-          </p>
-        </div>
+      <div className="rounded-lg bg-gray-50 px-6 py-8">
+        <GenerationProgressBar type={generation.type} status={generation.status} />
       </div>
     );
   }

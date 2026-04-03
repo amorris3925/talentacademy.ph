@@ -179,6 +179,14 @@ export interface ImageGenParams {
   negative_prompt: string | null;
 }
 
+export interface ImageEvaluation {
+  generation_id: string;
+  rating: number | null;
+  reflection: string | null;
+  refinements_used: string[];
+  hints_revealed: number;
+}
+
 export interface VideoGenParams {
   style: string | null;
   duration: number | null;
@@ -315,6 +323,111 @@ export interface DashboardData {
   enrollments: AcademyEnrollment[];
   recent_badges: LearnerBadge[];
   recent_xp: { amount: number; source: string; created_at: string }[];
+}
+
+// ─── Analytics & Sessions ──────────────────────────────────────────────────
+
+export interface AcademySession {
+  id: string;
+  learner_id: string;
+  started_at: string;
+  expires_at: string;
+  ended_at: string | null;
+  is_active: boolean;
+  device_type: string | null;
+  browser: string | null;
+  os: string | null;
+  country: string | null;
+  city: string | null;
+  total_events: number;
+  lessons_viewed: number;
+  lessons_completed: number;
+  quizzes_attempted: number;
+  chat_messages_sent: number;
+}
+
+export type AnalyticsEventType =
+  | 'page_view'
+  | 'lesson_start'
+  | 'lesson_complete'
+  | 'quiz_submit'
+  | 'chat_send'
+  | 'chat_receive'
+  | 'hint_reveal'
+  | 'checkpoint_complete'
+  | 'generation_create'
+  | 'track_enroll'
+  | 'block_view'
+  | 'text_highlight'
+  | 'exercise_submit'
+  | 'rating_submit'
+  | 'login'
+  | 'logout';
+
+export interface AnalyticsEvent {
+  event_type: AnalyticsEventType;
+  lesson_id?: string;
+  module_id?: string;
+  track_id?: string;
+  metadata?: Record<string, unknown>;
+  client_ts: string;
+}
+
+export interface QuizAttempt {
+  lesson_id: string;
+  block_index: number;
+  question_text: string;
+  options: string[];
+  correct_index: number;
+  selected_index: number;
+  selected_answer: string;
+  reasoning: string;
+  is_correct: boolean;
+  attempt_number: number;
+  time_to_answer_ms: number | null;
+  time_to_reasoning_ms: number | null;
+  answer_changed: boolean;
+}
+
+export interface PersistedChatMessage {
+  id: string;
+  session_id: string;
+  learner_id: string;
+  lesson_id: string | null;
+  role: 'user' | 'assistant';
+  content: string;
+  source: ChatMessageSource;
+  rating: number | null;
+  created_at: string;
+}
+
+export type ChatMessageSource =
+  | 'typed'
+  | 'prompt_chip'
+  | 'highlight_ask'
+  | 'quiz_feedback'
+  | 'checkpoint';
+
+export interface BlockViewData {
+  block_index: number;
+  block_type: string;
+  time_visible_ms: number;
+}
+
+export interface EvaluationScores {
+  id: string;
+  learner_id: string;
+  analytical_reasoning: number;
+  engagement_depth: number;
+  management_aptitude: number;
+  self_direction: number;
+  consistency: number;
+  growth_trajectory: number;
+  communication_quality: number;
+  composite_talent_score: number;
+  composite_management_score: number;
+  score_breakdown: Record<string, unknown>;
+  evaluation_date: string;
 }
 
 // ─── Pagination ─────────────────────────────────────────────────────────────

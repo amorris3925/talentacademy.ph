@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, Image as ImageIcon } from 'lucide-react';
 import { useGenerationStore } from '@/stores/generation';
 import { Button, Select } from '@/components/ui';
 import { GenerationPreview } from './GenerationPreview';
+import { ImageEvaluationPanel } from './ImageEvaluationPanel';
 import type { AcademyGeneration } from '@/types';
 
 const styles = [
@@ -29,9 +30,20 @@ export function ImageGenerator() {
   const [result, setResult] = useState<AcademyGeneration | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [refineTrigger, setRefineTrigger] = useState(0);
+
   const { generateImage } = useGenerationStore();
+  const activeGeneration = useGenerationStore((s) => s.activeGeneration);
   const generatingTypes = useGenerationStore((s) => s.generatingTypes);
   const isGenerating = generatingTypes.includes('image');
+
+  // Auto-trigger generation after refinement updates state
+  useEffect(() => {
+    if (refineTrigger > 0) {
+      handleGenerate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refineTrigger]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -107,11 +119,35 @@ export function ImageGenerator() {
         <p className="text-sm text-red-600">{error}</p>
       )}
 
+      {/* In-progress preview */}
+      {isGenerating && activeGeneration && activeGeneration.type === 'image' && (
+        <div className="rounded-xl border border-gray-200 p-4">
+          <GenerationPreview generation={activeGeneration} />
+        </div>
+      )}
+
       {/* Result */}
-      {result && (
+      {result && !isGenerating && (
         <div className="rounded-xl border border-gray-200 p-4">
           <GenerationPreview generation={result} />
         </div>
+      )}
+
+      {/* Evaluation panel */}
+      {result && result.status === 'completed' && result.type === 'image' && !isGenerating && (
+        <ImageEvaluationPanel
+          generation={result}
+          originalPrompt={prompt}
+          originalParams={{ style, width: parseInt(width, 10), height: parseInt(height, 10), negative_prompt: null }}
+          onRefine={(newPrompt, newParams) => {
+            setPrompt(newPrompt);
+            if (newParams.style) setStyle(newParams.style);
+            if (newParams.width) setWidth(String(newParams.width));
+            if (newParams.height) setHeight(String(newParams.height));
+            setRefineTrigger((t) => t + 1);
+          }}
+          context="studio"
+        />
       )}
 
       {/* Empty state */}
