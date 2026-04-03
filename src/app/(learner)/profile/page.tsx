@@ -6,7 +6,9 @@ import {
   Trophy,
   Star,
   Award,
+  Settings,
 } from 'lucide-react';
+import Link from 'next/link';
 import { academyApi } from '@/lib/api';
 import { formatXp, formatDate, getLevelColor } from '@/lib/utils';
 import { Card, Spinner, Avatar, Badge, ProgressBar, EmptyState } from '@/components/ui';
@@ -80,9 +82,18 @@ export default function ProfilePage() {
             size="xl"
           />
           <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-xl font-bold text-gray-900">
-              {learner.first_name} {learner.last_name}
-            </h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-gray-900">
+                {learner.first_name} {learner.last_name}
+              </h1>
+              <Link
+                href="/settings"
+                className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </Link>
+            </div>
             {learner.bio && (
               <p className="mt-1 text-sm text-gray-500">{learner.bio}</p>
             )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Type, Image as ImageIcon, Video, Mic, Music } from 'lucide-react';
+import { MessageSquare, Image as ImageIcon, Video, Mic, Music } from 'lucide-react';
 import { Tabs } from '@/components/ui';
 import { TextGenerator } from './TextGenerator';
 import { ImageGenerator } from './ImageGenerator';
@@ -10,7 +10,7 @@ import { AudioGenerator } from './AudioGenerator';
 import { MusicGenerator } from './MusicGenerator';
 
 const tabs = [
-  { key: 'text', label: 'Text', icon: <Type className="h-4 w-4" /> },
+  { key: 'chat', label: 'Chat', icon: <MessageSquare className="h-4 w-4" /> },
   { key: 'image', label: 'Image', icon: <ImageIcon className="h-4 w-4" /> },
   { key: 'video', label: 'Video', icon: <Video className="h-4 w-4" /> },
   { key: 'audio', label: 'Audio', icon: <Mic className="h-4 w-4" /> },
@@ -18,14 +18,14 @@ const tabs = [
 ];
 
 export function GenerationStudio() {
-  const [activeTab, setActiveTab] = useState('text');
+  const [activeTab, setActiveTab] = useState('chat');
 
   return (
     <div>
       <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       <div className="pt-6">
-        {activeTab === 'text' && <TextGenerator />}
+        {activeTab === 'chat' && <TextGenerator />}
         {activeTab === 'image' && <ImageGenerator />}
         {activeTab === 'video' && <VideoGenerator />}
         {activeTab === 'audio' && <AudioGenerator />}

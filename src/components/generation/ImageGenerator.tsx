@@ -49,14 +49,6 @@ export function ImageGenerator() {
 
   return (
     <div className="space-y-5">
-      {/* Coming Soon Banner */}
-      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-        <p className="text-sm font-semibold text-amber-800">Coming Soon</p>
-        <p className="mt-0.5 text-xs text-amber-700">
-          Image generation is being integrated with the MiniMax API. Use the Text tab for AI generation in the meantime.
-        </p>
-      </div>
-
       {/* Prompt */}
       <div>
         <label htmlFor="image-gen-prompt" className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -100,11 +92,11 @@ export function ImageGenerator() {
         size="lg"
         onClick={handleGenerate}
         isLoading={isGenerating}
-        disabled
-        className="w-full opacity-50 cursor-not-allowed"
+        disabled={!prompt.trim() || isGenerating}
+        className="w-full"
       >
         <Sparkles className="h-4 w-4" />
-        Generate Image (Coming Soon)
+        {isGenerating ? 'Generating...' : 'Generate Image'}
       </Button>
 
       {/* Error */}

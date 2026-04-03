@@ -57,6 +57,7 @@ export interface AcademyTrack {
   is_invite_only: boolean;
   icon: string | null;
   duration_weeks: number;
+  modules?: AcademyModule[];
 }
 
 export interface AcademyModule {

@@ -5,6 +5,7 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useInteractionStore } from '@/stores/interaction';
+import { useLessonStore } from '@/stores/lesson';
 
 interface QuizBlockProps {
   content: string;
@@ -19,6 +20,7 @@ export function QuizBlock({ content, metadata }: QuizBlockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const triggerPrompt = useInteractionStore((s) => s.triggerPrompt);
+  const updateProgress = useLessonStore((s) => s.updateProgress);
 
   const isCorrect = submitted && selectedIndex === metadata.correct_index;
 
@@ -27,9 +29,20 @@ export function QuizBlock({ content, metadata }: QuizBlockProps) {
     setSubmitted(true);
 
     const correct = selectedIndex === metadata.correct_index;
+
+    // Persist quiz answer to backend
+    updateProgress({
+      submission_data: {
+        quiz_question: content,
+        selected_answer: metadata.options[selectedIndex],
+        correct_answer: metadata.options[metadata.correct_index],
+        is_correct: correct,
+      },
+    });
+
     if (correct) {
       triggerPrompt(
-        `I just answered a quiz question correctly: "${content}". Can you explain why this is the right answer?`,
+        `I just answered a quiz question correctly: "${content}". The answer is "${metadata.options[selectedIndex]}". Can you briefly explain why this is right?`,
       );
     } else {
       triggerPrompt(

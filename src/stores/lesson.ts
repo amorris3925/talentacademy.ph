@@ -58,10 +58,20 @@ export const useLessonStore = create<LessonState>((set, get) => {
       set({
         currentLesson: lesson,
         currentModule: mod ?? null,
-        currentTrack: trackRes.track,
-        progress: null,
+        currentTrack: { ...trackRes.track, modules: trackRes.modules || [] },
         isLoading: false,
       });
+
+      // Fetch progress for this lesson (non-blocking)
+      try {
+        const progressRes = await academyApi.get<any>(`/learner/progress/${lesson.id}`);
+        if (requestId !== currentRequestId) return;
+        set({ progress: progressRes ?? null });
+      } catch {
+        // No progress yet — that's fine, user hasn't started
+        if (requestId !== currentRequestId) return;
+        set({ progress: null });
+      }
     } catch (err) {
       if (requestId !== currentRequestId) return;
       set({ error: 'Failed to load lesson', isLoading: false });
@@ -78,7 +88,8 @@ export const useLessonStore = create<LessonState>((set, get) => {
         { status: 'completed' },
       );
       set({ progress: updated });
-    } catch {
+    } catch (err) {
+      console.error('Failed to mark complete:', err);
       set({ error: 'Failed to mark lesson complete' });
     }
   },
@@ -93,7 +104,8 @@ export const useLessonStore = create<LessonState>((set, get) => {
         data,
       );
       set({ progress: updated });
-    } catch {
+    } catch (err) {
+      console.error('Failed to update progress:', err);
       set({ error: 'Failed to update progress' });
     }
   },

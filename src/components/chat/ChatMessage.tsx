@@ -3,6 +3,7 @@
 import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/utils';
+import { ChatMarkdown } from './ChatMarkdown';
 import type { AcademyChatMessage } from '@/types';
 
 interface ChatMessageProps {
@@ -15,39 +16,43 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div
       className={cn(
-        'flex gap-2.5',
+        'flex gap-2',
         isUser ? 'flex-row-reverse' : 'flex-row',
       )}
     >
       {/* Avatar */}
       <div
         className={cn(
-          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full',
+          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full',
           isUser ? 'bg-indigo-600' : 'bg-gray-200',
         )}
       >
         {isUser ? (
-          <User className="h-3.5 w-3.5 text-white" />
+          <User className="h-3 w-3 text-white" />
         ) : (
-          <Bot className="h-3.5 w-3.5 text-gray-600" />
+          <Bot className="h-3 w-3 text-gray-600" />
         )}
       </div>
 
       {/* Bubble */}
       <div
         className={cn(
-          'max-w-[80%] rounded-2xl px-3.5 py-2.5',
+          'max-w-[85%] rounded-2xl px-3 py-2',
           isUser
             ? 'rounded-tr-md bg-indigo-600 text-white'
             : 'rounded-tl-md border border-gray-200 bg-white text-gray-800',
         )}
       >
-        <p className="whitespace-pre-wrap text-sm leading-relaxed">
-          {message.content}
-        </p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap text-sm leading-snug">
+            {message.content}
+          </p>
+        ) : (
+          <ChatMarkdown content={message.content} />
+        )}
         <p
           className={cn(
-            'mt-1 text-right text-xs',
+            'mt-0.5 text-right text-[10px]',
             isUser ? 'text-indigo-200' : 'text-gray-400',
           )}
         >

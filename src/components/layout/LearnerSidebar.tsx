@@ -6,30 +6,44 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   BookOpen,
-  Trophy,
-  User,
-  Settings,
   Sparkles,
-  MessageSquare,
-  Rocket,
-  Award,
-  Image,
+  Trophy,
   Users,
+  Award,
+  Rocket,
+  User,
   X,
 } from 'lucide-react'
 
-const navItems = [
+interface NavItem {
+  href: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  comingSoon?: boolean
+  tooltip?: string
+}
+
+const mainNav: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tracks', label: 'Tracks', icon: BookOpen },
   { href: '/studio', label: 'AI Studio', icon: Sparkles },
-  { href: '/chat', label: 'AI Chat', icon: MessageSquare },
-  { href: '/generations', label: 'My Creations', icon: Image },
+]
+
+const communityNav: NavItem[] = [
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/community', label: 'Community', icon: Users },
   { href: '/certificates', label: 'Certificates', icon: Award },
-  { href: '/profile', label: 'Profile', icon: User },
-  { href: '/incubator', label: 'Incubator', icon: Rocket, comingSoon: true, tooltip: 'App Incubator \u2014 Build production web apps, get assigned project briefs, and earn profit-sharing. Available at Expert level (5,000 XP).' },
-  { href: '/settings', label: 'Settings', icon: Settings },
+]
+
+const bottomNav: NavItem[] = [
+  {
+    href: '/incubator',
+    label: 'Incubator',
+    icon: Rocket,
+    comingSoon: true,
+    tooltip: 'App Incubator — Build production web apps, get assigned project briefs, and earn profit-sharing. Available at Expert level (5,000 XP).',
+  },
+  { href: '/profile', label: 'Profile & Settings', icon: User },
 ]
 
 interface LearnerSidebarProps {
@@ -49,6 +63,46 @@ export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps)
     setTooltip(null)
   }, [])
 
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + '/')
+
+  const renderItem = (item: NavItem) => {
+    const active = isActive(item.href)
+
+    if (item.comingSoon) {
+      return (
+        <li key={item.href}>
+          <div
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium opacity-50 cursor-not-allowed text-gray-600"
+            onMouseMove={item.tooltip ? (e) => handleMouseMove(e, item.tooltip!) : undefined}
+            onMouseLeave={item.tooltip ? handleMouseLeave : undefined}
+          >
+            <item.icon className="h-5 w-5 text-gray-400" />
+            {item.label}
+            <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">Soon</span>
+          </div>
+        </li>
+      )
+    }
+
+    return (
+      <li key={item.href}>
+        <Link
+          href={item.href}
+          onClick={onClose}
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            active
+              ? 'bg-indigo-50 text-indigo-700'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+          }`}
+        >
+          <item.icon className={`h-5 w-5 ${active ? 'text-indigo-600' : 'text-gray-400'}`} />
+          {item.label}
+        </Link>
+      </li>
+    )
+  }
+
   return (
     <>
       {/* Mobile overlay */}
@@ -61,7 +115,7 @@ export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps)
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${
+        className={`fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-gray-200 flex flex-col transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -77,45 +131,29 @@ export default function LearnerSidebar({ isOpen, onClose }: LearnerSidebarProps)
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
-          <ul className="space-y-1">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-
-              if (item.comingSoon) {
-                return (
-                  <li key={item.href}>
-                    <div
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium opacity-50 cursor-not-allowed text-gray-600"
-                      onMouseMove={item.tooltip ? (e) => handleMouseMove(e, item.tooltip!) : undefined}
-                      onMouseLeave={item.tooltip ? handleMouseLeave : undefined}
-                    >
-                      <item.icon className="h-5 w-5 text-gray-400" />
-                      {item.label}
-                      <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">Soon</span>
-                    </div>
-                  </li>
-                )
-              }
-
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={onClose}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-indigo-50 text-indigo-700'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                  >
-                    <item.icon className={`h-5 w-5 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
-                    {item.label}
-                  </Link>
-                </li>
-              )
-            })}
+        <nav className="flex-1 overflow-y-auto py-3 px-3 flex flex-col">
+          {/* Main */}
+          <ul className="space-y-0.5">
+            {mainNav.map(renderItem)}
           </ul>
+
+          {/* Community section */}
+          <div className="mt-5">
+            <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Community</p>
+            <ul className="space-y-0.5">
+              {communityNav.map(renderItem)}
+            </ul>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Bottom items */}
+          <div className="border-t border-gray-200 pt-3 mt-3">
+            <ul className="space-y-0.5">
+              {bottomNav.map(renderItem)}
+            </ul>
+          </div>
         </nav>
       </aside>
 

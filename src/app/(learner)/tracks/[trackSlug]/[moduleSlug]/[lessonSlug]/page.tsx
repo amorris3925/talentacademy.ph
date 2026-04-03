@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   ChevronRight,
   ChevronLeft,
@@ -12,20 +12,14 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useLessonStore } from '@/stores/lesson';
-import { useChatStore } from '@/stores/chat';
+import { useChatStore, summarizeContentBlocks } from '@/stores/chat';
 import { useInteractionStore } from '@/stores/interaction';
 import { ContentBlockRenderer } from '@/components/lesson/ContentBlockRenderer';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { Button, Spinner } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { formatXp } from '@/lib/utils';
-import { academyApi } from '@/lib/api';
 import type { AcademyLesson } from '@/types';
-
-interface SiblingLessons {
-  prev: { slug: string; title: string } | null;
-  next: { slug: string; title: string } | null;
-}
 
 export default function LessonPage() {
   const params = useParams<{
@@ -33,6 +27,7 @@ export default function LessonPage() {
     moduleSlug: string;
     lessonSlug: string;
   }>();
+  const router = useRouter();
 
   const {
     currentLesson,
@@ -46,7 +41,7 @@ export default function LessonPage() {
     setActiveTab,
   } = useLessonStore();
 
-  const { clearHistory, sendMessage } = useChatStore();
+  const { clearHistory, sendMessage, setLessonContext } = useChatStore();
   const { pendingPrompt, reset: resetInteraction, clearPendingPrompt, setSelectedText } = useInteractionStore();
 
   // Reset interaction store on mount
@@ -59,6 +54,18 @@ export default function LessonPage() {
     clearHistory();
     loadLesson(params.trackSlug, params.moduleSlug, params.lessonSlug);
   }, [params.trackSlug, params.moduleSlug, params.lessonSlug, loadLesson, clearHistory]);
+
+  // Set full lesson context for the chat once lesson loads
+  useEffect(() => {
+    if (!currentLesson) return;
+    const contentSummary = summarizeContentBlocks(currentLesson.content_blocks);
+    setLessonContext({
+      lessonId: currentLesson.id,
+      lessonTitle: currentLesson.title,
+      lessonDescription: currentLesson.description,
+      contentSummary,
+    });
+  }, [currentLesson, setLessonContext]);
 
   // Watch pendingPrompt and auto-send to chat
   useEffect(() => {
@@ -82,10 +89,38 @@ export default function LessonPage() {
     }
   }, [setSelectedText]);
 
+  // Sibling lesson navigation
+  const navigateLesson = useCallback(
+    (direction: 'prev' | 'next') => {
+      if (!currentModule || !currentTrack) return;
+
+      // Find current lesson index within the module's lessons
+      const allLessons: Array<{ slug: string; moduleSlug: string }> = [];
+      const modules = currentTrack.modules || [];
+
+      for (const mod of modules) {
+        const modLessons = (mod as any).lessons || [];
+        for (const l of modLessons) {
+          allLessons.push({ slug: l.slug, moduleSlug: mod.slug });
+        }
+      }
+
+      const currentIdx = allLessons.findIndex((l) => l.slug === params.lessonSlug);
+      if (currentIdx === -1) return;
+
+      const targetIdx = direction === 'prev' ? currentIdx - 1 : currentIdx + 1;
+      if (targetIdx < 0 || targetIdx >= allLessons.length) return;
+
+      const target = allLessons[targetIdx];
+      router.push(`/tracks/${params.trackSlug}/${target.moduleSlug}/${target.slug}`);
+    },
+    [currentModule, currentTrack, params, router],
+  );
+
   // --- Loading state ---
   if (isLoading) {
     return (
-      <div className="flex h-[calc(100vh-64px)] items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Spinner size="lg" className="text-indigo-600" />
           <p className="text-sm text-gray-500">Loading lesson...</p>
@@ -97,7 +132,7 @@ export default function LessonPage() {
   // --- Error / not found ---
   if (!currentLesson) {
     return (
-      <div className="flex h-[calc(100vh-64px)] items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
             <AlertCircle className="h-7 w-7 text-red-500" />
@@ -121,9 +156,9 @@ export default function LessonPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-64px)] flex-col">
+    <div className="-m-4 sm:-m-6 lg:-m-8 flex h-[calc(100vh-4rem)] flex-col">
       {/* Breadcrumb + Navigation */}
-      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2.5 md:px-6">
+      <div className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-2.5 md:px-6">
         <nav className="flex items-center gap-1 text-sm">
           <span className="text-gray-500 hover:text-gray-700">
             {currentTrack?.title || 'Track'}
@@ -140,13 +175,19 @@ export default function LessonPage() {
 
         {/* Desktop nav buttons */}
         <div className="hidden items-center gap-2 md:flex">
-          <NavButton direction="prev" params={params} />
-          <NavButton direction="next" params={params} />
+          <Button variant="outline" size="sm" onClick={() => navigateLesson('prev')}>
+            <ChevronLeft className="h-3.5 w-3.5" />
+            Previous
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigateLesson('next')}>
+            Next
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
 
       {/* Mobile Tab Toggle */}
-      <div className="flex border-b border-gray-200 bg-white md:hidden">
+      <div className="flex shrink-0 border-b border-gray-200 bg-white md:hidden">
         <button
           type="button"
           onClick={() => setActiveTab('lesson')}
@@ -176,16 +217,16 @@ export default function LessonPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Lesson Content Panel */}
         <div
           className={cn(
-            'flex flex-col overflow-y-auto',
+            'flex flex-col',
             'md:w-[60%] md:border-r md:border-gray-200',
             activeTab === 'lesson' ? 'flex w-full' : 'hidden md:flex',
           )}
         >
-          <div className="flex-1 px-4 py-6 md:px-8" onMouseUp={handleMouseUp}>
+          <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8" onMouseUp={handleMouseUp}>
             {/* Lesson Title */}
             <h1 className="mb-2 text-2xl font-bold text-gray-900">
               {currentLesson.title}
@@ -201,7 +242,7 @@ export default function LessonPage() {
           </div>
 
           {/* Bottom Bar */}
-          <div className="sticky bottom-0 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 md:px-8">
+          <div className="flex shrink-0 items-center justify-between border-t border-gray-200 bg-white px-4 py-3 md:px-8">
             <div className="flex items-center gap-2">
               {isCompleted ? (
                 <div className="flex items-center gap-1.5 text-sm text-green-600">
@@ -223,9 +264,15 @@ export default function LessonPage() {
           </div>
 
           {/* Mobile nav buttons */}
-          <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3 md:hidden">
-            <NavButton direction="prev" params={params} />
-            <NavButton direction="next" params={params} />
+          <div className="flex shrink-0 items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3 md:hidden">
+            <Button variant="outline" size="sm" onClick={() => navigateLesson('prev')}>
+              <ChevronLeft className="h-3.5 w-3.5" />
+              Previous
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigateLesson('next')}>
+              Next
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
 
@@ -240,42 +287,5 @@ export default function LessonPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-// --- Nav Button Helper ---
-
-function NavButton({
-  direction,
-  params,
-}: {
-  direction: 'prev' | 'next';
-  params: { trackSlug: string; moduleSlug: string; lessonSlug: string };
-}) {
-  const isPrev = direction === 'prev';
-
-  const handleClick = () => {
-    // Navigate via API to get sibling lesson slugs
-    academyApi
-      .get<SiblingLessons>(
-        `/tracks/${params.trackSlug}/modules/${params.moduleSlug}/lessons/${params.lessonSlug}/siblings`,
-      )
-      .then((siblings) => {
-        const target = isPrev ? siblings.prev : siblings.next;
-        if (target) {
-          window.location.href = `/tracks/${params.trackSlug}/${params.moduleSlug}/${target.slug}`;
-        }
-      })
-      .catch(() => {
-        // Silently fail
-      });
-  };
-
-  return (
-    <Button variant="outline" size="sm" onClick={handleClick}>
-      {isPrev && <ChevronLeft className="h-3.5 w-3.5" />}
-      {isPrev ? 'Previous' : 'Next'}
-      {!isPrev && <ChevronRight className="h-3.5 w-3.5" />}
-    </Button>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Flame,
@@ -9,11 +9,15 @@ import {
   Users,
   ArrowRight,
   Trophy,
+  Bot,
+  Send,
 } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
+import { useChatStore } from '@/stores/chat';
 import { formatXp, formatDate, getLevelColor } from '@/lib/utils';
 import { Card, Spinner, Badge, ProgressBar, Avatar } from '@/components/ui';
+import { ChatMarkdown } from '@/components/chat/ChatMarkdown';
 import type { DashboardData } from '@/types';
 
 const XP_THRESHOLDS: Record<string, number> = {
@@ -220,54 +224,200 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* Quick Actions */}
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Link href="/tracks">
-            <Card hover className="group cursor-pointer">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
-                  <BookOpen className="h-5 w-5" />
+      {/* Quick Actions + AI Chat */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
+        <section>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <Link href="/tracks">
+              <Card hover className="group cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                    <BookOpen className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">Continue Learning</p>
+                    <p className="text-xs text-gray-500">Pick up where you left off</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900">Continue Learning</p>
-                  <p className="text-xs text-gray-500">Pick up where you left off</p>
+              </Card>
+            </Link>
+            <Link href="/studio">
+              <Card hover className="group cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">AI Studio</p>
+                    <p className="text-xs text-gray-500">Create with AI tools</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
-              </div>
-            </Card>
-          </Link>
-          <Link href="/studio">
-            <Card hover className="group cursor-pointer">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
-                  <Sparkles className="h-5 w-5" />
+              </Card>
+            </Link>
+            <Link href="/community">
+              <Card hover className="group cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">Community</p>
+                    <p className="text-xs text-gray-500">Ask questions &amp; connect</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900">AI Studio</p>
-                  <p className="text-xs text-gray-500">Create with AI tools</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
-              </div>
-            </Card>
-          </Link>
-          <Link href="/community">
-            <Card hover className="group cursor-pointer">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900">Community</p>
-                  <p className="text-xs text-gray-500">Ask questions &amp; connect</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
-              </div>
-            </Card>
-          </Link>
-        </div>
-      </section>
+              </Card>
+            </Link>
+          </div>
+        </section>
+
+        {/* AI Chat Widget */}
+        <DashboardChat />
+      </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Compact AI Chat widget for the dashboard                          */
+/* ------------------------------------------------------------------ */
+function DashboardChat() {
+  const {
+    messages,
+    isStreaming,
+    streamingContent,
+    sendMessage,
+    setLessonContext,
+  } = useChatStore();
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // No lesson context on dashboard
+  useEffect(() => {
+    setLessonContext(null);
+  }, [setLessonContext]);
+
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, streamingContent]);
+
+  const handleSend = () => {
+    const value = inputRef.current?.value.trim();
+    if (!value || isStreaming) return;
+    sendMessage(value);
+    if (inputRef.current) {
+      inputRef.current.value = '';
+      inputRef.current.style.height = 'auto';
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <section className="flex flex-col">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Bot className="h-5 w-5 text-indigo-600" />
+          <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
+        </div>
+        <Link
+          href="/studio"
+          className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
+        >
+          Open Studio
+        </Link>
+      </div>
+
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
+        {/* Messages area */}
+        <div className="flex-1 overflow-y-auto px-3 py-3" style={{ maxHeight: 320 }}>
+          {messages.length === 0 && !isStreaming && (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Bot className="mb-2 h-8 w-8 text-gray-300" />
+              <p className="text-xs text-gray-500">
+                Ask me anything about AI, your courses, or get help with exercises.
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {messages.map((msg) => {
+              const isUser = msg.role === 'user';
+              return (
+                <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                  <div
+                    className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed ${
+                      isUser
+                        ? 'bg-indigo-600 text-white'
+                        : 'border border-gray-200 bg-gray-50 text-gray-800'
+                    }`}
+                  >
+                    {isUser ? (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    ) : (
+                      <ChatMarkdown content={msg.content} />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {isStreaming && streamingContent && (
+              <div className="flex justify-start">
+                <div className="max-w-[85%] rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs leading-relaxed text-gray-800 whitespace-pre-wrap">
+                  {streamingContent}
+                  <span className="ml-0.5 inline-block h-3 w-1 animate-pulse bg-indigo-500" />
+                </div>
+              </div>
+            )}
+
+            {isStreaming && !streamingContent && (
+              <div className="flex justify-start">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                  <div className="flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:0ms]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:150ms]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:300ms]" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+
+        {/* Input */}
+        <div className="flex items-end gap-2 border-t border-gray-200 p-2">
+          <textarea
+            ref={inputRef}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask something..."
+            rows={1}
+            disabled={isStreaming}
+            className="flex-1 resize-none rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 disabled:opacity-60"
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={isStreaming}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+            aria-label="Send message"
+          >
+            <Send className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
