@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import { createBrowserClient } from '@/lib/supabase';
 import { academyApi } from '@/lib/api';
+import { analytics } from '@/lib/analytics';
 import { useChatStore } from '@/stores/chat';
 import { useGamificationStore } from '@/stores/gamification';
 import { useGenerationStore } from '@/stores/generation';
@@ -37,6 +38,12 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
     async initialize() {
       set({ isLoading: true });
+
+      // Set up analytics auto-expiry: when the 24h session expires, log the user out
+      analytics.setOnSessionExpired(() => {
+        get().logout();
+      });
+
       try {
         const supabase = createBrowserClient();
         const {
@@ -50,6 +57,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
             set({ learner: res.learner, isAuthenticated: true });
           } catch {
             set({ learner: null, isAuthenticated: false });
+          }
+
+          // Rehydrate analytics session from localStorage
+          // If the stored session is expired, this returns false and auto-logout fires
+          if (!analytics.rehydrate()) {
+            // No valid analytics session — start a new one
+            await analytics.startSession();
           }
         } else {
           set({ session: null, learner: null, isAuthenticated: false });
@@ -92,6 +106,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
       const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
       set({ learner: res.learner, isAuthenticated: true });
+
+      // Start analytics session after successful login
+      await analytics.startSession();
+      analytics.trackEvent('login');
     },
 
     async register(data: RegisterPayload) {
@@ -113,9 +131,16 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
       const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
       set({ learner: res.learner, isAuthenticated: true });
+
+      // Start analytics session after successful registration
+      await analytics.startSession();
+      analytics.trackEvent('login');
     },
 
     async logout() {
+      // End analytics session before signing out
+      await analytics.endSession();
+
       const supabase = createBrowserClient();
       authSubscription?.unsubscribe();
       authSubscription = null;
