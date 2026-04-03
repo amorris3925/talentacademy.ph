@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { MessageSquare, Image as ImageIcon, Video } from 'lucide-react';
+import { MessageSquare, Image as ImageIcon, Video, Clock } from 'lucide-react';
 import { Tabs } from '@/components/ui';
 
 const LoadingSpinner = () => (
@@ -23,11 +23,16 @@ const VideoGenerator = dynamic(
   () => import('./VideoGenerator').then((m) => m.VideoGenerator),
   { ssr: false, loading: LoadingSpinner }
 );
+const GenerationHistory = dynamic(
+  () => import('./GenerationHistory').then((m) => m.GenerationHistory),
+  { ssr: false, loading: LoadingSpinner }
+);
 
 const tabs = [
   { key: 'chat', label: 'Chat', icon: <MessageSquare className="h-4 w-4" /> },
   { key: 'image', label: 'Image', icon: <ImageIcon className="h-4 w-4" /> },
   { key: 'video', label: 'Video', icon: <Video className="h-4 w-4" /> },
+  { key: 'history', label: 'My Creations', icon: <Clock className="h-4 w-4" /> },
 ];
 
 export function GenerationStudio() {
@@ -41,6 +46,7 @@ export function GenerationStudio() {
         {activeTab === 'chat' && <TextGenerator />}
         {activeTab === 'image' && <ImageGenerator />}
         {activeTab === 'video' && <VideoGenerator />}
+        {activeTab === 'history' && <GenerationHistory />}
       </div>
     </div>
   );
