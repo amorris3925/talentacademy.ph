@@ -56,13 +56,22 @@ const WORK_TYPE_PROMPTS: Record<string, Prompt[]> = {
   ],
 };
 
+/**
+ * Generate personalized prompt chips for lessons.
+ *
+ * Strategy: specialization is the primary identity (e.g. "SEO"),
+ * work_type is the fallback (e.g. "Marketing"). All prompts are
+ * rewritten to reference the user's field directly.
+ */
 export function getPersonalizedPrompts(
   basePrompts: Prompt[],
   workType: string | null | undefined,
   specialization: string | null | undefined,
   lessonTitle?: string,
 ): Prompt[] {
-  if (!workType) {
+  const field = specialization || workType;
+
+  if (!field) {
     return basePrompts.length > 0 ? basePrompts : [
       { label: 'Explain this', text: 'Can you explain this concept simply?' },
       { label: 'Real-world example', text: 'Give me a real-world example' },
@@ -70,54 +79,71 @@ export function getPersonalizedPrompts(
     ];
   }
 
-  const key = workType.toLowerCase();
-  const personalizedPrompts = WORK_TYPE_PROMPTS[key];
-
-  if (!personalizedPrompts) return basePrompts.length > 0 ? basePrompts : personalizedPrompts ?? [];
-
-  // Mix: keep 1 base prompt if available, add 2 personalized ones
+  // Build prompts that are ALL specific to the user's field
   const result: Prompt[] = [];
 
-  if (basePrompts.length > 0) {
-    result.push(basePrompts[0]);
+  // First: lesson-contextualized prompt using their specialization
+  if (lessonTitle) {
+    result.push({
+      label: `${field} application`,
+      text: `How can I apply "${lessonTitle}" specifically to my work in ${field}?`,
+    });
+  } else {
+    result.push({
+      label: `Apply to ${field}`,
+      text: `How can I apply this lesson to my work in ${field}?`,
+    });
   }
 
-  // Add up to 2 personalized prompts
-  const personalized = personalizedPrompts.slice(0, basePrompts.length > 0 ? 2 : 3);
-  result.push(...personalized);
+  // Second: try to find a matching set from WORK_TYPE_PROMPTS
+  // Prefer specialization key, then work_type key
+  const specKey = specialization?.toLowerCase();
+  const workKey = workType?.toLowerCase();
+  const matchedPrompts = (specKey && WORK_TYPE_PROMPTS[specKey]) || (workKey && WORK_TYPE_PROMPTS[workKey]);
 
-  // If specialization is set, customize the last personalized prompt (not base)
-  if (specialization && personalized.length > 0) {
-    const lastIdx = result.length - 1;
-    const last = result[lastIdx];
-    result[lastIdx] = {
-      label: last.label,
-      text: last.text.replace(/\?$/, ` specifically for ${specialization}?`),
-    };
+  if (matchedPrompts) {
+    // Pick the most relevant one (not the first — that's usually generic "AI for X")
+    result.push(matchedPrompts[1] || matchedPrompts[0]);
+  } else {
+    // No match — generate a dynamic one
+    result.push({
+      label: `AI tools for ${field}`,
+      text: `What AI tools are most useful for someone working in ${field}?`,
+    });
   }
+
+  // Third: a practice-oriented prompt specific to them
+  result.push({
+    label: `${field} exercise`,
+    text: `Give me a hands-on practice exercise related to ${field} using what I learned in this lesson`,
+  });
 
   return result;
 }
 
+/**
+ * Ghost prompts shown in the chat sidebar when no messages yet.
+ * Always personalized to the user's specialization/work type.
+ */
 export function getPersonalizedGhostPrompts(
   workType: string | null | undefined,
   specialization: string | null | undefined,
   lessonTitle?: string,
 ): string[] {
-  const context = specialization || workType;
+  const field = specialization || workType;
 
-  if (context && lessonTitle) {
+  if (field && lessonTitle) {
     return [
-      `How does "${lessonTitle}" apply to ${context}?`,
-      `Give me a ${context}-focused practice exercise`,
-      'What should I focus on in this lesson?',
+      `How does "${lessonTitle}" apply to ${field}?`,
+      `Give me a ${field}-focused practice exercise for this lesson`,
+      `What's the most important takeaway here for someone in ${field}?`,
     ];
   }
 
-  if (context) {
+  if (field) {
     return [
-      `How can I apply this to my work in ${context}?`,
-      'Give me a practical example I can try',
+      `How can I apply this to my work in ${field}?`,
+      `Give me a ${field}-specific example`,
       'Quiz me on what I just learned',
     ];
   }
