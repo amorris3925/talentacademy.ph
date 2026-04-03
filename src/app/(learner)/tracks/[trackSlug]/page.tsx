@@ -43,8 +43,46 @@ export default function TrackDetailPage() {
 
   const fetchTrack = async () => {
     try {
-      const res = await academyApi.get<{ track: AcademyTrack; modules: ModuleWithLessons[] }>(`/tracks/${params.trackSlug}`);
-      setTrack({ ...res.track, modules: res.modules || [] } as TrackDetail);
+      const [trackRes, progressRes] = await Promise.all([
+        academyApi.get<{ track: AcademyTrack; modules: ModuleWithLessons[]; enrollment?: AcademyEnrollment }>(`/tracks/${params.trackSlug}`),
+        academyApi.get<{ progress: Array<{ lesson_id: string; status: string }> }>('/learner/progress').catch(() => ({ progress: [] })),
+      ]);
+
+      // Build a map of lesson_id -> status from the progress endpoint
+      const progressMap = new Map<string, string>();
+      for (const p of progressRes.progress || []) {
+        progressMap.set(p.lesson_id, p.status);
+      }
+
+      // Merge progress status into lessons
+      const modules = (trackRes.modules || []).map((mod) => ({
+        ...mod,
+        lessons: (mod.lessons || []).map((lesson) => ({
+          ...lesson,
+          status: (progressMap.get(lesson.id) as LessonStatus) || lesson.status || 'not_started',
+        })),
+      }));
+
+      // Calculate progress percentage from completed lessons
+      const totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0);
+      const completedLessons = modules.reduce(
+        (sum, m) => sum + m.lessons.filter((l) => l.status === 'completed').length,
+        0,
+      );
+      const progressPct = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+
+      // Use backend enrollment if available, otherwise build from progress data
+      const enrollment = trackRes.enrollment ?? (progressMap.size > 0 ? {
+        id: '',
+        progress_pct: progressPct,
+        status: 'active',
+      } as unknown as AcademyEnrollment : null);
+
+      if (enrollment && enrollment.progress_pct === 0 && progressPct > 0) {
+        enrollment.progress_pct = progressPct;
+      }
+
+      setTrack({ ...trackRes.track, modules, enrollment } as TrackDetail);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load track');
     } finally {

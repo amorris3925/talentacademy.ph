@@ -6,7 +6,7 @@ import { useChatStore } from '@/stores/chat';
 import { ChatMessage } from './ChatMessage';
 import { ChatMarkdown } from './ChatMarkdown';
 import { ChatInput } from './ChatInput';
-import GhostPrompts from './GhostPrompts';
+
 import OutputRating from './OutputRating';
 
 interface ChatSidebarProps {
@@ -111,9 +111,6 @@ export function ChatSidebar({ lessonId, lessonTitle }: ChatSidebarProps) {
           </div>
         )}
       </div>
-
-      {/* Ghost prompts */}
-      <GhostPrompts />
 
       {/* Input */}
       <ChatInput onSend={sendMessage} isStreaming={isStreaming} />

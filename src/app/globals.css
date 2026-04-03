@@ -93,3 +93,49 @@ body {
 }
 .chat-markdown strong { font-weight: 600; }
 .chat-markdown a { color: #6366f1; text-decoration: underline; }
+
+/* Lesson prose — clean table and content formatting */
+.lesson-prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5em 0;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+.lesson-prose thead {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+.lesson-prose th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+.lesson-prose td {
+  padding: 0.625rem 1rem;
+  color: #4b5563;
+  border-top: 1px solid #f1f5f9;
+}
+.lesson-prose tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+.lesson-prose tbody tr:hover {
+  background: #f1f5f9;
+}
+.lesson-prose h2:first-child { margin-top: 0; }
+.lesson-prose blockquote {
+  border-left: 3px solid #818cf8;
+  background: #f5f3ff;
+  padding: 0.75rem 1rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: #4b5563;
+}
+.lesson-prose hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2rem 0;
+}

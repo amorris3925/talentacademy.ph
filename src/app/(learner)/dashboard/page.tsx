@@ -60,8 +60,52 @@ export default function DashboardPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await academyApi.get<DashboardData>('/learner/dashboard');
-        if (!cancelled) setData(res);
+        const [dashRes, progressRes] = await Promise.all([
+          academyApi.get<DashboardData>('/learner/dashboard'),
+          academyApi.get<{ progress: Array<{ lesson_id: string; status: string; xp_earned: number }> }>('/learner/progress').catch(() => ({ progress: [] })),
+        ]);
+
+        // Compute real XP from completed lessons if backend isn't tracking it
+        const completedProgress = (progressRes.progress || []).filter(p => p.status === 'completed');
+        if (dashRes.xp_total === 0 && completedProgress.length > 0) {
+          // Fetch track data to get xp_reward per lesson
+          try {
+            const tracksRes = await academyApi.get<{ tracks: Array<{ slug: string; modules: Array<{ lessons: Array<{ id: string; xp_reward: number }> }> }> }>('/tracks');
+            const xpMap = new Map<string, number>();
+            for (const track of tracksRes.tracks || []) {
+              for (const mod of track.modules || []) {
+                for (const lesson of mod.lessons || []) {
+                  xpMap.set(lesson.id, lesson.xp_reward || 0);
+                }
+              }
+            }
+            const computedXp = completedProgress.reduce((sum, p) => sum + (xpMap.get(p.lesson_id) || 10), 0);
+            dashRes.xp_total = computedXp;
+          } catch {
+            // Fallback: estimate 10 XP per completed lesson
+            dashRes.xp_total = completedProgress.length * 10;
+          }
+        }
+
+        // Compute real progress_pct for enrollments
+        if (completedProgress.length > 0) {
+          const completedIds = new Set(completedProgress.map(p => p.lesson_id));
+          for (const enrollment of dashRes.enrollments) {
+            if (enrollment.progress_pct === 0) {
+              try {
+                const trackRes = await academyApi.get<{ modules: Array<{ lessons: Array<{ id: string }> }> }>(`/tracks/${enrollment.track_slug}`);
+                const allLessons = (trackRes.modules || []).flatMap(m => m.lessons || []);
+                const total = allLessons.length;
+                const done = allLessons.filter(l => completedIds.has(l.id)).length;
+                if (total > 0) enrollment.progress_pct = (done / total) * 100;
+              } catch {
+                // Keep backend value
+              }
+            }
+          }
+        }
+
+        if (!cancelled) setData(dashRes);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load dashboard');
       } finally {

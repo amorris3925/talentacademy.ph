@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { CheckCircle2, XCircle, Send } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { CheckCircle2, XCircle, Send, Trophy, ChevronRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Button, Modal } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useInteractionStore } from '@/stores/interaction';
 import { useLessonStore } from '@/stores/lesson';
+import { useChatStore } from '@/stores/chat';
 
 interface QuizBlockProps {
   content: string;
@@ -15,15 +16,19 @@ interface QuizBlockProps {
     correct_index: number;
     explanation: string;
   };
+  onContinue?: () => void;
 }
 
-export function QuizBlock({ content, metadata }: QuizBlockProps) {
+export function QuizBlock({ content, metadata, onContinue }: QuizBlockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [reasoning, setReasoning] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [showSummary, setShowSummary] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [waitingForChat, setWaitingForChat] = useState(false);
   const triggerPrompt = useInteractionStore((s) => s.triggerPrompt);
   const { updateProgress, markComplete, currentLesson } = useLessonStore();
+  const isStreaming = useChatStore((s) => s.isStreaming);
+  const prevStreamingRef = useRef(false);
 
   const isCorrect = submitted && selectedIndex === metadata.correct_index;
   const canSubmit = selectedIndex !== null && reasoning.trim().length >= 5;
@@ -50,6 +55,19 @@ export function QuizBlock({ content, metadata }: QuizBlockProps) {
     frame();
   }, []);
 
+  // Wait for chat streaming to finish, then show confetti + completion
+  useEffect(() => {
+    if (waitingForChat && prevStreamingRef.current && !isStreaming) {
+      setWaitingForChat(false);
+      fireConfetti();
+      setTimeout(() => {
+        setShowCompletion(true);
+        markComplete();
+      }, 500);
+    }
+    prevStreamingRef.current = isStreaming;
+  }, [isStreaming, waitingForChat, fireConfetti, markComplete]);
+
   const handleSubmit = () => {
     if (!canSubmit || selectedIndex === null) return;
     setSubmitted(true);
@@ -75,15 +93,8 @@ export function QuizBlock({ content, metadata }: QuizBlockProps) {
         `Quiz: "${content}"\nMy answer: "${selectedAnswer}" (correct)\nMy reasoning: "${reasoning.trim()}"\n\nBriefly confirm why this is right and reinforce the key concept.`,
       );
 
-      // Fire confetti and show summary after a short delay
-      setTimeout(() => {
-        fireConfetti();
-        setTimeout(() => {
-          setShowSummary(true);
-          // Auto-mark lesson complete
-          markComplete();
-        }, 1500);
-      }, 300);
+      // Wait for the chat response to finish before showing confetti
+      setWaitingForChat(true);
     } else {
       triggerPrompt(
         `Quiz: "${content}"\nMy answer: "${selectedAnswer}" (wrong — correct answer is "${correctAnswer}")\nMy reasoning: "${reasoning.trim()}"\n\nHelp me understand why my reasoning was off and why "${correctAnswer}" is correct.`,
@@ -233,48 +244,39 @@ export function QuizBlock({ content, metadata }: QuizBlockProps) {
         )}
       </div>
 
-      {/* Lesson Summary Modal — shown after correct answer + confetti */}
-      <Modal
-        isOpen={showSummary}
-        onClose={() => setShowSummary(false)}
-        title="Lesson Complete!"
-        size="md"
-      >
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 rounded-lg bg-green-50 p-4">
-            <CheckCircle2 className="h-8 w-8 shrink-0 text-green-500" />
+      {/* Inline Lesson Complete card — shown after chat response finishes */}
+      {showCompletion && (
+        <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-5 shadow-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+              <Trophy className="h-5 w-5 text-green-600" />
+            </div>
             <div>
-              <p className="font-semibold text-green-800">Great work!</p>
-              <p className="mt-0.5 text-sm text-green-700">
-                You&apos;ve completed this lesson.
-              </p>
+              <h3 className="font-semibold text-green-900">Lesson Complete!</h3>
+              <p className="text-sm text-green-700">Great work finishing this lesson.</p>
             </div>
           </div>
 
-          <div>
-            <h3 className="mb-2 text-sm font-semibold text-gray-900">Key Takeaway</h3>
-            <p className="text-sm text-gray-700">{metadata.explanation}</p>
+          <div className="rounded-lg bg-white/70 p-3 mb-3">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Key Takeaway</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{metadata.explanation}</p>
           </div>
 
-          {currentLesson && (
-            <div className="rounded-lg bg-indigo-50 p-3">
-              <p className="text-xs font-medium text-indigo-600">
-                +{currentLesson.xp_reward} XP earned
-              </p>
-            </div>
-          )}
-
-          <div className="flex justify-end pt-2">
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => setShowSummary(false)}
-            >
-              Continue
-            </Button>
+          <div className="flex items-center justify-between">
+            {currentLesson && (
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 px-3 py-1">
+                <span className="text-xs font-semibold text-indigo-700">+{currentLesson.xp_reward} XP earned</span>
+              </div>
+            )}
+            {onContinue && (
+              <Button variant="primary" size="sm" onClick={onContinue}>
+                Next Lesson
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </div>
-      </Modal>
+      )}
     </>
   );
 }

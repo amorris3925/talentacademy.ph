@@ -32,9 +32,10 @@ const GenerationBlock = dynamic(
 
 interface ContentBlockRendererProps {
   blocks: ContentBlock[];
+  onContinue?: () => void;
 }
 
-function renderBlock(block: ContentBlock, index: number) {
+function renderBlock(block: ContentBlock, index: number, onContinue?: () => void) {
   switch (block.type) {
     case 'markdown':
       return <MarkdownBlock key={`${block.type}-${index}`} content={block.content} />;
@@ -84,6 +85,7 @@ function renderBlock(block: ContentBlock, index: number) {
           key={`${block.type}-${index}`}
           content={block.content}
           metadata={block.metadata as { options: string[]; correct_index: number; explanation: string }}
+          onContinue={onContinue}
         />
       );
     case 'generation':
@@ -123,7 +125,7 @@ function renderBlock(block: ContentBlock, index: number) {
   }
 }
 
-export function ContentBlockRenderer({ blocks }: ContentBlockRendererProps) {
+export function ContentBlockRenderer({ blocks, onContinue }: ContentBlockRendererProps) {
   const safeBlocks = Array.isArray(blocks) ? blocks : [];
 
   if (safeBlocks.length === 0) {
@@ -136,7 +138,7 @@ export function ContentBlockRenderer({ blocks }: ContentBlockRendererProps) {
 
   return (
     <div className="space-y-6">
-      {safeBlocks.map((block, index) => renderBlock(block, index))}
+      {safeBlocks.map((block, index) => renderBlock(block, index, onContinue))}
     </div>
   );
 }

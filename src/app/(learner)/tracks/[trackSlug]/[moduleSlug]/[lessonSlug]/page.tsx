@@ -243,7 +243,7 @@ export default function LessonPage() {
             )}
 
             {/* Content Blocks */}
-            <ContentBlockRenderer blocks={currentLesson.content_blocks} />
+            <ContentBlockRenderer blocks={currentLesson.content_blocks} onContinue={() => navigateLesson('next')} />
           </div>
 
           {/* Bottom Bar */}
