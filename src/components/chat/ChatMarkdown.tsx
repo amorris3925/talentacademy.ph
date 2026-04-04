@@ -28,7 +28,7 @@ export function ChatMarkdown({ content, className = '' }: ChatMarkdownProps) {
 
   return (
     <div
-      className={`chat-markdown text-sm leading-snug ${className}`}
+      className={`chat-markdown text-sm leading-relaxed ${className}`}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

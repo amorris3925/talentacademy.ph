@@ -17,14 +17,16 @@ export function TextGenerator() {
     streamingContent,
     sendMessage,
     setLessonContext,
+    clearHistory,
   } = useChatStore();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Clear lesson context — this is general-purpose generation
+  // Clear lesson context and start fresh — studio is a separate session from lessons
   useEffect(() => {
+    clearHistory();
     setLessonContext(null);
-  }, [setLessonContext]);
+  }, [clearHistory, setLessonContext]);
 
   // Auto-scroll on new messages / streaming
   useEffect(() => {

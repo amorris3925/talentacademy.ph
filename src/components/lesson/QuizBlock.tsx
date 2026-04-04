@@ -157,11 +157,15 @@ export function QuizBlock({ content, metadata, blockIndex = 0, onContinue, onCor
   };
 
   return (
-      <div className="overflow-hidden rounded-lg border border-gray-200">
+      <div className="overflow-hidden rounded-xl border-2 border-indigo-200 bg-white shadow-sm ring-1 ring-indigo-100">
         {/* Question */}
-        <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
-          <p className="text-sm font-medium text-gray-900">Quiz</p>
-          <p className="mt-1 text-sm text-gray-700">{content}</p>
+        <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 px-5 py-4">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
+              Quiz
+            </span>
+          </div>
+          <p className="text-sm font-medium text-gray-900 leading-relaxed">{content}</p>
         </div>
 
         {/* Options */}

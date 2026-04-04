@@ -358,7 +358,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setLessonContext(ctx) {
-    set({ lessonContext: ctx });
+    // Auto-enable image creation if the lesson has generate_image in its tools
+    const autoEnableImage = ctx?.availableTools?.includes('generate_image') ?? false;
+    set({
+      lessonContext: ctx,
+      imageCreationEnabled: autoEnableImage,
+    });
   },
 
   setImageCreationEnabled(enabled) {

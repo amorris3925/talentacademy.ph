@@ -252,7 +252,7 @@ export default function LessonPage() {
         >
           <div ref={contentScrollRef} className="flex-1 overflow-y-auto px-4 py-6 md:px-8" onMouseUp={handleMouseUp}>
             {/* Lesson Title */}
-            <h1 className="mb-2 text-2xl font-bold text-gray-900">
+            <h1 className="mb-2 text-lg font-bold text-gray-900">
               {currentLesson.title}
             </h1>
             {currentLesson.description && (
