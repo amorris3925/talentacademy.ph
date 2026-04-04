@@ -39,23 +39,45 @@ interface ChatState {
 }
 
 /**
+ * Resize an image file to fit within maxDim and return as a JPEG data URL.
+ * This prevents 413 errors when sending large images as base64 in the JSON body.
+ */
+function resizeImage(file: File, maxDim = 1024, quality = 0.8): Promise<{ data: string; media_type: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      // Strip the data:image/jpeg;base64, prefix
+      const base64 = dataUrl.split(',')[1];
+      resolve({ data: base64, media_type: 'image/jpeg' });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image for resizing'));
+    };
+    img.src = url;
+  });
+}
+
+/**
  * Convert File objects to base64-encoded ChatImage payloads.
+ * Images are resized client-side to prevent request body size limits.
  */
 async function filesToChatImages(files: File[]): Promise<ChatImage[]> {
-  return Promise.all(
-    files.map(async (file) => {
-      const buffer = await file.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-      let binary = '';
-      for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return {
-        data: btoa(binary),
-        media_type: file.type,
-      };
-    }),
-  );
+  return Promise.all(files.map((file) => resizeImage(file)));
 }
 
 /**

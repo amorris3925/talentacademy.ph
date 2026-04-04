@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useCallback, useState, type KeyboardEvent, type ClipboardEvent, type DragEvent } from 'react';
-import { Send, ImagePlus, X } from 'lucide-react';
+import { Send, ImagePlus, X, Sparkles } from 'lucide-react';
+import { useChatStore } from '@/stores/chat';
 import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
@@ -19,6 +20,8 @@ export function ChatInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachedImages, setAttachedImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const imageCreationEnabled = useChatStore((s) => s.imageCreationEnabled);
+  const setImageCreationEnabled = useChatStore((s) => s.setImageCreationEnabled);
 
   const addImages = useCallback((files: File[]) => {
     const imageFiles = files.filter((f) => f.type.startsWith('image/'));
@@ -118,6 +121,23 @@ export function ChatInput({
           ))}
         </div>
       )}
+
+      {/* Image generation toggle */}
+      <div className="flex items-center px-3 pt-2">
+        <button
+          type="button"
+          onClick={() => setImageCreationEnabled(!imageCreationEnabled)}
+          className={cn(
+            'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+            imageCreationEnabled
+              ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-300'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+          )}
+        >
+          <Sparkles className="h-3 w-3" />
+          {imageCreationEnabled ? 'Image generation on' : 'Image generation off'}
+        </button>
+      </div>
 
       <div className="flex items-end gap-2 p-3">
         <button
