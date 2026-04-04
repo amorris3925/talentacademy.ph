@@ -134,6 +134,56 @@ function summarizeContentBlocks(blocks: ContentBlock[]): string {
   return parts.join('\n');
 }
 
+/**
+ * Send images to Gemini for vision description, returning text that Henry can understand.
+ * Falls back gracefully if Gemini is unavailable.
+ */
+async function describeImagesViaGemini(
+  images: ChatImage[],
+  context?: string,
+): Promise<string> {
+  try {
+    const res = await fetch('/api/gemini/describe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ images, context }),
+    });
+    if (!res.ok) return '[Image attached but could not be analyzed]';
+    const { descriptions } = await res.json();
+    return (descriptions as string[])
+      .map((d: string, i: number) => `[User attached image ${i + 1}: ${d}]`)
+      .join('\n');
+  } catch {
+    return '[Image attached but could not be analyzed]';
+  }
+}
+
+/**
+ * Request Gemini to generate an image from a prompt.
+ * Returns a data URL on success or null on failure.
+ */
+async function generateImageViaGemini(
+  prompt: string,
+  style?: string,
+): Promise<{ url: string } | null> {
+  try {
+    const res = await fetch('/api/gemini/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, style }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.base64 && data.media_type) {
+      return { url: `data:${data.media_type};base64,${data.base64}` };
+    }
+    if (data.url) return { url: data.url };
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 let streamAbortController: AbortController | null = null;
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -171,6 +221,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
       streamingContent: '',
     }));
 
+    // Describe images via Gemini so Henry receives text descriptions instead of raw images
+    let enrichedContent = content;
+    if (imagePayloads && imagePayloads.length > 0) {
+      const imageDescriptions = await describeImagesViaGemini(
+        imagePayloads,
+        lessonContext?.lessonTitle,
+      );
+      enrichedContent = imageDescriptions + '\n\n' + content;
+    }
+
     // Persist user message to analytics
     const persistedId = await analytics.trackChatMessage(
       lessonContext?.lessonId ?? null,
@@ -192,7 +252,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       await academyApi.stream(
         '/chat',
         {
-          message: content,
+          message: enrichedContent,
           lesson_id: lessonContext?.lessonId ?? null,
           lesson_context: lessonContext?.contentSummary ?? null,
           lesson_title: lessonContext?.lessonTitle ?? null,
@@ -200,7 +260,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
           image_creation_enabled: imageCreationEnabled,
           available_tools: lessonContext?.availableTools ?? [],
           track_slug: lessonContext?.trackSlug ?? null,
-          images: imagePayloads,
+          // Images are described as text by Gemini — no need to send raw images to Henry
+          images: undefined,
           history: messages.slice(-20).map((m) => ({
             role: m.role,
             content: m.content,
@@ -220,6 +281,25 @@ export const useChatStore = create<ChatState>((set, get) => ({
               });
               // Force UI update for tool call indicator
               set({ streamingContent: accumulated });
+
+              // Intercept generate_image tool calls — route to Gemini instead of Henry
+              if (parsed.tool_name === 'generate_image') {
+                const input = parsed.tool_input || {};
+                generateImageViaGemini(
+                  input.prompt as string || content,
+                  input.style as string | undefined,
+                ).then((result) => {
+                  const tc = toolCalls.find((t) => t.tool_call_id === parsed.tool_call_id);
+                  if (tc) {
+                    tc.status = result ? 'done' : 'error';
+                    tc.result_preview = result ? 'Image generated' : 'Generation failed';
+                  }
+                  if (result) {
+                    structuredBlocks.push({ type: 'image', url: result.url, alt: (input.prompt as string) || 'Generated image' });
+                  }
+                  set({ streamingContent: accumulated });
+                });
+              }
               return;
             }
 
@@ -372,5 +452,101 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 }));
 
-// Export helper so lesson page can build context
-export { summarizeContentBlocks };
+// Cache image descriptions to avoid re-describing on every lesson load
+const imageDescriptionCache = new Map<string, string>();
+
+/**
+ * Async version of summarizeContentBlocks that uses Gemini to describe lesson images.
+ * Falls back to the sync version if Gemini is unavailable.
+ */
+async function summarizeContentBlocksWithVision(blocks: ContentBlock[]): Promise<string> {
+  if (!blocks || blocks.length === 0) return '';
+
+  // Collect image blocks that need descriptions
+  const imageBlocks = blocks
+    .map((b, i) => ({ block: b, index: i }))
+    .filter(({ block }) => block.type === 'image' && block.content);
+
+  // If no images, use the sync version
+  if (imageBlocks.length === 0) return summarizeContentBlocks(blocks);
+
+  // Check cache and identify which images need describing
+  const uncached = imageBlocks.filter(({ block }) => !imageDescriptionCache.has(block.content));
+
+  if (uncached.length > 0) {
+    try {
+      const res = await fetch('/api/gemini/describe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          images: uncached.map(({ block }) => ({ url: block.content })),
+          context: 'lesson content image',
+        }),
+      });
+      if (res.ok) {
+        const { descriptions } = await res.json();
+        uncached.forEach(({ block }, i) => {
+          imageDescriptionCache.set(block.content, (descriptions as string[])[i] || block.content);
+        });
+      }
+    } catch {
+      // Fall through — use URL as fallback
+    }
+  }
+
+  // Build summary with image descriptions replacing URLs
+  const parts: string[] = [];
+  for (const block of blocks) {
+    if (block.type === 'image') {
+      const desc = imageDescriptionCache.get(block.content);
+      const caption = (block.metadata as { caption?: string })?.caption;
+      parts.push(`[Lesson Image${caption ? `: ${caption}` : ''}: ${desc || block.content}]`);
+    } else {
+      // Use the same logic as summarizeContentBlocks for non-image blocks
+      switch (block.type) {
+        case 'markdown':
+          parts.push(block.content);
+          break;
+        case 'quiz': {
+          const meta = block.metadata as {
+            options?: string[];
+            correct_index?: number;
+            explanation?: string;
+          };
+          parts.push(`[Quiz] ${block.content}`);
+          if (meta.options) {
+            meta.options.forEach((opt, i) => {
+              const marker = i === meta.correct_index ? '(correct)' : '';
+              parts.push(`  ${String.fromCharCode(65 + i)}. ${opt} ${marker}`);
+            });
+          }
+          if (meta.explanation) {
+            parts.push(`  Explanation: ${meta.explanation}`);
+          }
+          break;
+        }
+        case 'callout': {
+          const calloutType = (block.metadata as { type?: string }).type || 'info';
+          parts.push(`[${calloutType}] ${block.content}`);
+          break;
+        }
+        case 'exercise':
+          parts.push(`[Exercise] ${block.content}`);
+          break;
+        case 'code':
+          parts.push(`[Code] ${block.content.slice(0, 200)}`);
+          break;
+        default:
+          if (block.content) {
+            parts.push(block.content.slice(0, 150));
+          }
+          break;
+      }
+    }
+  }
+
+  return parts.join('\n');
+}
+
+// Export helpers so lesson page can build context
+export { summarizeContentBlocks, summarizeContentBlocksWithVision };

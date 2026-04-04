@@ -232,6 +232,30 @@ export interface MusicGenParams {
   instruments: string[] | null;
 }
 
+// ─── Gemini Vision / Image Pipeline ─────────────────────────────────────────
+
+export interface GeminiDescribeRequest {
+  images: Array<{ data?: string; media_type?: string; url?: string }>;
+  context?: string;
+}
+
+export interface GeminiDescribeResponse {
+  descriptions: string[];
+}
+
+export interface GeminiGenerateImageRequest {
+  prompt: string;
+  style?: string;
+  width?: number;
+  height?: number;
+}
+
+export interface GeminiGenerateImageResponse {
+  url?: string;
+  base64?: string;
+  media_type?: string;
+}
+
 // ─── Gamification ───────────────────────────────────────────────────────────
 
 export type BadgeCategory =

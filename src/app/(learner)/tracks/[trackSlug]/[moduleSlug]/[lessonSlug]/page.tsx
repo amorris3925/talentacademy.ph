@@ -13,7 +13,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useLessonStore } from '@/stores/lesson';
-import { useChatStore, summarizeContentBlocks } from '@/stores/chat';
+import { useChatStore, summarizeContentBlocks, summarizeContentBlocksWithVision } from '@/stores/chat';
 import { useInteractionStore } from '@/stores/interaction';
 import { ContentBlockRenderer } from '@/components/lesson/ContentBlockRenderer';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
@@ -62,18 +62,43 @@ export default function LessonPage() {
     loadLesson(params.trackSlug, params.moduleSlug, params.lessonSlug);
   }, [params.trackSlug, params.moduleSlug, params.lessonSlug, loadLesson, clearHistory]);
 
-  // Set full lesson context for the chat once lesson loads
+  // Set full lesson context for the chat once lesson loads.
+  // Uses Gemini vision to describe lesson images so Henry gets text descriptions.
+  // Falls back to sync summary immediately, then enriches with vision async.
   useEffect(() => {
     if (!currentLesson) return;
-    const contentSummary = summarizeContentBlocks(currentLesson.content_blocks);
+    let cancelled = false;
+
+    // Set sync summary immediately so chat is usable right away
+    const syncSummary = summarizeContentBlocks(currentLesson.content_blocks);
     setLessonContext({
       lessonId: currentLesson.id,
       lessonTitle: currentLesson.title,
       lessonDescription: currentLesson.description,
-      contentSummary,
+      contentSummary: syncSummary,
       availableTools: currentLesson.ai_tools_enabled,
       trackSlug: params.trackSlug,
     });
+
+    // Then enrich with vision descriptions async
+    const hasImages = currentLesson.content_blocks.some((b) => b.type === 'image');
+    if (hasImages) {
+      summarizeContentBlocksWithVision(currentLesson.content_blocks).then(
+        (visionSummary) => {
+          if (cancelled) return;
+          setLessonContext({
+            lessonId: currentLesson.id,
+            lessonTitle: currentLesson.title,
+            lessonDescription: currentLesson.description,
+            contentSummary: visionSummary,
+            availableTools: currentLesson.ai_tools_enabled,
+            trackSlug: params.trackSlug,
+          });
+        },
+      );
+    }
+
+    return () => { cancelled = true; };
   }, [currentLesson, setLessonContext, params.trackSlug]);
 
   // Watch pendingPrompt and auto-send to chat (+ switch to chat tab on mobile)

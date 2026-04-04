@@ -1,35 +1,8 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseUser } from '@/lib/auth-helpers'
 
 const HENRY_API_URL = process.env.HENRY_API_URL || process.env.NEXT_PUBLIC_HENRY_API_URL || 'http://localhost:8081'
 const ACADEMY_API_KEY = process.env.ACADEMY_API_KEY || ''
-
-async function getSupabaseUser() {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            try {
-              cookieStore.set(name, value, options)
-            } catch {
-              // Server component — ignore
-            }
-          })
-        },
-      },
-    }
-  )
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
 
 async function proxyToHenry(req: NextRequest, method: string) {
   if (!ACADEMY_API_KEY) {
