@@ -115,6 +115,48 @@ LESSONS = {
                     }
                 },
                 {
+                    "type": "quiz",
+                    "content": "You want AI to help you identify the target audience for a new Filipino streetwear brand. Which prompt would produce the most useful customer personas?",
+                    "metadata": {
+                        "options": [
+                            "Tell me about streetwear customers.",
+                            "Create 3 detailed customer personas for a Filipino streetwear brand targeting ages 18-28 in Metro Manila. For each persona, include their daily routine, social media habits, fashion pain points, and what would make them choose a local brand over international ones like H&M or Uniqlo.",
+                            "Who buys clothes in the Philippines? List demographics.",
+                            "Write a marketing plan for a clothing brand."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B is the strongest prompt because it specifies the exact product (Filipino streetwear), narrows the audience (ages 18-28, Metro Manila), and asks for actionable details like daily routines, social media habits, and competitive comparison. Vague prompts like 'tell me about customers' produce generic, unusable output. Great prompts give AI the context it needs to deliver specific, relevant results."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You need to rewrite this feature as a benefit: 'Our app uses end-to-end encryption.' Which prompt would give you the best benefit-focused copy?",
+                    "metadata": {
+                        "options": [
+                            "Rewrite this feature for my landing page: 'Our app uses end-to-end encryption.' Turn it into a customer benefit that a non-technical Filipino online seller would care about. Focus on how it protects their money and customer data. Keep it under 20 words.",
+                            "Make this sound better: end-to-end encryption.",
+                            "Explain end-to-end encryption in a paragraph.",
+                            "Write 10 features of a secure messaging app."
+                        ],
+                        "correct_index": 0,
+                        "explanation": "Option A works best because it tells AI exactly who the reader is (non-technical Filipino online seller), what outcome to focus on (protecting money and customer data), and gives a constraint (under 20 words). It transforms a technical feature into a relatable benefit. The other prompts either lack audience context or ask for the wrong output entirely."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "A sari-sari store owner wants to start selling online using a new e-commerce app. What is the strongest 'benefit' statement to use in a Facebook ad targeting this audience?",
+                    "metadata": {
+                        "options": [
+                            "Our app features inventory management, payment processing, and delivery integration.",
+                            "Start selling to customers beyond your street — earn more without leaving your store.",
+                            "We are a technology company founded in 2024 with a team of 50 engineers.",
+                            "Download our app. It has many features for small businesses."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B speaks directly to the store owner's desire (earn more) and frames the product in terms of their life (selling beyond your street, without leaving your store). It answers the 'so what?' question. Option A is pure features. Option C is about the company, not the customer. Option D is vague and gives no reason to act. Benefits always connect your product to a specific improvement in the customer's life."
+                    }
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -180,6 +222,48 @@ LESSONS = {
                     }
                 },
                 {
+                    "type": "quiz",
+                    "content": "You need a Facebook ad headline for a Filipino online English tutoring service targeting OFW parents who want their kids to improve in school. Which prompt follows the copy prompt formula (audience + goal + tone + constraints) best?",
+                    "metadata": {
+                        "options": [
+                            "Write a headline for an English tutoring service.",
+                            "Write a Facebook ad headline for OFW parents aged 30-45 who want their children in the Philippines to excel in English at school. Goal: get them to book a free trial lesson. Tone: warm and reassuring, like a trusted teacher. Max 12 words, mention 'free trial'.",
+                            "Write something catchy about tutoring. Make it go viral.",
+                            "Create a professional advertisement for educational services targeting the global Filipino diaspora market segment."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B nails all four elements: Audience (OFW parents 30-45 wanting kids to excel), Goal (book a free trial), Tone (warm, reassuring), and Constraints (max 12 words, include 'free trial'). Option A lacks all four elements. Option C is vague and 'go viral' is not a copywriting instruction. Option D uses corporate jargon that would produce stiff, impersonal copy. The more specific your prompt, the more usable the output."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You asked AI to write a product description for a local coffee brand and got this: 'Experience the exquisite amalgamation of premium Benguet arabica beans, meticulously curated through our proprietary roasting methodology.' What should you do next?",
+                    "metadata": {
+                        "options": [
+                            "Use it as-is — it sounds premium and sophisticated",
+                            "Prompt AI: 'Rewrite this in plain conversational Taglish that a 25-year-old coffee lover scrolling Instagram would actually stop and read. Keep the Benguet origin as a selling point but make it sound like a friend recommending their favorite coffee. Max 2 sentences.'",
+                            "Delete it and write everything from scratch without AI",
+                            "Add more technical details about the roasting process"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "The original output is overwritten jargon that no real customer talks like. Option B fixes it by giving AI a clear rewrite instruction: specific audience (25-year-old on Instagram), tone (friend recommending), format (Taglish, 2 sentences), and what to keep (Benguet origin). AI often defaults to formal language — your job is to redirect it toward how your audience actually communicates. Always iterate on AI output rather than accepting the first draft."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You're writing a CTA button for a landing page selling an online baking course to Filipino home bakers. Which CTA would likely get the highest click-through rate?",
+                    "metadata": {
+                        "options": [
+                            "Submit",
+                            "Click Here",
+                            "Start Baking Like a Pro — Enroll Now",
+                            "Learn More About Our Terms and Conditions"
+                        ],
+                        "correct_index": 2,
+                        "explanation": "Option C combines a benefit ('Baking Like a Pro') with a clear action ('Enroll Now'), creating both desire and direction. 'Submit' is generic and clinical. 'Click Here' tells them what to do but not why. Option D is irrelevant to the conversion goal. Effective CTAs always answer two questions: 'What will I get?' and 'What do I do?' Great marketers use AI to generate multiple CTA variations and pick the one that best combines benefit with action."
+                    }
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -242,6 +326,48 @@ LESSONS = {
                         ],
                         "correct_index": 1,
                         "explanation": "PAS is the strongest choice here because the audience already experiences the problem (isolation, distraction at home). You don't need to educate them — you need to agitate the pain they already feel ('Another day talking to no one... another video call from your bedroom...') then present the co-working space as relief. AIDA would work but is more suited for audiences who don't yet know they have the problem."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You want AI to write a Facebook ad for a weight-loss meal plan delivery service using the PAS framework. Which prompt would produce the best result?",
+                    "metadata": {
+                        "options": [
+                            "Write a Facebook ad for a meal plan service. Use PAS.",
+                            "Write an ad about healthy food delivery in Manila. Make it persuasive and long.",
+                            "Using the PAS framework, write a Facebook ad for a calorie-counted meal delivery service targeting busy Manila professionals aged 25-35 who want to lose weight but have no time to cook. Problem: gaining weight from daily fast food and Grab Food orders. Agitate: clothes getting tighter, low energy at work, dreading stepping on the scale. Solve: chef-prepared healthy meals delivered to your office for under P200/meal. Tone: empathetic, not preachy. Max 4 sentences.",
+                            "List the benefits of healthy eating for office workers."
+                        ],
+                        "correct_index": 2,
+                        "explanation": "Option C explicitly maps each PAS stage to specific, emotionally resonant details the audience would recognize (Grab Food orders, clothes getting tighter, dreading the scale). It also specifies tone, length, and a concrete price point. Option A mentions PAS but gives AI nothing to work with. Option B ignores the framework entirely. Option D asks for a list, not an ad. The best framework prompts fill in each stage with audience-specific details."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You're writing copy for a new project management app targeting Filipino startup founders. Which prompt correctly applies the Before-After-Bridge framework?",
+                    "metadata": {
+                        "options": [
+                            "Using the Before-After-Bridge framework, write an Instagram ad for a project management app targeting Filipino startup founders running teams of 5-15 people. Before: missing deadlines, tasks falling through cracks, team miscommunication on Viber and email. After: every task tracked, deadlines met, team aligned in one dashboard. Bridge: our app replaces your chaotic Viber groups with organized project boards. Tone: confident and direct.",
+                            "Write a Before-After-Bridge ad for a tech product. Make it professional.",
+                            "Describe the features of a project management tool using bullet points.",
+                            "Write an AIDA ad for a project management app for startups."
+                        ],
+                        "correct_index": 0,
+                        "explanation": "Option A correctly maps each stage: Before (specific pain points the audience recognizes — Viber chaos, missed deadlines), After (concrete improvements — deadlines met, team aligned), and Bridge (the product connecting the two). It also includes audience specifics, platform, and tone. Option B is too vague. Option C asks for features, not a framework ad. Option D uses the wrong framework entirely. The key to framework prompts is filling each stage with details your audience would nod along to."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "A client sells premium handmade leather bags online and wants to target young professionals in Makati who currently buy mass-produced bags from fast fashion brands. The audience doesn't yet know they have a 'problem' with their current bags. Which framework is the best fit?",
+                    "metadata": {
+                        "options": [
+                            "PAS — because you need to agitate their pain about fast fashion",
+                            "Before-After-Bridge — because the transformation story is the strongest angle",
+                            "AIDA — because you first need to grab attention and build interest in a product category they haven't considered yet",
+                            "No framework is needed — just post product photos"
+                        ],
+                        "correct_index": 2,
+                        "explanation": "AIDA is the best fit because this audience doesn't yet realize they have a problem — they're happy with their current bags. You need to start from scratch: grab Attention (a striking visual or bold statement about craftsmanship), build Interest (why handmade leather matters), create Desire (how it elevates their professional image), then prompt Action (shop now). PAS requires an existing pain point the audience already feels. Before-After-Bridge works best with clear transformation stories. AIDA is designed for new audiences who need the complete journey from awareness to action."
                     }
                 },
                 {
@@ -313,6 +439,48 @@ LESSONS = {
                     }
                 },
                 {
+                    "type": "quiz",
+                    "content": "You want AI to adapt a product launch announcement for TikTok. Which prompt would produce the most platform-appropriate content?",
+                    "metadata": {
+                        "options": [
+                            "Write a TikTok post about our new product launch.",
+                            "Write a professional product announcement suitable for all social media platforms. Include formal language and a detailed product specification sheet.",
+                            "Write a 15-second TikTok video script for a Filipino skincare brand launching a new sunscreen. Hook in the first 2 seconds: start with a relatable problem ('POV: you're melting in Manila heat'). Use trending casual tone, Taglish OK. End with a CTA to check the link in bio. Include a suggestion for trending audio style.",
+                            "Create a TikTok video. Make it fun and viral. Our product is sunscreen."
+                        ],
+                        "correct_index": 2,
+                        "explanation": "Option C nails TikTok's requirements: specific video length, a hook in the first 2 seconds (critical for TikTok's algorithm), a relatable POV format that's trending, casual Taglish tone matching Filipino TikTok culture, and a platform-specific CTA (link in bio). Option A is too vague. Option B would produce LinkedIn-style content. Option D is vague — 'fun and viral' gives AI no actionable direction. Platform-specific prompts must reflect how content actually works on each platform."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You manage social media for a Filipino accounting firm that wants to attract small business clients. You have a core message: 'We handle your taxes so you can focus on growing your business.' Which prompt best adapts this for LinkedIn?",
+                    "metadata": {
+                        "options": [
+                            "Post this on LinkedIn: 'We handle your taxes so you can focus on growing your business.' Add some emojis.",
+                            "Write a LinkedIn post for a Philippine accounting firm targeting SME owners. Transform this core message into a thought leadership post: 'We handle your taxes so you can focus on growing your business.' Include a relevant BIR compliance insight or tax-saving tip that demonstrates expertise. Professional tone, no emojis. End with a soft CTA to connect or book a consultation. 150-200 words.",
+                            "Write a funny TikTok script about doing taxes. Make it go viral on LinkedIn.",
+                            "Create a LinkedIn article about the history of taxation in the Philippines. 2000 words."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B correctly adapts for LinkedIn's culture: thought leadership that demonstrates expertise, professional tone, a specific value-add (tax tip), and a soft CTA appropriate for B2B networking. It transforms the core message rather than just copy-pasting it. Option A just dumps the message with no adaptation. Option C mixes platform cultures inappropriately. Option D is too long and educational for a social post. LinkedIn rewards expertise and professional value — your prompt should reflect that."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "A new Filipino restaurant in BGC wants maximum local awareness in their first month. Their budget is limited to P15,000 for paid promotion. Which platform combination would you recommend?",
+                    "metadata": {
+                        "options": [
+                            "LinkedIn and YouTube — professional audience and long-form content build credibility",
+                            "Facebook for community groups and local targeting, plus TikTok for organic viral reach with food content",
+                            "Twitter/X only — food goes viral through text-based tweets",
+                            "Instagram only — focus exclusively on aesthetic food photography"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Facebook is essential for local restaurants in the Philippines — its hyper-local ad targeting, community groups (BGC food groups have hundreds of thousands of members), and Marketplace reach are unmatched. TikTok complements it perfectly because food content performs exceptionally well organically, potentially giving viral reach without ad spend. LinkedIn is wrong for a restaurant. Instagram alone misses the community-building power of Facebook. With a small budget, you need platforms where organic reach is still strong (TikTok) plus precise paid targeting (Facebook)."
+                    }
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -375,6 +543,48 @@ LESSONS = {
                         ],
                         "correct_index": 1,
                         "explanation": "The calendar is 75% promotional, which will fatigue the audience and reduce engagement over time. The 80/20 rule is a proven content marketing principle: 80% of your content should deliver value (educate, entertain, inspire) and only 20% should directly promote. People follow accounts that help them, not accounts that only sell to them. Rebalancing will improve engagement, reach, and ultimately conversions."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You want AI to generate a content calendar for your Filipino online pet shop. Which prompt would produce the most usable, ready-to-execute calendar?",
+                    "metadata": {
+                        "options": [
+                            "Give me content ideas for a pet shop.",
+                            "Create a 4-week Facebook content calendar for a Filipino online pet shop targeting pet owners aged 22-35 in Metro Manila. Post 5 times per week. Rotate between these pillars: pet care tips (educational), cute customer pet photos (engagement), product highlights (promotional), behind-the-scenes of our warehouse (authenticity), and pet memes/humor (entertainment). Format as a table with columns: Day, Pillar, Post Type (text/image/video/carousel), Caption Hook, and CTA. Keep promotional posts under 20% of total.",
+                            "Write 30 social media posts about pets.",
+                            "Plan my entire social media strategy for 2026."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B gives AI everything needed to produce a calendar you can actually use: specific business and audience, posting frequency, defined content pillars with the 80/20 rule built in, a table format for easy reference, and specific columns that map to execution. Option A would produce random ideas with no structure. Option C gives no strategy or organization. Option D is far too broad for a single prompt. The best calendar prompts define pillars, frequency, format, and the balance between value and promotion."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You're building content pillars for a Filipino digital marketing agency's social media. Which prompt would help you create the most effective pillar strategy?",
+                    "metadata": {
+                        "options": [
+                            "What should a marketing agency post on social media?",
+                            "I run a digital marketing agency in Makati targeting Filipino SME owners who are skeptical about hiring agencies. Suggest 5 content pillars that build trust and demonstrate expertise. For each pillar, give me: the pillar name, why it builds trust with skeptical prospects, 3 example post ideas, and recommended post frequency per week. Our goal is to generate inbound leads, not just followers.",
+                            "Give me 100 post ideas for a marketing agency.",
+                            "Write viral content for a marketing company."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B stands out because it ties the content pillars to a specific business goal (building trust with skeptical prospects to generate leads). It asks AI to justify each pillar strategically, not just list topics. The prompt also gives context about the audience's mindset (skeptical about agencies), which helps AI suggest pillars like case studies and transparent pricing breakdowns rather than generic marketing tips. Great content strategies start with understanding why you're posting, not just what."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "Your content calendar shows you're posting every day, but engagement has been dropping for 3 weeks straight. Your posts are a mix of product promotions and sale announcements. What is the most likely problem?",
+                    "metadata": {
+                        "options": [
+                            "You're not posting frequently enough — increase to 3 times per day",
+                            "Your content lacks variety — too many promotional posts fatigue your audience, and you need to add value-driven content pillars like educational tips, entertainment, and engagement posts",
+                            "Social media algorithms are broken — there's nothing you can do",
+                            "You should delete all previous posts and start fresh"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Dropping engagement despite consistent posting is a classic sign of content fatigue from over-promotion. When every post is a sale or product push, followers tune out or unfollow. The 80/20 rule exists for this reason: 80% of content should deliver value (educate, entertain, inspire) and only 20% should sell. Adding content pillars like customer stories, industry tips, behind-the-scenes, and interactive posts re-engages your audience and rebuilds algorithmic favor."
                     }
                 },
                 {
@@ -454,6 +664,48 @@ LESSONS = {
                     }
                 },
                 {
+                    "type": "quiz",
+                    "content": "You need an AI-generated image for a Facebook ad promoting a new Filipino milk tea shop. Which image generation prompt would produce the most effective ad visual?",
+                    "metadata": {
+                        "options": [
+                            "A milk tea.",
+                            "A professional product photo of brown sugar milk tea in a clear plastic cup with tapioca pearls, held by a young Filipino woman's hand against a pastel pink background, bright studio lighting, shallow depth of field, Instagram-worthy food photography style, clean and appetizing composition with space on the left for text overlay.",
+                            "An extremely detailed hyper-realistic 8K rendering of a beverage container with spherical tapioca inclusions, volumetric lighting, ray-traced reflections.",
+                            "A cartoon drawing of a cup of tea with a smiley face."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B follows the marketing visual formula: clear subject (brown sugar milk tea), specific style (product photography), mood (bright, appetizing), composition details (held by hand, pastel background), and a crucial marketing consideration — space for text overlay. Option A is too vague to produce anything usable. Option C uses technical 3D rendering jargon that won't produce a natural product photo. Option D doesn't match the premium positioning of a real business. For marketing visuals, specify style, mood, and composition — and always leave room for ad copy."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You're creating visuals for an Instagram carousel about '5 Tips for Working from Home.' Which prompt approach would produce the best set of images?",
+                    "metadata": {
+                        "options": [
+                            "Generate 5 random images about working from home.",
+                            "Create a cohesive set of 5 images for an Instagram carousel. Each image should have the same visual style: flat illustration with a warm color palette of coral, cream, and sage green. Image 1: organized desk setup with laptop and plants. Image 2: person stretching at desk. Image 3: healthy lunch on a clean desk. Image 4: person on video call with headphones. Image 5: sunset view from a home office window. Consistent minimalist style, square format, clean negative space for text.",
+                            "Make pretty pictures for social media about remote work.",
+                            "Photograph a real person working in their house."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B ensures visual consistency across the carousel by specifying a unified style (flat illustration), color palette (coral, cream, sage green), and format (square with negative space for text). Each image has a distinct subject matching a specific tip. Carousels need visual cohesion to look professional — random styles across slides look amateur. Option A would produce inconsistent results. Option C is too vague. Option D requests photography that AI image generators handle differently than illustrations."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "Your AI-generated ad image for a luxury Filipino resort looks great, but the client says it 'doesn't feel premium enough.' What should you adjust in your image prompt?",
+                    "metadata": {
+                        "options": [
+                            "Add the words 'expensive' and 'luxury' five times in the prompt",
+                            "Adjust the mood and lighting descriptors: change from general terms to specific premium cues like 'golden hour warm lighting, deep shadows, rich warm tones, cinematic composition, editorial travel photography style, shallow depth of field with bokeh'",
+                            "Make the image bigger — larger resolution equals more premium",
+                            "Add a visible price tag showing the room rate in the image"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Premium feel in visual content comes from specific lighting, color, and style cues — not from repeating the word 'luxury.' Golden hour lighting, cinematic composition, deep shadows, and editorial photography style are visual signals that connote high-end quality. These are the same techniques real luxury brand photographers use. Resolution doesn't affect perceived quality in the way composition and lighting do. Learning to use mood and style descriptors is the key skill in AI image generation for marketing."
+                    }
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -522,6 +774,48 @@ LESSONS = {
                     }
                 },
                 {
+                    "type": "quiz",
+                    "content": "You want AI to write email subject lines for a flash sale on a Filipino fashion e-commerce site. Which prompt would produce the most testable, high-quality subject lines?",
+                    "metadata": {
+                        "options": [
+                            "Write email subject lines for a sale.",
+                            "Write 10 email subject lines for a 48-hour flash sale on a Filipino online fashion store targeting women aged 20-30. Mix these approaches: 3 curiosity-based (make them want to open to find out more), 3 urgency-based (time pressure), 2 benefit-based (what they save), 2 personal/conversational (like a friend texting). Keep each under 45 characters. Avoid spam trigger words like 'FREE' in all caps. Include emojis on only 3 of them.",
+                            "Write the best subject line ever for an email. Make sure everyone opens it.",
+                            "Create professional email headers for a retail communication regarding a limited-time promotional event."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B is powerful because it requests multiple approaches (curiosity, urgency, benefit, personal) for A/B testing, sets character limits for mobile preview, avoids spam triggers, and controls emoji usage. It gives AI a framework to produce varied, testable options. Option A produces generic results. Option C is impossible — no single subject line works for everyone. Option D uses corporate language that would produce stiff, low-open-rate subject lines. Great email marketers generate many variations and let data pick the winner."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You need to write a cart abandonment email for a Filipino electronics store. A customer left a smartphone in their cart 2 hours ago. Which prompt would produce the most effective recovery email?",
+                    "metadata": {
+                        "options": [
+                            "Write an email about a product someone left in their cart.",
+                            "Write a cart abandonment email for a Filipino electronics store. The customer left a smartphone (Samsung Galaxy A55, P18,990) in their cart 2 hours ago. Subject line: create curiosity about what they left behind. Body: remind them what they're missing, include 1 social proof element (e.g., 'X people are viewing this right now'), add a sense of gentle urgency (low stock), and end with a single clear CTA button: 'Complete My Order'. Tone: helpful, not pushy. Under 100 words. Mention free delivery within Metro Manila.",
+                            "Send a reminder about items in the shopping cart. Be professional.",
+                            "Write an aggressive sales email demanding the customer buy the product immediately."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B includes every element of an effective cart abandonment email: specific product details (so the customer remembers exactly what they wanted), social proof (others are viewing it), gentle urgency (low stock, not fake countdown timers), a single clear CTA, and a sweetener (free delivery). The tone instruction — helpful, not pushy — is critical because aggressive recovery emails backfire. Option A lacks specifics. Option C is too generic. Option D would alienate the customer. Cart abandonment emails should feel like a helpful reminder, not a sales ambush."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You're building a 3-email welcome sequence for new subscribers to a Filipino cooking blog. What should the primary goal of Email 1 be?",
+                    "metadata": {
+                        "options": [
+                            "Immediately sell your most expensive product — they just signed up, so they're ready to buy",
+                            "Deliver the promised freebie (if any), introduce your brand personality, and set expectations for what emails they'll receive and how often",
+                            "Send a plain text email with just the word 'Welcome' and nothing else",
+                            "Share your entire life story and business history in a 2000-word email"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Email 1 in a welcome sequence builds the foundation of the relationship. Deliver on your promise (the freebie that got them to subscribe), show your brand personality so they know what to expect, and set email frequency expectations. This builds trust and reduces unsubscribes. Selling immediately in Email 1 feels like a bait-and-switch. A bare 'Welcome' wastes the highest-engagement email you'll ever send (welcome emails have 50-60% open rates). A novel-length email will never be read. Earn trust first, sell later."
+                    }
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -587,6 +881,48 @@ LESSONS = {
                     }
                 },
                 {
+                    "type": "quiz",
+                    "content": "You want AI to help with keyword research for a Filipino wedding planning business. Which prompt would produce the most actionable keyword strategy?",
+                    "metadata": {
+                        "options": [
+                            "Give me SEO keywords for a wedding planner.",
+                            "I run a wedding planning business in Tagaytay, Philippines, targeting couples aged 25-35 with budgets of P300K-P1M. Generate 20 keyword ideas grouped by search intent: informational (couples researching), commercial (comparing options), and transactional (ready to book). For each keyword, estimate competition level (low/medium/high) and suggest which 5 I should target first as a new website with low domain authority. Include long-tail keywords specific to Tagaytay weddings.",
+                            "What are the top 100 wedding keywords globally?",
+                            "Help me rank #1 on Google for 'wedding planner'."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B produces a targeted, actionable keyword strategy because it specifies location (Tagaytay), audience demographics, budget range, and asks for intent-based grouping. Crucially, it asks AI to prioritize for a new website with low domain authority — meaning it will suggest winnable long-tail keywords rather than impossible-to-rank broad terms. Option A is too vague. Option C ignores local market specifics. Option D targets an impossibly competitive keyword. Smart SEO starts with keywords you can actually win."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You wrote a blog post titled 'Best Cafes in Makati for Remote Work' and want AI to write the meta description. Which prompt would produce the most effective SEO meta description?",
+                    "metadata": {
+                        "options": [
+                            "Write a meta description for my blog post about cafes.",
+                            "Write an SEO meta description for my blog post 'Best Cafes in Makati for Remote Work 2026.' Target keyword: 'cafes in Makati for remote work.' Include: the keyword naturally in the first half, a specific value hook (e.g., number of cafes reviewed, Wi-Fi speed tested), and a reason to click over competing results. Must be under 155 characters. End with a soft CTA.",
+                            "Describe my blog post in one paragraph. Include all the cafe names and addresses.",
+                            "Write a 500-word summary of my article about Makati cafes."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B follows meta description best practices: keyword placement in the first half (so Google bolds it in results), a specific value hook that differentiates from competitors, character limit compliance (Google truncates after ~155 characters), and a CTA to drive the click. Option A is too vague. Option C tries to cram too much information into a meta description. Option D is far too long — meta descriptions are 1-2 sentences. A great meta description is a mini-ad for your page in search results."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "A Filipino food blogger wants to rank for 'best adobo recipe.' Their site is brand new with no backlinks. What is the smartest SEO strategy?",
+                    "metadata": {
+                        "options": [
+                            "Write one 500-word post targeting 'best adobo recipe' and wait for it to rank",
+                            "Target long-tail variations first like 'chicken adobo recipe for beginners' and 'adobo recipe with coconut milk Visayan style,' build authority with multiple related posts, then target the broader keyword later",
+                            "Buy 1000 backlinks from a cheap provider to boost domain authority overnight",
+                            "Copy the top-ranking article and change a few words to avoid detection"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "New sites cannot compete for broad, high-competition keywords like 'best adobo recipe' — established food blogs with years of authority dominate those results. The smart strategy is to target specific long-tail keywords with lower competition, build a cluster of related content that establishes topical authority, and gradually work toward broader terms. Buying backlinks violates Google's guidelines and risks penalties. Copying content is plagiarism and will be detected. SEO is a long game — start where you can win and build from there."
+                    }
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -647,6 +983,48 @@ LESSONS = {
                         ],
                         "correct_index": 1,
                         "explanation": "Option B maintains the casual, enthusiastic, playful, peer-like voice even while handling a complaint. It acknowledges the mistake, uses their brand's natural language ('Ay', 'super sorry', 'We got you!'), and offers a concrete solution. Option A is corporate-speak that would feel jarring from a bubble tea brand. The key is that brand voice doesn't disappear during problems — it adapts while staying authentic."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You want AI to write a Facebook post announcing a new product, but every draft sounds generic and corporate. Which prompt would best train AI to write in your brand's specific voice?",
+                    "metadata": {
+                        "options": [
+                            "Write a Facebook post about our new product. Make it sound like our brand.",
+                            "You are writing as BrightSip, a Filipino juice brand. Our voice is: casual, enthusiastic, playful, peer-like. We sound like your energetic best friend who just discovered something amazing. We use short punchy sentences. Light Taglish on social media is encouraged. We say: 'Game-changer!', 'Your taste buds will thank you', 'Sip the good stuff.' We never say: 'We are pleased to announce', 'Dear valued customers', 'Leverage our synergies.' Here are 2 examples of our past posts: [paste examples]. Now write a Facebook post announcing our new calamansi-ginger juice. Include an emoji or two.",
+                            "Write in a fun voice. Be creative and unique.",
+                            "Announce our new juice product using marketing best practices and industry-standard communication protocols."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B is a complete brand voice prompt: it names the brand, defines all four voice dimensions, provides a persona metaphor ('energetic best friend'), gives specific vocabulary guidance ('we say / we never say'), includes real examples for AI to pattern-match, and specifies the task. This produces consistently on-brand output. Option A assumes AI knows your brand. Option C is vague — 'fun' means different things to different brands. Option D would produce the exact corporate tone you're trying to avoid."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You're creating a brand voice guide for a new Filipino fintech app targeting Gen Z college students. Which voice dimension combination best fits this audience?",
+                    "metadata": {
+                        "options": [
+                            "Formal, calm, serious, expert — because financial products need to sound authoritative and trustworthy",
+                            "Casual, enthusiastic, playful, peer-like — because Gen Z college students respond to relatable, approachable communication that doesn't talk down to them",
+                            "Formal, enthusiastic, playful, expert — mixing opposite dimensions shows range",
+                            "No defined voice — let each team member write however they want for authenticity"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Gen Z college students are most responsive to brands that feel like peers, not parents or professors. Casual and playful doesn't mean unprofessional — it means approachable. Think of how GCash and Maya communicate versus traditional banks. They simplified financial language and made it feel accessible. Option A would feel like a bank lecture. Option C creates a contradictory, confusing voice. Option D leads to inconsistent brand perception. Your voice should match how your audience actually communicates with each other."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "A luxury Filipino jewelry brand has a brand voice defined as: formal, calm, serious, expert. Their social media manager writes this Instagram caption: 'OMG besties!! Our NEW collection just dropped and it's SO fire!! Grab yours before they're GONE!! Link in bio!!' What feedback should you give?",
+                    "metadata": {
+                        "options": [
+                            "The caption is perfect — it's energetic and will drive engagement",
+                            "The caption completely violates the brand voice. Rewrite it to match the formal, calm, serious, expert dimensions — something like: 'Introducing the Heritage Collection. Each piece is handcrafted by Filipino artisans using ethically sourced gold. Discover the collection through the link in our bio.'",
+                            "Add more exclamation marks to make it even more exciting",
+                            "The brand voice guide is wrong — all Instagram captions should be casual and hype-driven"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Brand voice consistency is non-negotiable — especially for luxury brands where perception of quality directly ties to communication style. 'OMG besties' and 'SO fire' completely undermine the premium positioning. The rewrite maintains Instagram's format (short, visual-first, link in bio CTA) while preserving the formal, calm, expert voice. Luxury brands like Tiffany and Cartier prove you can be engaging on social media without abandoning elegance. The platform changes the format, not the voice."
                     }
                 },
                 {
@@ -715,6 +1093,48 @@ LESSONS = {
                     }
                 },
                 {
+                    "type": "quiz",
+                    "content": "You want AI to analyze your campaign data and give actionable recommendations. Which prompt would produce the most useful analysis?",
+                    "metadata": {
+                        "options": [
+                            "My ads aren't working. Fix them.",
+                            "Here are my Facebook ad results from the last 14 days for my Filipino online clothing store:\n- Ad Set A (women 18-24): Spend P5,000 | Impressions 45,000 | Clicks 900 | Add to Cart 120 | Purchases 18 | Revenue P27,000\n- Ad Set B (women 25-34): Spend P5,000 | Impressions 30,000 | Clicks 450 | Add to Cart 85 | Purchases 22 | Revenue P44,000\nCalculate CTR, conversion rate, CPC, CPA, and ROAS for each ad set. Tell me which is performing better overall (not just by one metric). Should I shift budget? What specific changes should I test next?",
+                            "Analyze marketing data for me. Give me insights.",
+                            "Tell me what ROAS means and how to calculate it."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B gives AI structured data to work with, asks for specific calculations across multiple metrics, and requests comparative analysis with actionable next steps. This produces insights like 'Ad Set B has lower CTR but higher ROAS — the audience is smaller but more valuable. Shift 60% of budget to B and test new creatives for A.' Option A gives AI nothing to analyze. Option C provides no data. Option D asks for a definition, not analysis. The quality of AI marketing analysis is entirely dependent on the quality and specificity of the data you provide."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You're looking at two Facebook ad campaigns for a Filipino travel agency. Campaign A: 5% CTR, P8 CPC, P400 CPA, 2:1 ROAS. Campaign B: 1.5% CTR, P22 CPC, P180 CPA, 5:1 ROAS. Which campaign is performing better?",
+                    "metadata": {
+                        "options": [
+                            "Campaign A — it has a much higher CTR and lower CPC, so the ads are clearly working better",
+                            "Campaign B — despite lower CTR and higher CPC, it has a much lower CPA and higher ROAS, meaning it's more profitable per customer acquired",
+                            "They're performing equally — one metric being better cancels out the other",
+                            "Neither is good — both should be paused immediately"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "This is a crucial lesson in metric hierarchy. CTR and CPC measure ad engagement, but CPA and ROAS measure business outcomes. Campaign B converts fewer clickers but those clickers are far more likely to buy and spend more — P180 CPA vs. P400, and 5:1 ROAS vs. 2:1. Campaign A gets cheap clicks that don't convert. In marketing, profitability metrics (ROAS, CPA) always matter more than engagement metrics (CTR, CPC). A high CTR with poor ROAS just means you're paying for window shoppers."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "Your client asks you to analyze their marketing performance. Which prompt would help AI give the most structured, decision-ready analysis?",
+                    "metadata": {
+                        "options": [
+                            "Look at my numbers and tell me what to do.",
+                            "I manage Facebook ads for a Filipino SaaS company selling HR software at P2,500/month per user. Here's our last 30 days: Spend P50,000 | Impressions 200,000 | Clicks 3,000 | Landing Page Views 2,400 | Free Trial Sign-ups 90 | Paid Conversions 12 | Revenue P30,000/month recurring. Calculate all funnel metrics. Identify the weakest stage in the funnel (impressions → clicks → landing page → trial → paid). For the weakest stage, suggest 3 specific tests I should run. Our target CPA is P3,000.",
+                            "Are my ads good or bad?",
+                            "Give me a report template I can use for any campaign."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B provides the complete funnel data AI needs to identify exactly where the problem is. It includes the business model context (SaaS, P2,500/month), which helps AI evaluate whether CPA and ROAS make sense. It specifies the full funnel stages so AI can calculate drop-off at each point. And it asks for specific, testable recommendations — not just observations. Option A gives no data. Option C is a yes/no question that produces shallow analysis. Option D asks for a template instead of actual analysis. The more structured your data input, the more actionable AI's output."
+                    }
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -780,6 +1200,48 @@ LESSONS = {
                         ],
                         "correct_index": 1,
                         "explanation": "A phased approach wins because it builds awareness before asking for action, uses multiple touchpoints (social, influencers, ads, promotions), and has a sustain phase to maintain momentum. Spending everything on ads ignores the awareness-building needed for a new market. A website alone won't drive 5,000 downloads without promotion. A single celebrity post is high-risk and one-dimensional — local Davao influencers would likely outperform a national celebrity for local downloads."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You want AI to create a complete campaign plan for launching a new Filipino meal kit delivery service in Cebu. Which prompt would produce the most comprehensive, actionable plan?",
+                    "metadata": {
+                        "options": [
+                            "Make a marketing plan for a food delivery service.",
+                            "Create a 6-week launch campaign plan for a Filipino meal kit delivery service expanding to Cebu City. Budget: P150,000. Goal: 1,000 subscribers in the first 6 weeks. Target audience: dual-income couples aged 28-40 in Cebu IT Park and Ayala area who want to cook at home but hate grocery shopping. Include: (1) A weekly phase breakdown (teaser, launch, growth, sustain), (2) Channel strategy with budget allocation per channel, (3) Key messaging for each phase, (4) 3 measurable KPIs per phase, (5) Contingency plan if we're behind target by Week 3. Format as a structured brief I can share with my team.",
+                            "How do I launch a food business in Cebu?",
+                            "Write a campaign. Use Facebook, Instagram, and TikTok. Budget P150K."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B answers all 7 campaign brief questions and goes further — it requests phased execution, specific KPIs, budget allocation, and even a contingency plan. The audience description is specific enough for AI to craft targeted messaging (dual-income couples, Cebu IT Park, hate grocery shopping). It also requests a team-shareable format. Option A is too vague to produce anything usable. Option C asks about general business launch, not a marketing campaign. Option D lists channels but lacks strategy, audience, or goals."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You're planning a campaign brief and need to set a realistic budget allocation for a P100,000 digital campaign launching a new Filipino beauty product. Which allocation follows digital marketing best practices?",
+                    "metadata": {
+                        "options": [
+                            "P100,000 on influencer partnerships — influencers are the only thing that matters in beauty marketing",
+                            "P55,000 on paid ads (Facebook/Instagram/TikTok), P20,000 on content creation (visuals, video, copy), P15,000 on micro-influencer partnerships, P5,000 on email marketing tools, P5,000 on testing and contingency",
+                            "P90,000 on a single TV commercial and P10,000 on everything else",
+                            "Split equally: P20,000 on each of 5 channels regardless of their effectiveness for your audience"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B follows the recommended allocation: 50-60% on paid ads (your primary distribution engine), 15-20% on content creation, 10-15% on influencers, and reserves for tools and contingency. It ensures most budget goes toward measurable, scalable channels while maintaining content quality. Spending everything on influencers is high-risk with no guaranteed reach. TV is wrong for a digital-first P100K campaign. Equal splitting ignores that different channels have different ROI potentials for different products and audiences."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "Your campaign brief says the objective is to 'increase brand awareness.' A senior marketer reviews it and says the objective needs to be more specific. Which revision is best?",
+                    "metadata": {
+                        "options": [
+                            "Increase brand awareness a lot in the Philippines",
+                            "Generate 500 email sign-ups and achieve 200,000 impressions across Facebook and Instagram among women aged 22-30 in Metro Manila within 4 weeks, with a target CPM of P80 or less",
+                            "Make the brand famous and go viral on social media",
+                            "Get as many followers as possible on all platforms"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B is a SMART objective: Specific (email sign-ups and impressions), Measurable (500 sign-ups, 200K impressions, P80 CPM), Achievable (realistic numbers), Relevant (targets the right audience), and Time-bound (4 weeks). Vague objectives like 'increase awareness' or 'go viral' are impossible to measure — you can never know if you succeeded. 'As many followers as possible' has no target and no strategy. Every campaign objective should have a number, a timeframe, and a clear definition of success."
                     }
                 },
                 {
@@ -861,6 +1323,48 @@ LESSONS = {
                         ],
                         "correct_index": 1,
                         "explanation": "Ad Set B is clearly underperforming (CPA more than double your target), while A and C are both near or below the P200 target. The smart move is to cut the loser, redistribute its budget to the winners, and monitor. Starting over would waste the learning data from A and C. Scaling all three wastes money on B. Lowering the CPA target doesn't change reality — it just means you'll be disappointed when B still underperforms. This is the core optimization skill: double down on what works, cut what doesn't."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "Your campaign launched 24 hours ago and early results show a CTR of 0.8% (below the 1% benchmark). Your manager wants you to immediately change all the ad creatives. What should you do?",
+                    "metadata": {
+                        "options": [
+                            "Immediately swap all creatives — the data clearly shows the ads are failing",
+                            "Wait at least 48-72 hours before making changes. Facebook's algorithm needs 2-3 days to optimize delivery, and 24 hours of data is not statistically significant. Document the current performance and set a review checkpoint at 72 hours.",
+                            "Pause the entire campaign and start over from scratch",
+                            "Triple the budget to force better results"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Making changes in the first 24-48 hours is one of the most common campaign mistakes. Ad platforms need time to exit the 'learning phase' — during this period, delivery is intentionally unoptimized as the algorithm figures out who to show your ads to. Early data is noisy and unreliable. Changing creatives restarts the learning phase, wasting the data already collected. The disciplined move is to wait 48-72 hours, then make data-driven decisions with statistically meaningful results."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "You want AI to help you generate A/B test variations for your underperforming Facebook ad headline. Which prompt would produce the most strategically useful test options?",
+                    "metadata": {
+                        "options": [
+                            "Write a better headline for my ad.",
+                            "My current Facebook ad headline for a Filipino online accounting course is: 'Learn Accounting Online.' CTR is 0.9% (below our 2% target). Generate 4 alternative headlines testing these specific angles: (1) urgency — limited-time offer, (2) curiosity — open a knowledge gap, (3) benefit — focus on career/salary outcome, (4) social proof — emphasize number of graduates. Keep each under 40 characters. Explain which angle you'd test first and why.",
+                            "Write 50 headline options so I can pick the best one.",
+                            "Make my headline go viral. Use emotional triggers and power words."
+                        ],
+                        "correct_index": 1,
+                        "explanation": "Option B is a structured A/B test prompt: it provides the current baseline (the headline and its CTR), defines the performance gap (0.9% vs. 2% target), and requests exactly 4 variations each testing a different psychological angle. This produces meaningful tests where you can learn which angle resonates with your audience. Option A gives no baseline. Option C produces too many options without strategic purpose — you can only test a few at a time. Option D is vague. Effective A/B testing changes one variable at a time with a clear hypothesis."
+                    }
+                },
+                {
+                    "type": "quiz",
+                    "content": "Your 4-week campaign is at the end of Week 2. Results so far: Week 1 ROAS was 4.2:1 (above target), but Week 2 ROAS dropped to 2.1:1. Total spend is on budget. What is the most likely explanation and correct response?",
+                    "metadata": {
+                        "options": [
+                            "The campaign is failing — shut it down immediately and save the remaining budget",
+                            "This is likely ad fatigue or audience saturation. The same people have seen your ads multiple times and stopped responding. Test new creatives while keeping the winning audience targeting, and consider expanding the audience slightly to reach fresh users.",
+                            "Double the budget to compensate for the lower ROAS — more money will fix it",
+                            "The platform's algorithm is broken — switch to a different ad platform entirely"
+                        ],
+                        "correct_index": 1,
+                        "explanation": "A decline from Week 1 to Week 2 with the same targeting strongly suggests ad fatigue — your audience has seen the same creatives too many times and the novelty has worn off. This is completely normal in digital advertising. The fix is to refresh creatives while keeping the audience targeting that proved effective in Week 1. Expanding the audience slightly also helps reach people who haven't seen your ads yet. Shutting down wastes a campaign that was profitable in Week 1. Doubling budget on fatigued creatives accelerates the problem. This is why having multiple creative variations ready at launch is essential."
                     }
                 },
                 {

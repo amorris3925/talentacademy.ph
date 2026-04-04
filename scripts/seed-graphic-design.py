@@ -204,6 +204,63 @@ def build_lessons(mod):
                     },
                 },
                 {
+                    "type": "quiz",
+                    "content": "Which AI image prompt best applies visual hierarchy principles to create a tech conference poster?",
+                    "metadata": {
+                        "options": [
+                            "\"A tech conference poster with text and images, colorful, modern design, 4K resolution\"",
+                            "\"Tech conference poster with a dominant large bold headline at top in white on dark background, medium-sized date and speaker names in an accent teal color below, small venue details at the bottom with generous whitespace, high-contrast minimal layout\"",
+                            "\"A poster for a tech conference, make the text big and bold, use lots of neon colors, add circuit board patterns everywhere, futuristic font\"",
+                            "\"Minimalist poster, all text the same size in a centered column, monochrome gray palette, no images, simple and clean\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt creates a clear three-level visual hierarchy: a dominant headline (size + contrast), "
+                            "secondary info in an accent color (color), and tertiary details at the bottom. It also specifies whitespace "
+                            "for breathing room. The first prompt is too vague. The third adds visual clutter everywhere. "
+                            "The fourth makes everything the same size, destroying hierarchy entirely."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "You need to generate an AI image of a restaurant menu board. Which prompt would best ensure the daily special stands out as the primary focal point?",
+                    "metadata": {
+                        "options": [
+                            "\"Restaurant chalkboard menu with the daily special written in large bold white chalk lettering at top-center with extra space around it, regular menu items in smaller thin chalk text below, warm spotlight illuminating the special, rustic dark background\"",
+                            "\"A restaurant menu board with all items listed neatly in the same font and size, organized alphabetically for easy reading\"",
+                            "\"Chalkboard menu, colorful, every item in a different fun font to make it interesting and eye-catching\"",
+                            "\"Restaurant menu design, professional, HD quality, beautiful food photography surrounding the text\"",
+                        ],
+                        "correct_index": 0,
+                        "explanation": (
+                            "The first prompt uses three hierarchy tools: size (large bold for the special vs. smaller for other items), "
+                            "whitespace (extra space around the special), and contrast (spotlight on the key element). "
+                            "Same-size listings create no focal point. Different fonts for every item create chaos, not hierarchy. "
+                            "Surrounding text with photos competes for attention rather than directing it."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "According to eye-tracking research, where should you place the call-to-action on a landing page that uses the Z-pattern layout?",
+                    "metadata": {
+                        "options": [
+                            "Top-left corner, where the eye starts scanning",
+                            "Dead center of the page for maximum visibility",
+                            "Bottom-right area, where the Z-pattern naturally ends",
+                            "Along the left margin, following the F-pattern reading path",
+                        ],
+                        "correct_index": 2,
+                        "explanation": (
+                            "In a Z-pattern layout, the eye moves from top-left to top-right, then diagonally down to bottom-left, "
+                            "and finally to bottom-right. The CTA belongs at the end of this journey — bottom-right — because that is "
+                            "where the viewer's eye naturally arrives after absorbing the headline and supporting content. "
+                            "Placing it at the start wastes the buildup; center placement ignores natural reading flow."
+                        ),
+                    },
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -325,6 +382,63 @@ def build_lessons(mod):
                             "a limited palette and reusing it consistently. While proximity is also problematic (the date should logically "
                             "group with the title, not the location), the most glaring issue is the rainbow of unrelated colors — "
                             "no visual thread ties the design together."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which AI prompt best applies all four CRAP principles to generate a professional event invitation?",
+                    "metadata": {
+                        "options": [
+                            "\"Design a beautiful invitation for a gala dinner, make it look fancy and elegant, high quality\"",
+                            "\"Event invitation with bold black title contrasting against a cream background, consistent gold accent color repeated on borders and divider lines, all text left-aligned to a single edge, event name and date grouped together with venue and RSVP details grouped separately below with clear spacing\"",
+                            "\"Gala invitation with the title in red, details in blue, RSVP in green, centered text mixed with right-aligned text, all information evenly spread across the entire card\"",
+                            "\"A party invite, use a pretty template, add some decorations and fancy fonts everywhere\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt explicitly applies all four CRAP principles: Contrast (bold black on cream), "
+                            "Repetition (gold accent used consistently), Alignment (single left-aligned edge), and "
+                            "Proximity (related information grouped together with spacing between groups). The first is too vague. "
+                            "The third violates repetition (three colors) and alignment (mixed alignment). The fourth has no structural direction."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which prompt would produce a business card that best demonstrates the Proximity principle?",
+                    "metadata": {
+                        "options": [
+                            "\"Business card with name, phone, email, title, company, and address all centered in one block with equal spacing between every line\"",
+                            "\"Business card with the person's name and job title grouped closely together in the upper area, and phone number, email, and address grouped together in the lower area, with clear visual separation between the two groups\"",
+                            "\"Business card with information scattered artistically across the entire card surface for a creative, dynamic layout\"",
+                            "\"Minimalist business card with only a name in the center and nothing else for maximum clean design\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "Proximity means grouping related items together and separating unrelated ones. The second prompt "
+                            "groups identity info (name + title) separately from contact info (phone + email + address), "
+                            "with clear separation between groups. Equal spacing between every line treats all info as equally related. "
+                            "Scattered placement actively violates proximity. A single name with nothing else avoids the principle entirely."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "A client shows you a newsletter design where the headings are 16px medium weight and the body text is 14px regular weight. What CRAP principle is being violated, and why?",
+                    "metadata": {
+                        "options": [
+                            "Proximity — the headings are too close to the body text",
+                            "Alignment — the headings and body text should use different alignment",
+                            "Contrast — the difference between headings and body text is too subtle and looks accidental rather than intentional",
+                            "Repetition — the headings and body text should use the same size",
+                        ],
+                        "correct_index": 2,
+                        "explanation": (
+                            "A 16px medium heading over 14px regular body text is barely distinguishable — the contrast is so weak "
+                            "it looks like a mistake rather than a deliberate design choice. The Contrast principle says that if two elements "
+                            "are different, make them VERY different. A 28px+ bold heading over 14px regular body would create "
+                            "unmistakable contrast that guides the reader's eye through the content hierarchy."
                         ),
                     },
                 },
@@ -463,6 +577,63 @@ def build_lessons(mod):
                     },
                 },
                 {
+                    "type": "quiz",
+                    "content": "Which AI prompt best uses color theory to generate a poster for a children's art workshop?",
+                    "metadata": {
+                        "options": [
+                            "\"A poster for a children's art workshop, colorful and fun, make it look exciting, high resolution\"",
+                            "\"Children's art workshop poster using a triadic color palette of primary red, bright yellow, and cobalt blue, playful and vibrant mood, bold shapes, white background with 60% white space, 30% primary colors, 10% accent yellow highlights\"",
+                            "\"Art workshop poster using a monochromatic dark navy palette, sophisticated and minimal, elegant serif typography, muted tones throughout\"",
+                            "\"Poster with every color of the rainbow used equally across the entire design, gradients everywhere, maximum saturation on all elements\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt applies color theory precisely: a triadic palette (red/yellow/blue) communicates playfulness "
+                            "and energy — perfect for children. It also applies the 60-30-10 rule for balance. The first prompt is too vague. "
+                            "A monochromatic navy palette communicates sophistication, not childlike joy. Rainbow with maximum saturation "
+                            "everywhere creates visual chaos with no hierarchy or intentional color relationship."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "A premium law firm wants AI-generated visuals for their website. Which prompt demonstrates the best understanding of color psychology?",
+                    "metadata": {
+                        "options": [
+                            "\"Law firm website hero image with a bright orange and lime green color scheme, energetic and playful, fun geometric patterns\"",
+                            "\"Legal website banner in deep navy blue and charcoal with subtle warm gold accents, monochromatic blue tones for the background, clean and authoritative mood, matte finish, understated elegance\"",
+                            "\"Law firm visuals using pastel pink and lavender, soft and gentle, dreamy watercolor style, whimsical and approachable\"",
+                            "\"Professional website image, red and black color scheme, aggressive bold styling, high contrast neon accents\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "Deep navy blue communicates trust, stability, and professionalism — exactly what a law firm needs. "
+                            "The gold accent adds a touch of premium authority. Monochromatic blue tones create sophistication. "
+                            "Orange and lime green feel casual and budget-friendly. Pastels feel whimsical, not authoritative. "
+                            "Red and black with neon reads as aggressive rather than trustworthy."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "What does the 60-30-10 color rule mean, and how does it improve a design?",
+                    "metadata": {
+                        "options": [
+                            "Use 60 colors for variety, 30 gradients for depth, and 10 patterns for texture",
+                            "Spend 60% of your time on color selection, 30% on layout, and 10% on typography",
+                            "Use your dominant color for 60% of the design, secondary color for 30%, and accent color for 10% to create visual balance",
+                            "Set color saturation to 60%, brightness to 30%, and contrast to 10% for a muted look",
+                        ],
+                        "correct_index": 2,
+                        "explanation": (
+                            "The 60-30-10 rule creates visual balance by giving each color a clear role: the dominant color (60%) "
+                            "sets the overall tone, the secondary color (30%) supports and adds interest, and the accent color (10%) "
+                            "draws attention to key elements like CTAs or highlights. This ratio prevents the chaos of equal color distribution "
+                            "and gives the design a natural sense of order."
+                        ),
+                    },
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -594,6 +765,63 @@ def build_lessons(mod):
                     },
                 },
                 {
+                    "type": "quiz",
+                    "content": "Which AI prompt would generate the most appropriate typographic poster for a high-end perfume brand?",
+                    "metadata": {
+                        "options": [
+                            "\"Perfume advertisement poster with bold chunky rounded sans-serif text, bright primary colors, playful and casual feel, comic-book style layout\"",
+                            "\"Luxury perfume poster featuring an elegant thin serif headline in gold on a matte black background, clean sans-serif body text in a lighter weight below, generous whitespace, sophisticated and minimal, editorial fashion photography style\"",
+                            "\"Perfume brand poster using five different decorative script fonts for each line of text, ornate borders, busy floral patterns filling every space\"",
+                            "\"Ad for perfume, use a standard Arial font for everything, white background, basic centered layout, no styling\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "Luxury perfume demands elegance and sophistication. A thin serif headline in gold on black creates premium contrast, "
+                            "while the clean sans-serif body text ensures readability — a classic serif-headline + sans-serif-body pairing. "
+                            "Generous whitespace signals confidence and luxury. Chunky rounded fonts feel juvenile. Five decorative fonts violate "
+                            "the 2-3 font maximum rule. Plain Arial with no styling communicates nothing about the brand."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which prompt would best generate a typographic design for a modern fitness app's marketing banner?",
+                    "metadata": {
+                        "options": [
+                            "\"Fitness app banner with ornate calligraphy script text, delicate thin letterforms, vintage Victorian styling, sepia tones\"",
+                            "\"Fitness banner with bold geometric sans-serif headline in heavy weight, lighter sans-serif subtitle in a thinner weight for contrast, dark background with vibrant accent color, dynamic and energetic feel, modern and clean\"",
+                            "\"Workout app ad using Times New Roman for all text, standard formatting, no special styling or color, plain white background\"",
+                            "\"Fitness marketing banner with text in ten different trendy fonts, each word a different style, rainbow gradient on every letter\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "A fitness app needs to feel modern, energetic, and bold. A geometric sans-serif in heavy weight communicates "
+                            "strength and modernity. Using different weights (heavy headline, thin subtitle) creates typographic hierarchy "
+                            "without adding extra fonts — contrast through weight, not font count. Calligraphy feels traditional, not athletic. "
+                            "Times New Roman is generic. Ten fonts creates visual chaos."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Why should you never use more than 2-3 fonts in a single design?",
+                    "metadata": {
+                        "options": [
+                            "Because AI image generators can only render 2-3 fonts at a time",
+                            "Because fonts are expensive and using fewer saves money on licensing",
+                            "Because too many fonts destroy visual unity — contrast should come from varying weight and size within a limited set, not from adding more typefaces",
+                            "Because web browsers can only load 2-3 font files per page",
+                        ],
+                        "correct_index": 2,
+                        "explanation": (
+                            "Every additional font introduces a new visual voice into the design. With too many voices, there is no consistency "
+                            "or unity — the design feels chaotic and unprofessional. Professional designers create contrast through weight (bold vs. light), "
+                            "size (large headline vs. small body), and style (serif headline vs. sans-serif body) within a limited font set. "
+                            "This creates variety WITH cohesion."
+                        ),
+                    },
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -716,6 +944,63 @@ def build_lessons(mod):
                             "The winning prompt uses all six elements: clear subject (skincare bottles with botanicals), style (product photography), "
                             "lighting (soft natural window light), composition (overhead flat-lay), mood (clean and luxurious), and technical detail (shallow DOF). "
                             "Vague prompts produce generic results. The cyberpunk style contradicts the organic/natural brand identity entirely."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which prompt uses the 6-part formula (subject, style, lighting, composition, mood, technical) most completely for a bakery's Instagram post?",
+                    "metadata": {
+                        "options": [
+                            "\"Photo of a croissant, delicious looking, professional, Instagram-worthy\"",
+                            "\"A freshly baked golden croissant on a rustic linen cloth, editorial food photography style, warm directional morning light from a side window, close-up shot at a slight angle with shallow depth of field, cozy artisanal atmosphere, warm color grading with soft film grain\"",
+                            "\"Croissant, bakery, tasty, beautiful, 8K ultra HD, best quality, masterpiece\"",
+                            "\"A bread product on a surface, some kind of lighting, a certain mood, photographic style\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt covers all six parts: subject (golden croissant on linen), style (editorial food photography), "
+                            "lighting (warm directional morning light from side window), composition (close-up at slight angle, shallow DOF), "
+                            "mood (cozy artisanal), and technical (warm color grading, film grain). The first prompt only names the subject. "
+                            "The third stacks quality keywords but lacks composition, lighting, or mood. The fourth is absurdly vague."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "You want to generate a professional headshot for a corporate website. Which prompt would produce the most usable result?",
+                    "metadata": {
+                        "options": [
+                            "\"Professional corporate headshot of a confident business person, portrait photography, soft Rembrandt lighting with gentle fill light, head-and-shoulders framing centered in frame, approachable and trustworthy mood, shallow depth of field with neutral blurred office background\"",
+                            "\"A person in a suit, make it look corporate and professional, sharp image\"",
+                            "\"Business headshot, 3D cartoon render style, bright neon background, wide-angle lens distortion, dramatic shadows\"",
+                            "\"Portrait of an employee, watercolor painting style, abstract background, artistic and creative interpretation\"",
+                        ],
+                        "correct_index": 0,
+                        "explanation": (
+                            "A corporate headshot needs to look trustworthy and professional. The first prompt specifies portrait photography style, "
+                            "appropriate Rembrandt lighting (a classic portrait technique), proper framing (head-and-shoulders), mood (approachable, trustworthy), "
+                            "and technical detail (shallow DOF, neutral background). The second is too vague. A 3D cartoon render is inappropriate "
+                            "for corporate use. Watercolor style contradicts the professional context entirely."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "What is the most important difference between a vague prompt and a professional prompt?",
+                    "metadata": {
+                        "options": [
+                            "Professional prompts are longer — more words always produce better results",
+                            "Professional prompts include quality keywords like '8K' and 'ultra HD' while vague prompts do not",
+                            "Professional prompts give specific, concrete direction for subject, style, lighting, composition, and mood — giving the AI a clear blueprint rather than leaving decisions to chance",
+                            "Professional prompts use technical camera jargon that only photographers understand",
+                        ],
+                        "correct_index": 2,
+                        "explanation": (
+                            "The key difference is specificity and intentionality. Professional prompts describe exactly what the image should "
+                            "look like across multiple dimensions (subject, style, lighting, composition, mood), leaving less to the AI's random "
+                            "interpretation. Length alone does not help if the words are vague. Quality keywords like '8K' affect resolution, "
+                            "not composition or mood. You do not need to be a photographer — you just need to describe what you see in your mind clearly."
                         ),
                     },
                 },
@@ -859,6 +1144,64 @@ def build_lessons(mod):
                     },
                 },
                 {
+                    "type": "quiz",
+                    "content": "Which prompt best uses advanced techniques to create a dramatic, premium product shot for a luxury watch brand?",
+                    "metadata": {
+                        "options": [
+                            "\"A luxury watch, dramatic lighting, expensive looking, premium quality, best image\"",
+                            "\"Luxury watch on a dark slate surface, low-key lighting with a single warm spotlight from above casting dramatic shadows, shallow depth of field at f/1.4 with soft bokeh, ample negative space on the right side for text placement, moody and premium atmosphere, shot on Hasselblad medium format\"",
+                            "\"Watch product photo, tilt-shift miniature effect, bright neon studio lighting, wide-angle lens, cluttered tabletop with many accessories, high-key cheerful mood\"",
+                            "\"A watch in the style of a Wes Anderson film, symmetrical pastel composition, quirky and playful, whimsical props arranged around it\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt layers multiple advanced techniques: low-key lighting for drama, shallow DOF with specific "
+                            "f-stop for premium focus, intentional negative space for practical text placement, and a medium format camera "
+                            "reference for quality. The first is vague. Tilt-shift makes things look like toys — the opposite of premium. "
+                            "Wes Anderson style is playful and quirky, which undermines luxury authority."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Your first AI generation of a minimalist brand image came out cluttered with too many elements. Which iterative refinement approach is most effective?",
+                    "metadata": {
+                        "options": [
+                            "Delete the entire prompt and start over with completely different keywords",
+                            "Add more descriptive words to your existing prompt to give the AI more information",
+                            "Keep the core subject and style but surgically add 'minimalist, clean composition, ample negative space, isolated subject, uncluttered' while removing any keywords that suggest complexity",
+                            "Generate the same prompt 20 more times — eventually the AI will produce a clean version by chance",
+                        ],
+                        "correct_index": 2,
+                        "explanation": (
+                            "Iterative refinement means making targeted adjustments, not starting from scratch. The third approach "
+                            "diagnoses the specific problem (clutter) and surgically adds keywords that counteract it (minimalist, negative space, "
+                            "uncluttered) while removing conflicting keywords. Rewriting everything loses what already worked. "
+                            "Adding more words often adds more visual elements, making clutter worse. Blind regeneration is inefficient "
+                            "and does not address the root cause."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which prompt best demonstrates the 'style anchoring' technique to achieve a specific photographic look?",
+                    "metadata": {
+                        "options": [
+                            "\"A coffee shop interior, make it look like a photo, realistic, HD\"",
+                            "\"Coffee shop interior in the style of a Wes Anderson film — perfectly symmetrical composition, soft pastel color palette, centered framing, whimsical and meticulously organized, warm vintage color grading, shot on 35mm film with subtle grain\"",
+                            "\"Coffee shop, artistic style, some kind of filter, moody or something, whatever looks good\"",
+                            "\"Coffee shop photo with every Instagram filter applied simultaneously, HDR to the maximum, oversaturated colors, heavy vignette\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "Style anchoring means referencing a well-known visual style and then reinforcing it with specific descriptors. "
+                            "The second prompt anchors to 'Wes Anderson' and then specifies exactly what that means: symmetry, pastels, "
+                            "centered framing, 35mm film grain. This gives the AI a clear creative direction. Vague terms like 'artistic style' "
+                            "and 'whatever looks good' give no anchor at all. Stacking every filter creates an overprocessed mess."
+                        ),
+                    },
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -989,6 +1332,63 @@ def build_lessons(mod):
                             "while maintaining the same color temperature, lighting style, and editing approach. Image 5 breaks two pillars "
                             "of the style anchor — color palette and lighting — which makes it look like it belongs to a different brand entirely. "
                             "Variety in subject matter is great; variety in style language is jarring."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "You are generating a set of 4 product images for an organic tea brand's website. Which approach best ensures visual consistency?",
+                    "metadata": {
+                        "options": [
+                            "Write a completely unique prompt for each product, changing the style and mood each time to keep things interesting",
+                            "Create a style anchor — 'soft watercolor illustration, muted earth tones of sage green and warm cream, gentle natural light, hand-painted paper texture, calm and organic mood' — then swap only the subject for each product while keeping the anchor identical",
+                            "Generate each image separately and then adjust the colors in a photo editor afterward to try to match them",
+                            "Use the exact same prompt for all four images and hope the AI generates different subjects",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "A style anchor locks in the visual elements that create cohesion (art style, color palette, lighting, mood, texture) "
+                            "while allowing the subject to change. This is exactly how professional designers maintain brand consistency across "
+                            "multiple assets. Unique styles per image destroys cohesion. Post-editing colors is a band-aid that cannot fix "
+                            "differences in art style or lighting. The same prompt produces the same subject, not variety."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which style anchor prompt would produce the most consistent set of social media illustrations for a playful tech startup?",
+                    "metadata": {
+                        "options": [
+                            "\"Flat vector illustration, limited palette of coral #FF6B6B and deep purple #4A0E78 with white accents, clean geometric shapes, consistent thin line weight, soft rounded corners, white background, modern and playful\"",
+                            "\"Colorful illustration, modern, techy, fun, vibrant, cool design, digital art\"",
+                            "\"Sometimes use flat design, sometimes 3D render, sometimes watercolor — mix it up for each post to keep the feed dynamic and unpredictable\"",
+                            "\"Use whatever style the AI defaults to, then apply the same Instagram filter to all images for consistency\"",
+                        ],
+                        "correct_index": 0,
+                        "explanation": (
+                            "The first prompt is an excellent style anchor because it locks in every key element: art style (flat vector), "
+                            "specific colors (coral and deep purple with hex codes), shape language (geometric, rounded corners), line treatment "
+                            "(consistent thin weight), background (white), and mood (modern and playful). The second is too vague to produce "
+                            "consistency. Mixing styles is the opposite of consistency. Instagram filters cannot unify different art styles."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "You generated three images using the same style anchor, but image #3 looks slightly different in color temperature. What is the most likely cause and fix?",
+                    "metadata": {
+                        "options": [
+                            "The AI randomly varies output — just keep regenerating until it matches",
+                            "You need to switch to a different AI tool that produces more consistent results",
+                            "Your style anchor may lack specific color temperature direction — add explicit terms like 'warm color grading' or 'cool blue undertones' and regenerate image #3 with the strengthened anchor",
+                            "Color temperature differences are invisible to most people, so it does not matter",
+                        ],
+                        "correct_index": 2,
+                        "explanation": (
+                            "When one image in a set drifts, it usually means the style anchor is not specific enough in that dimension. "
+                            "If your anchor does not explicitly describe color temperature (warm vs. cool), the AI fills that gap with random "
+                            "variation. The fix is to strengthen the anchor with explicit color temperature keywords and regenerate the outlier. "
+                            "Blind regeneration is wasteful. Color temperature differences are very noticeable to viewers and undermine brand cohesion."
                         ),
                     },
                 },
@@ -1127,6 +1527,64 @@ def build_lessons(mod):
                     },
                 },
                 {
+                    "type": "quiz",
+                    "content": "Which AI prompt would best generate a brand mood board for a sustainable outdoor adventure company?",
+                    "metadata": {
+                        "options": [
+                            "\"Mood board for an outdoor brand, nature vibes, adventurous, cool colors, make it look professional\"",
+                            "\"Brand mood board for 'TrailForge,' a sustainable outdoor adventure company. Values: rugged authenticity, environmental stewardship, community. Audience: active millennials who care about the planet. Earthy palette of forest green, stone gray, and burnt sienna with cream. Natural textures like weathered wood and raw canvas. Documentary photography style with golden hour lighting. Adventurous yet grounded mood.\"",
+                            "\"An outdoor brand logo in neon green with extreme sports imagery, urban street style, graffiti elements, dark moody city backgrounds\"",
+                            "\"Nature photos collage, green color, trees and mountains, generic stock photography style, basic layout\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt uses the Brand Identity Prompt Framework: brand name and description, clear values, "
+                            "defined audience, specific emotional direction, and detailed visual direction including colors, textures, "
+                            "photography style, and lighting. The first is too vague to produce anything specific. Urban/street style "
+                            "contradicts outdoor adventure. Generic stock photography produces forgettable, unbranded results."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which prompt best explores a logo concept for a modern plant-based restaurant called 'Verdant'?",
+                    "metadata": {
+                        "options": [
+                            "\"Logo for a restaurant, green color, simple, modern\"",
+                            "\"Minimalist logo concept for 'Verdant,' a modern plant-based restaurant. A single leaf shape subtly integrated into the letter V, clean geometric lines, single-color design in deep emerald green, flat vector style, ample whitespace around the mark, sophisticated and organic, suitable for signage and app icon\"",
+                            "\"Photorealistic 3D render of a restaurant logo with reflections, metallic textures, complex gradients, floating in space with lens flare effects\"",
+                            "\"Draw me the final logo file for Verdant restaurant, ready to print on business cards and signage, vector format with exact Pantone colors\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt explores a specific logo direction: it describes the concept (leaf + V integration), "
+                            "style (minimalist, geometric, flat vector), color (deep emerald), and context (signage, app icon). "
+                            "This generates a useful concept for exploration. The first is too vague. Photorealistic 3D logos are impractical "
+                            "for real branding. The fourth treats AI as a final production tool — AI logos are concept explorations, "
+                            "not final deliverables."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Why are AI-generated logos considered exploration tools rather than final deliverables?",
+                    "metadata": {
+                        "options": [
+                            "Because AI logos are always ugly and need to be completely redesigned by a human",
+                            "Because AI cannot generate images that include letters or shapes",
+                            "Because AI generates raster images that lack the vector precision, scalability, and exact color control needed for professional logo usage across all sizes and media",
+                            "Because using AI for any part of the logo design process is considered unethical in the design industry",
+                        ],
+                        "correct_index": 2,
+                        "explanation": (
+                            "Professional logos must work as tiny app icons and huge billboards — this requires vector format (infinitely scalable) "
+                            "with exact color specifications (Pantone). AI generates raster/pixel images that lose quality when scaled and cannot "
+                            "guarantee precise color matching. AI is excellent for exploring directions, shapes, and concepts quickly, "
+                            "but final logos should be recreated as vectors in tools like Adobe Illustrator."
+                        ),
+                    },
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -1252,6 +1710,63 @@ def build_lessons(mod):
                             "style anchor (maintaining campaign consistency) but with composition rules suited to vertical: subject centered, "
                             "key content in the middle third (top/bottom get hidden by Stories UI). A different visual style breaks campaign cohesion. "
                             "Stretching distorts everything."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which prompt best generates a hero campaign image for a summer juice brand that leaves room for text overlay?",
+                    "metadata": {
+                        "options": [
+                            "\"Summer juice brand photo, bright and colorful, fruits everywhere filling the entire frame edge to edge, text written in the center\"",
+                            "\"Hero campaign image for a tropical juice brand, fresh mangoes and citrus splashing into golden juice, product photography with dynamic splash effects, bright warm lighting, vibrant palette of orange, yellow, and teal, landscape format with clean negative space on the left third for headline text overlay, joyful and refreshing summer mood\"",
+                            "\"Juice ad, put the product in the middle with the brand name in big text across the image, standard white background\"",
+                            "\"A generic stock photo of juice on a table, simple composition, no special styling or color direction\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt creates a campaign-ready hero image: it specifies the subject with dynamic action (splashing fruit), "
+                            "brand-appropriate colors, format (landscape), and crucially reserves clean space for text overlay — a requirement "
+                            "for hero images that will have headlines overlaid. Filling the entire frame leaves nowhere for text. "
+                            "AI-generated text is unreliable. Stock-style images lack the brand-specific visual identity a campaign needs."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "You need to create both an Instagram feed post (1:1 square) and a LinkedIn banner (1.91:1 landscape) for the same product launch. Which approach maintains campaign consistency?",
+                    "metadata": {
+                        "options": [
+                            "Use a completely different visual concept for each platform since different audiences use each one",
+                            "Write one style anchor that locks in colors, lighting, mood, and art style, then write separate composition instructions for each format — '1:1 square, product centered, bold text area at top' for Instagram and '1.91:1 landscape, product on right, text space on left' for LinkedIn",
+                            "Create the Instagram post first, then screenshot it and stretch it to fit the LinkedIn banner dimensions",
+                            "Only post on one platform to avoid the consistency challenge entirely",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The style anchor approach separates what stays consistent (colors, lighting, mood, art style) from what adapts "
+                            "(composition, framing, text placement). Each platform gets a composition suited to its format while maintaining "
+                            "the visual thread that makes both assets feel like one campaign. Different concepts break brand recognition. "
+                            "Stretching distorts the image. Avoiding platforms limits your campaign's reach."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "When designing for Instagram Stories (9:16 vertical), why should key content be placed in the middle 60% of the frame?",
+                    "metadata": {
+                        "options": [
+                            "Because the human eye naturally looks at the exact center of any image",
+                            "Because the top and bottom of Stories are covered by the platform's UI elements (username at top, reply bar at bottom), so content there gets hidden",
+                            "Because vertical images always look better with content in the middle for aesthetic reasons",
+                            "Because AI generators cannot place content near the edges of vertical images",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "Instagram Stories overlay the account name and profile picture at the top and the reply/message bar at the bottom. "
+                            "Any important content placed in these zones gets partially or fully hidden. Designing with a 'safe zone' in the "
+                            "middle 60% ensures your key message, product, and CTA are always visible. This is a practical platform constraint, "
+                            "not an aesthetic preference — and it applies to every platform with UI overlays."
                         ),
                     },
                 },
@@ -1389,6 +1904,63 @@ def build_lessons(mod):
                     },
                 },
                 {
+                    "type": "quiz",
+                    "content": "Which video prompt best creates a premium product reveal for a luxury perfume brand?",
+                    "metadata": {
+                        "options": [
+                            "\"Video of a perfume bottle, spinning around, cool effects, luxury feeling, high quality\"",
+                            "\"Slow cinematic dolly-in shot of a crystal perfume bottle emerging from soft shadow into warm golden spotlight, gentle light refractions dancing across the glass surface, shallow depth of field, dark velvet background, elegant and mysterious mood, slow-motion movement, premium commercial feel\"",
+                            "\"Fast-paced montage of perfume being sprayed from multiple angles, quick cuts every half second, strobe lighting effects, EDM music video style, neon colors\"",
+                            "\"Static photo of a perfume bottle with a Ken Burns zoom effect applied in post-production, basic slide-show style, no actual motion in the scene\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt applies multiple cinematic techniques for luxury: slow dolly-in (draws the viewer in), "
+                            "emergence from shadow (dramatic reveal), light refractions (visual interest), shallow DOF (premium focus), "
+                            "and slow-motion (elegance). The first is too vague. Fast cuts and strobe lighting feel like music videos, "
+                            "not luxury. A static photo with Ken Burns effect is not true AI video generation — it lacks genuine motion."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which video prompt best demonstrates the principle of 'one subject, one action, one mood' for AI video?",
+                    "metadata": {
+                        "options": [
+                            "\"A busy street scene with cars driving, people walking, birds flying, a dog running, street vendors selling food, rain starting to fall, and a sunset happening simultaneously\"",
+                            "\"A single candle flame flickering gently in a dark room, static camera, warm amber tones, soft shadows moving on the wall behind, serene and meditative mood, slow and hypnotic pace\"",
+                            "\"Three different products rotating on three different colored backgrounds with three different lighting setups in the same frame\"",
+                            "\"A person cooking in a kitchen while also talking on the phone and a cat jumps on the counter and a pot boils over\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The candle prompt is a perfect example of simplicity: one subject (candle flame), one action (flickering gently), "
+                            "one mood (serene and meditative). This gives AI a clear, focused direction that produces coherent video. "
+                            "The street scene has at least seven competing actions. Three products in one frame confuses the focal point. "
+                            "The kitchen scene has multiple simultaneous actions that AI cannot choreograph reliably."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "A bakery wants a looping video for their social media header showing fresh bread. Which prompt approach works best for a seamless loop?",
+                    "metadata": {
+                        "options": [
+                            "\"Close-up of golden bread loaf with steam gently rising in a continuous wisp, static camera, warm bakery lighting from above, shallow depth of field, cozy and inviting atmosphere, seamless looping ambient movement\"",
+                            "\"A baker walking into frame, picking up bread, cutting it, and walking out of frame — full narrative sequence\"",
+                            "\"Timelapse of bread being made from start to finish, dough mixing to baked loaf, 30-second compressed process\"",
+                            "\"Bread on a table with dramatic camera movements — orbit, pan, dolly, crane shot — all in one clip\"",
+                        ],
+                        "correct_index": 0,
+                        "explanation": (
+                            "Seamless loops work best with continuous ambient motion like steam rising — it has no clear start or end point, "
+                            "so the loop is invisible. The static camera and single gentle action create a mesmerizing, professional header. "
+                            "A narrative sequence has a clear beginning and end that makes the loop obvious. Timelapse implies progression "
+                            "that cannot loop smoothly. Multiple camera movements in one clip are too complex for current AI video."
+                        ),
+                    },
+                },
+                {
                     "type": "prompts",
                     "content": "",
                     "metadata": {
@@ -1517,6 +2089,63 @@ def build_lessons(mod):
                             "Fixing composition and hierarchy — making the product the clear focal point — has the highest impact. "
                             "The garbled text is a common AI artifact that should be removed entirely (text should be overlaid manually). "
                             "Resolution is fine. Flower species is a trivial detail. Adding more elements makes the overcrowding worse."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "You generated an AI image for a tech startup's homepage. The image has sharp resolution and a clean layout, but uses warm earthy tones and a rustic handmade aesthetic. The startup wants to feel innovative and cutting-edge. Which layer of the critique framework identifies the problem?",
+                    "metadata": {
+                        "options": [
+                            "Technical Quality — the image resolution and clarity need improvement",
+                            "Design Principles — the CRAP principles are being violated",
+                            "Strategic Effectiveness — the visual style communicates the wrong brand message for the target audience",
+                            "There is no problem — warm and rustic can work for any brand",
+                        ],
+                        "correct_index": 2,
+                        "explanation": (
+                            "The image passes the Technical Quality check (sharp, clean) and may even follow good Design Principles "
+                            "(layout is clean). But it fails Strategic Effectiveness: warm earthy tones and rustic aesthetics communicate "
+                            "tradition and craftsmanship, not innovation and cutting-edge technology. The visual style must align with the brand's "
+                            "message and audience. This is why the 3-layer framework exists — technically good designs can still fail strategically."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Which prompt revision best addresses the AI artifact problem of garbled, unreadable text appearing in generated images?",
+                    "metadata": {
+                        "options": [
+                            "\"Add the text 'SALE 50% OFF' in clear, readable Arial font at the top of the image, make sure every letter is perfect and spelled correctly\"",
+                            "\"Generate the image without any text elements — use clean negative space where text would go, so real typography can be overlaid manually afterward in a design tool\"",
+                            "\"Write the text in a larger font size so the AI can render each letter more accurately at higher resolution\"",
+                            "\"Include the text multiple times throughout the image so at least one version will be readable\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "AI image generators consistently struggle with accurate text rendering — this is a known technical limitation. "
+                            "The professional solution is to generate text-free images with intentional negative space for text placement, "
+                            "then overlay precise typography using design tools like Figma or Canva. Asking for 'perfect' text does not solve "
+                            "the underlying technical limitation. Larger fonts and repetition still produce garbled results."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "When critiquing a design, why should you always start by identifying what works before addressing what needs improvement?",
+                    "metadata": {
+                        "options": [
+                            "Because it makes the critique take longer, showing you were thorough",
+                            "Because identifying strengths helps you understand what to preserve during revisions and frames feedback as building on success rather than listing failures",
+                            "Because clients only want to hear positive feedback about their designs",
+                            "Because design principles say the first thing you notice is always the strongest element",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "Starting with strengths serves two practical purposes: first, it identifies what is already working so you do not "
+                            "accidentally lose those qualities during revision. Second, it frames improvement as 'building on what is already strong' "
+                            "rather than 'fixing what is broken,' which leads to more focused, constructive iteration. This applies whether you are "
+                            "critiquing your own AI generations or giving feedback to a colleague."
                         ),
                     },
                 },
@@ -1673,6 +2302,64 @@ def build_lessons(mod):
                             "Green everywhere is cliche. Eco-labels and recycling symbols feel like fast-fashion greenwashing. "
                             "Stock nature photos are generic. The most powerful branding embeds values into every visual choice "
                             "rather than declaring them with obvious symbols."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "You chose the 'Brew & Bean' brief (specialty coffee shop targeting young professionals). Which prompt best generates a campaign hero image that aligns with the brand?",
+                    "metadata": {
+                        "options": [
+                            "\"Coffee shop photo, warm lighting, make it look inviting, professional quality image\"",
+                            "\"Hero campaign image for Brew & Bean specialty coffee — a beautifully crafted latte with intricate art on a handmade ceramic cup, warm natural light streaming through large industrial windows, rustic wooden counter with subtle greenery, earthy palette of espresso brown, warm cream, and terracotta, shallow depth of field, artisanal and inviting atmosphere, editorial food photography style\"",
+                            "\"Futuristic coffee shop with neon lights, chrome surfaces, robotic barista, cyberpunk aesthetic, dramatic blue and purple lighting, sci-fi mood\"",
+                            "\"Generic coffee cup clipart on a plain background, simple and basic, no special styling\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second prompt translates the Brew & Bean brief into specific visual choices: the artisanal aesthetic (handmade ceramic, "
+                            "latte art), the young professional appeal (industrial windows, editorial style), and the warm/modern brand values "
+                            "(earthy palette, natural light). It uses the 6-part formula and applies brand identity thinking to every choice. "
+                            "The first is too vague. Cyberpunk contradicts the artisanal brand entirely. Clipart is not campaign-quality."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "For the 'NovaTech' brief (AI productivity app for remote workers), which style anchor would best communicate 'innovative yet trustworthy'?",
+                    "metadata": {
+                        "options": [
+                            "\"Dark mode, neon accents, glitch effects, matrix-style code rain, aggressive and edgy, cyberpunk hacker aesthetic\"",
+                            "\"Clean modern aesthetic with a palette of soft blue #4A90D9, white, and a vibrant coral #FF6B6B accent, light and airy feel, minimalist flat illustrations with friendly rounded shapes, soft diffused lighting, generous whitespace, confident and approachable mood\"",
+                            "\"Traditional corporate style with navy suit stock photos, handshake imagery, serif fonts, gold accents, formal and conservative\"",
+                            "\"Random colorful abstract art, no consistent style, experimental and unpredictable, different treatment for each asset\"",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "The second style anchor balances innovation (modern flat illustrations, coral accent) with trustworthiness "
+                            "(blue palette, clean whitespace, soft lighting). Friendly rounded shapes make tech feel approachable rather than cold. "
+                            "Cyberpunk and glitch effects feel threatening, not trustworthy. Traditional corporate imagery feels dated for an AI startup. "
+                            "Random inconsistent styles destroy brand recognition entirely."
+                        ),
+                    },
+                },
+                {
+                    "type": "quiz",
+                    "content": "Before starting your capstone campaign generation, what is the single most important step that will save you the most time and ensure the best results?",
+                    "metadata": {
+                        "options": [
+                            "Start generating images immediately and figure out the style as you go",
+                            "Write a detailed style anchor that locks in your color palette, art style, lighting, mood, and technical approach BEFORE generating any images",
+                            "Find and copy prompts from other people's AI art that look similar to what you want",
+                            "Generate as many random variations as possible and pick the best ones afterward",
+                        ],
+                        "correct_index": 1,
+                        "explanation": (
+                            "Writing your style anchor before generating is the single highest-leverage step in any multi-asset project. "
+                            "It serves as your creative brief and ensures every image shares the same visual DNA from the start. "
+                            "Without an anchor, you will waste hours trying to make image #4 match image #1 after the fact. "
+                            "Copying others' prompts produces someone else's vision. Random generation without direction is the least "
+                            "efficient approach to professional campaign work."
                         ),
                     },
                 },

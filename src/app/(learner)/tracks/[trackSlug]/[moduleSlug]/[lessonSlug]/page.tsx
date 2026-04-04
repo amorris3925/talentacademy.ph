@@ -76,12 +76,13 @@ export default function LessonPage() {
     });
   }, [currentLesson, setLessonContext, params.trackSlug]);
 
-  // Watch pendingPrompt and auto-send to chat
+  // Watch pendingPrompt and auto-send to chat (+ switch to chat tab on mobile)
   useEffect(() => {
     if (!pendingPrompt) return;
     clearPendingPrompt();
+    setActiveTab('chat');
     sendMessage(pendingPrompt);
-  }, [pendingPrompt, clearPendingPrompt, sendMessage]);
+  }, [pendingPrompt, clearPendingPrompt, sendMessage, setActiveTab]);
 
   // Highlight-to-Ask: capture text selection within lesson content
   const handleMouseUp = useCallback(() => {

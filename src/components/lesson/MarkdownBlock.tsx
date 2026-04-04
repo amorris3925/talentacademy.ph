@@ -3,6 +3,7 @@
 import { useMemo, memo } from 'react';
 import DOMPurify from 'dompurify';
 import { useInteractionStore } from '@/stores/interaction';
+import { useLessonStore } from '@/stores/lesson';
 
 interface MarkdownBlockProps {
   content: string;
@@ -10,6 +11,7 @@ interface MarkdownBlockProps {
 
 export const MarkdownBlock = memo(function MarkdownBlock({ content }: MarkdownBlockProps) {
   const triggerPrompt = useInteractionStore((s) => s.triggerPrompt);
+  const setActiveTab = useLessonStore((s) => s.setActiveTab);
 
   const processedContent = useMemo(() => {
     if (typeof window === 'undefined') return content;
@@ -26,25 +28,52 @@ export const MarkdownBlock = memo(function MarkdownBlock({ content }: MarkdownBl
     );
     html = DOMPurify.sanitize(html, {
       ADD_TAGS: ['button'],
-      ADD_ATTR: ['data-prompt'],
+      ADD_ATTR: ['data-prompt', 'data-source'],
       FORBID_TAGS: ['form', 'input', 'textarea', 'select', 'style', 'iframe', 'object', 'embed'],
       FORBID_ATTR: ['style'],
     });
+
+    // Post-sanitization: inject "Try this prompt" button into blockquotes
+    html = html.replace(
+      /<\/blockquote>/g,
+      '<button type="button" class="try-prompt-btn" data-source="blockquote">Try this prompt &rarr;</button></blockquote>',
+    );
+
     return html;
   }, [content]);
 
   const handleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
+
+    // Existing inline prompt chip handler
     if (target.classList.contains('inline-prompt-chip')) {
       const prompt = target.getAttribute('data-prompt');
-      if (prompt) triggerPrompt(prompt);
+      if (prompt) {
+        triggerPrompt(prompt, undefined, 'content_prompt');
+        setActiveTab('chat');
+      }
+    }
+
+    // Blockquote "Try this prompt" handler
+    if (target.classList.contains('try-prompt-btn')) {
+      const blockquote = target.closest('blockquote');
+      if (blockquote) {
+        // Extract text content excluding the button itself
+        const clone = blockquote.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll('.try-prompt-btn').forEach((btn) => btn.remove());
+        const text = clone.textContent?.trim();
+        if (text) {
+          triggerPrompt(text, undefined, 'content_prompt');
+          setActiveTab('chat');
+        }
+      }
     }
   };
 
   return (
     <div
       onClick={handleClick}
-      className="lesson-prose prose prose-indigo max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-3 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-2 prose-p:leading-relaxed prose-p:text-gray-700 prose-a:text-indigo-600 prose-a:font-medium prose-strong:text-gray-900 prose-ul:my-3 prose-ol:my-3 prose-li:text-gray-700 prose-li:leading-relaxed prose-code:rounded prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:bg-gray-900 prose-img:rounded-lg [&_.inline-prompt-chip]:inline-flex [&_.inline-prompt-chip]:items-center [&_.inline-prompt-chip]:gap-1 [&_.inline-prompt-chip]:px-2 [&_.inline-prompt-chip]:py-0.5 [&_.inline-prompt-chip]:rounded-full [&_.inline-prompt-chip]:text-sm [&_.inline-prompt-chip]:font-medium [&_.inline-prompt-chip]:bg-indigo-50 [&_.inline-prompt-chip]:text-indigo-700 [&_.inline-prompt-chip]:border [&_.inline-prompt-chip]:border-indigo-200 [&_.inline-prompt-chip]:cursor-pointer [&_.inline-prompt-chip]:hover:bg-indigo-100 [&_.inline-prompt-chip]:transition-colors"
+      className="lesson-prose prose prose-indigo max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-3 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-2 prose-p:leading-relaxed prose-p:text-gray-700 prose-a:text-indigo-600 prose-a:font-medium prose-strong:text-gray-900 prose-ul:my-3 prose-ol:my-3 prose-li:text-gray-700 prose-li:leading-relaxed prose-code:rounded prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:bg-gray-900 prose-img:rounded-lg [&_.inline-prompt-chip]:inline-flex [&_.inline-prompt-chip]:items-center [&_.inline-prompt-chip]:gap-1 [&_.inline-prompt-chip]:px-2 [&_.inline-prompt-chip]:py-0.5 [&_.inline-prompt-chip]:rounded-full [&_.inline-prompt-chip]:text-sm [&_.inline-prompt-chip]:font-medium [&_.inline-prompt-chip]:bg-indigo-50 [&_.inline-prompt-chip]:text-indigo-700 [&_.inline-prompt-chip]:border [&_.inline-prompt-chip]:border-indigo-200 [&_.inline-prompt-chip]:cursor-pointer [&_.inline-prompt-chip]:hover:bg-indigo-100 [&_.inline-prompt-chip]:transition-colors [&_blockquote]:relative [&_blockquote]:group [&_.try-prompt-btn]:flex [&_.try-prompt-btn]:items-center [&_.try-prompt-btn]:gap-1 [&_.try-prompt-btn]:mt-3 [&_.try-prompt-btn]:px-3 [&_.try-prompt-btn]:py-1.5 [&_.try-prompt-btn]:rounded-full [&_.try-prompt-btn]:text-xs [&_.try-prompt-btn]:font-medium [&_.try-prompt-btn]:bg-indigo-50 [&_.try-prompt-btn]:text-indigo-600 [&_.try-prompt-btn]:border [&_.try-prompt-btn]:border-indigo-200 [&_.try-prompt-btn]:cursor-pointer [&_.try-prompt-btn]:hover:bg-indigo-100 [&_.try-prompt-btn]:hover:text-indigo-700 [&_.try-prompt-btn]:transition-all [&_.try-prompt-btn]:opacity-70 [&_.try-prompt-btn]:hover:opacity-100"
       dangerouslySetInnerHTML={{ __html: processedContent }}
     />
   );

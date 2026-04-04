@@ -432,7 +432,8 @@ export type ChatMessageSource =
   | 'highlight_ask'
   | 'quiz_feedback'
   | 'checkpoint'
-  | 'lesson_trigger';
+  | 'lesson_trigger'
+  | 'content_prompt';
 
 export interface BlockViewData {
   block_index: number;
