@@ -142,19 +142,20 @@ export default function CommunityPage() {
   };
 
   const handleVote = (postId: string, direction: 1 | -1) => {
-    setVotes((prev) => {
-      const current = prev[postId] ?? 0;
-      const newVote = current === direction ? 0 : direction;
-      return { ...prev, [postId]: newVote };
+    const prevVote = votes[postId] ?? 0;
+    const prevCount = voteCounts[postId] ?? 0;
+    const newVote = prevVote === direction ? 0 : direction;
+
+    // Optimistic update
+    setVotes((prev) => ({ ...prev, [postId]: newVote }));
+    setVoteCounts((prev) => ({ ...prev, [postId]: prevCount - prevVote + newVote }));
+
+    // Revert on failure
+    academyApi.post(`/community/posts/${postId}/vote`, { direction }).catch(() => {
+      setVotes((prev) => ({ ...prev, [postId]: prevVote }));
+      setVoteCounts((prev) => ({ ...prev, [postId]: prevCount }));
+      setError('Vote failed. Please try again.');
     });
-    setVoteCounts((prev) => {
-      const currentVote = votes[postId] ?? 0;
-      const currentCount = prev[postId] ?? 0;
-      // Remove old vote, apply new
-      const newVote = currentVote === direction ? 0 : direction;
-      return { ...prev, [postId]: currentCount - currentVote + newVote };
-    });
-    academyApi.post(`/community/posts/${postId}/vote`, { direction }).catch(() => {});
   };
 
   const handleAskQuestion = async () => {

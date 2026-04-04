@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth'
 import { ServiceStatusBanner } from '@/components/ServiceStatusBanner'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { OfflineBanner } from '@/components/OfflineBanner'
 import {
   LayoutDashboard,
   Users,
@@ -109,6 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </nav>
 
+      <OfflineBanner />
       <ServiceStatusBanner />
 
       {/* Content */}

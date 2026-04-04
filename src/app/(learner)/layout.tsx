@@ -10,6 +10,7 @@ import { GlobalTrackers } from '@/components/feedback/GlobalTrackers'
 import { FeedbackWidget } from '@/components/feedback/FeedbackWidget'
 import { ServiceStatusBanner } from '@/components/ServiceStatusBanner'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { OfflineBanner } from '@/components/OfflineBanner'
 
 export default function LearnerLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -50,6 +51,7 @@ export default function LearnerLayout({ children }: { children: React.ReactNode 
       <LearnerSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <LearnerHeader onMenuClick={() => setSidebarOpen(true)} />
+        <OfflineBanner />
         <ServiceStatusBanner />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <ErrorBoundary>{children}</ErrorBoundary>

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { Toaster } from 'sonner'
 import { Suspense } from 'react'
 import ExternalAnalytics from '@/components/tracking/ExternalAnalytics'
+import { GlobalErrorHandler } from '@/components/GlobalErrorHandler'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -29,6 +30,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <ExternalAnalytics />
         </Suspense>
+        <GlobalErrorHandler />
         <main>{children}</main>
         <Toaster position="top-right" richColors closeButton />
       </body>

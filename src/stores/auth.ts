@@ -44,6 +44,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => {
   let listenerSetUp = false;
   let authSubscription: { unsubscribe: () => void } | null = null;
+  let initializePromise: Promise<void> | null = null;
 
   return {
     learner: null,
@@ -52,6 +53,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
     isAuthenticated: false,
 
     async initialize() {
+      // Deduplicate concurrent calls — return the in-flight promise
+      if (initializePromise) return initializePromise;
+
+      const doInit = async () => {
       set({ isLoading: true });
 
       // Set up analytics auto-expiry: when the 24h session expires, log the user out
@@ -106,7 +111,12 @@ export const useAuthStore = create<AuthState>((set, get) => {
         }
       } finally {
         set({ isLoading: false });
+        initializePromise = null;
       }
+      };
+
+      initializePromise = doInit();
+      return initializePromise;
     },
 
     async login(email: string, password: string) {

@@ -54,6 +54,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       if (saveTimer) clearTimeout(saveTimer);
       saveTimer = setTimeout(() => set({ saveStatus: 'idle' }), 2000);
     } catch {
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
       set({ isSaving: false, saveStatus: 'error' });
       throw new Error('Failed to update profile');
     }
@@ -72,6 +73,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       if (saveTimer) clearTimeout(saveTimer);
       saveTimer = setTimeout(() => set({ saveStatus: 'idle' }), 2000);
     } catch {
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
       set({ isSaving: false, saveStatus: 'error' });
       throw new Error('Failed to update settings');
     }
