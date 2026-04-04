@@ -71,8 +71,10 @@ export default function LessonPage() {
       lessonTitle: currentLesson.title,
       lessonDescription: currentLesson.description,
       contentSummary,
+      availableTools: currentLesson.ai_tools_enabled,
+      trackSlug: params.trackSlug,
     });
-  }, [currentLesson, setLessonContext]);
+  }, [currentLesson, setLessonContext, params.trackSlug]);
 
   // Watch pendingPrompt and auto-send to chat
   useEffect(() => {
@@ -299,7 +301,12 @@ export default function LessonPage() {
             activeTab === 'chat' ? 'flex w-full flex-col' : 'hidden md:flex md:flex-col',
           )}
         >
-          <ChatSidebar lessonId={currentLesson.id} />
+          <ChatSidebar
+            lessonId={currentLesson.id}
+            lessonTitle={currentLesson.title}
+            availableTools={currentLesson.ai_tools_enabled}
+            trackSlug={params.trackSlug}
+          />
         </div>
       </div>
 

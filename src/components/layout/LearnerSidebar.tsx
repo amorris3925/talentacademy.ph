@@ -14,6 +14,7 @@ import {
   User,
   Shield,
   X,
+  FileText,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 
@@ -29,6 +30,7 @@ const mainNav: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tracks', label: 'Tracks', icon: BookOpen },
   { href: '/studio', label: 'AI Studio', icon: Sparkles },
+  { href: '/artifacts', label: 'Artifacts', icon: FileText },
 ]
 
 const communityNav: NavItem[] = [

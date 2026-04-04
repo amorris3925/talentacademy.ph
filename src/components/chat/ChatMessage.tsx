@@ -1,12 +1,13 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/utils';
 import { ChatMarkdown } from './ChatMarkdown';
 import { ToolCallIndicator } from './ToolCallIndicator';
 import { StructuredBlockRenderer } from './StructuredBlockRenderer';
+import { ArtifactEmbedCard, parseArtifactBlocks } from '@/components/artifact/ArtifactEmbedCard';
 import type { AcademyChatMessage } from '@/types';
 
 interface ChatMessageProps {
@@ -15,6 +16,10 @@ interface ChatMessageProps {
 
 export const ChatMessage = memo(function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
+  const artifactBlocks = useMemo(
+    () => (!isUser ? parseArtifactBlocks(message.content) : []),
+    [isUser, message.content],
+  );
 
   return (
     <div
@@ -76,6 +81,15 @@ export const ChatMessage = memo(function ChatMessage({ message }: ChatMessagePro
             )}
 
             <ChatMarkdown content={message.content} />
+
+            {/* Artifact embed cards (from <artifact_create> blocks) */}
+            {artifactBlocks.length > 0 && (
+              <div className="mt-2 space-y-2">
+                {artifactBlocks.map((ab, i) => (
+                  <ArtifactEmbedCard key={i} artifactData={ab} />
+                ))}
+              </div>
+            )}
 
             {/* Structured blocks (images, tables, charts, artifact embeds) */}
             {message.structured_blocks && message.structured_blocks.length > 0 && (

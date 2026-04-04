@@ -17,7 +17,12 @@ interface ChatMarkdownProps {
 
 export function ChatMarkdown({ content, className = '' }: ChatMarkdownProps) {
   const html = useMemo(() => {
-    const raw = marked.parse(content, { async: false }) as string;
+    // Strip artifact XML blocks before rendering markdown
+    const cleaned = content
+      .replace(/<artifact_create>[\s\S]*?<\/artifact_create>/g, '')
+      .replace(/<artifact_update>[\s\S]*?<\/artifact_update>/g, '')
+      .trim();
+    const raw = marked.parse(cleaned, { async: false }) as string;
     return DOMPurify.sanitize(raw);
   }, [content]);
 

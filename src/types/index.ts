@@ -456,6 +456,74 @@ export interface EvaluationScores {
   evaluation_date: string;
 }
 
+// ─── Artifacts ─────────────────────────────────────────────────────────────
+
+export type ArtifactType =
+  | 'document'
+  | 'blog_post'
+  | 'seo_article'
+  | 'design_brief'
+  | 'marketing_plan'
+  | 'campaign'
+  | 'workflow'
+  | 'report';
+
+export type ArtifactStatus = 'draft' | 'submitted' | 'evaluated' | 'published';
+
+export interface AcademyArtifact {
+  id: string;
+  learner_id: string;
+  lesson_id: string | null;
+  track_id: string | null;
+  title: string;
+  slug: string;
+  artifact_type: ArtifactType;
+  content_markdown: string;
+  sections: ArtifactSection[] | null;
+  summary: string | null;
+  metadata: Record<string, unknown>;
+  tags: string[];
+  status: ArtifactStatus;
+  is_public: boolean;
+  quality_score: number | null;
+  creativity_score: number | null;
+  completeness_score: number | null;
+  skill_signals: Record<string, number>;
+  evaluation_notes: string | null;
+  evaluated_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ArtifactSection {
+  label: string;
+  content: string;
+  status?: string;
+}
+
+export interface ArtifactVersion {
+  id: string;
+  artifact_id: string;
+  version_number: number;
+  title: string | null;
+  content_markdown: string | null;
+  sections: ArtifactSection[] | null;
+  summary: string | null;
+  snapshot_at: string;
+}
+
+export interface SkillProfile {
+  id: string;
+  learner_id: string;
+  track_id: string | null;
+  skill_domain: string;
+  skill_name: string;
+  current_score: number;
+  assessment_count: number;
+  trend: 'improving' | 'stable' | 'declining';
+  last_assessed_at: string | null;
+}
+
 // ─── Pagination ─────────────────────────────────────────────────────────────
 
 export interface PaginatedResponse<T> {
