@@ -162,6 +162,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       content,
       created_at: new Date().toISOString(),
       images: imagePayloads,
+      is_image_request: imageCreationEnabled,
     };
 
     set((state) => ({

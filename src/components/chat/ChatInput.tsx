@@ -170,7 +170,7 @@ export function ChatInput({
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           onPaste={handlePaste}
-          placeholder={placeholder}
+          placeholder={imageCreationEnabled ? 'Describe the image you want to create...' : placeholder}
           rows={1}
           disabled={isStreaming}
           maxLength={4000}

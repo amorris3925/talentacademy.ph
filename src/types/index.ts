@@ -173,6 +173,7 @@ export interface AcademyChatMessage {
   images?: ChatImage[];
   tool_calls?: ToolCallEvent[];
   structured_blocks?: AcademyStructuredBlock[];
+  is_image_request?: boolean;
 }
 
 // ─── AI Generation ──────────────────────────────────────────────────────────
