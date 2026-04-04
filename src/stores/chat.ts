@@ -4,13 +4,23 @@ import { create } from 'zustand';
 import { academyApi } from '@/lib/api';
 import { analytics } from '@/lib/analytics';
 import { useInteractionStore } from '@/stores/interaction';
-import type { AcademyChatMessage, ChatMessageSource, ContentBlock, PersistedChatMessage } from '@/types';
+import type {
+  AcademyChatMessage,
+  ChatImage,
+  ChatMessageSource,
+  ContentBlock,
+  PersistedChatMessage,
+  ToolCallEvent,
+  AcademyStructuredBlock,
+} from '@/types';
 
 interface LessonContextData {
   lessonId: string;
   lessonTitle: string;
   lessonDescription?: string;
   contentSummary?: string;
+  availableTools?: string[];
+  trackSlug?: string;
 }
 
 interface ChatState {
@@ -18,12 +28,34 @@ interface ChatState {
   isStreaming: boolean;
   streamingContent: string;
   lessonContext: LessonContextData | null;
+  imageCreationEnabled: boolean;
 
   sendMessage: (content: string, images?: File[], source?: ChatMessageSource) => Promise<void>;
   sendFromInteraction: () => Promise<void>;
   loadHistory: (lessonId?: string) => Promise<void>;
   clearHistory: () => void;
   setLessonContext: (ctx: LessonContextData | null) => void;
+  setImageCreationEnabled: (enabled: boolean) => void;
+}
+
+/**
+ * Convert File objects to base64-encoded ChatImage payloads.
+ */
+async function filesToChatImages(files: File[]): Promise<ChatImage[]> {
+  return Promise.all(
+    files.map(async (file) => {
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return {
+        data: btoa(binary),
+        media_type: file.type,
+      };
+    }),
+  );
 }
 
 /**
@@ -87,20 +119,27 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isStreaming: false,
   streamingContent: '',
   lessonContext: null,
+  imageCreationEnabled: false,
 
-  async sendMessage(content: string, _images?: File[], source: ChatMessageSource = 'typed') {
+  async sendMessage(content: string, images?: File[], source: ChatMessageSource = 'typed') {
     if (get().isStreaming) return;
     streamAbortController?.abort();
     streamAbortController = new AbortController();
-    const { messages, lessonContext } = get();
+    const { messages, lessonContext, imageCreationEnabled } = get();
 
-    // Add user message optimistically
+    // Convert images to base64 payloads
+    const imagePayloads = images && images.length > 0
+      ? await filesToChatImages(images)
+      : undefined;
+
+    // Add user message optimistically (with image previews)
     const userMsg: AcademyChatMessage = {
       id: `temp-${Date.now()}`,
       session_id: '',
       role: 'user',
       content,
       created_at: new Date().toISOString(),
+      images: imagePayloads,
     };
 
     set((state) => ({
@@ -123,6 +162,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
     let accumulated = '';
     let rafId: number | null = null;
     let pendingContent = '';
+    const toolCalls: ToolCallEvent[] = [];
+    const structuredBlocks: AcademyStructuredBlock[] = [];
 
     try {
       await academyApi.stream(
@@ -133,6 +174,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
           lesson_context: lessonContext?.contentSummary ?? null,
           lesson_title: lessonContext?.lessonTitle ?? null,
           lesson_description: lessonContext?.lessonDescription ?? null,
+          image_creation_enabled: imageCreationEnabled,
+          available_tools: lessonContext?.availableTools ?? [],
+          track_slug: lessonContext?.trackSlug ?? null,
+          images: imagePayloads,
           history: messages.slice(-20).map((m) => ({
             role: m.role,
             content: m.content,
@@ -141,6 +186,38 @@ export const useChatStore = create<ChatState>((set, get) => ({
         (chunk: string) => {
           try {
             const parsed = JSON.parse(chunk);
+
+            // Handle structured event types from the tool-aware backend
+            if (parsed.type === 'tool_call') {
+              toolCalls.push({
+                tool_call_id: parsed.tool_call_id,
+                tool_name: parsed.tool_name,
+                tool_input: parsed.tool_input || {},
+                status: 'running',
+              });
+              // Force UI update for tool call indicator
+              set({ streamingContent: accumulated });
+              return;
+            }
+
+            if (parsed.type === 'tool_result') {
+              const tc = toolCalls.find((t) => t.tool_call_id === parsed.tool_call_id);
+              if (tc) {
+                tc.status = parsed.success ? 'done' : 'error';
+                tc.result_preview = parsed.result_preview;
+                tc.duration_ms = parsed.duration_ms;
+              }
+              set({ streamingContent: accumulated });
+              return;
+            }
+
+            if (parsed.type === 'structured_content' && parsed.block) {
+              structuredBlocks.push(parsed.block as AcademyStructuredBlock);
+              set({ streamingContent: accumulated });
+              return;
+            }
+
+            // Default: accumulate text content
             if (parsed.content) {
               accumulated += parsed.content;
             }
@@ -170,6 +247,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         role: 'assistant',
         content: accumulated,
         created_at: new Date().toISOString(),
+        tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+        structured_blocks: structuredBlocks.length > 0 ? structuredBlocks : undefined,
       };
 
       // Persist assistant message to analytics
@@ -258,6 +337,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setLessonContext(ctx) {
     set({ lessonContext: ctx });
+  },
+
+  setImageCreationEnabled(enabled) {
+    set({ imageCreationEnabled: enabled });
   },
 }));
 

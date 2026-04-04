@@ -5,6 +5,8 @@ import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/utils';
 import { ChatMarkdown } from './ChatMarkdown';
+import { ToolCallIndicator } from './ToolCallIndicator';
+import { StructuredBlockRenderer } from './StructuredBlockRenderer';
 import type { AcademyChatMessage } from '@/types';
 
 interface ChatMessageProps {
@@ -44,12 +46,46 @@ export const ChatMessage = memo(function ChatMessage({ message }: ChatMessagePro
             : 'rounded-tl-md border border-gray-200 bg-white text-gray-800',
         )}
       >
+        {/* User-attached images */}
+        {isUser && message.images && message.images.length > 0 && (
+          <div className="mb-1.5 flex flex-wrap gap-1.5">
+            {message.images.map((img, i) => (
+              <img
+                key={i}
+                src={img.url || `data:${img.media_type};base64,${img.data}`}
+                alt={`Attachment ${i + 1}`}
+                className="h-24 w-24 rounded-lg object-cover border border-indigo-400/30"
+              />
+            ))}
+          </div>
+        )}
+
         {isUser ? (
           <p className="whitespace-pre-wrap text-sm leading-snug">
             {message.content}
           </p>
         ) : (
-          <ChatMarkdown content={message.content} />
+          <>
+            {/* Tool call indicators */}
+            {message.tool_calls && message.tool_calls.length > 0 && (
+              <div className="mb-2 space-y-1.5">
+                {message.tool_calls.map((tc) => (
+                  <ToolCallIndicator key={tc.tool_call_id} toolCall={tc} />
+                ))}
+              </div>
+            )}
+
+            <ChatMarkdown content={message.content} />
+
+            {/* Structured blocks (images, tables, charts, artifact embeds) */}
+            {message.structured_blocks && message.structured_blocks.length > 0 && (
+              <div className="mt-2 space-y-2">
+                {message.structured_blocks.map((block, i) => (
+                  <StructuredBlockRenderer key={i} block={block} />
+                ))}
+              </div>
+            )}
+          </>
         )}
         <p
           className={cn(
