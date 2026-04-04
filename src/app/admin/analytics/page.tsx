@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { academyApi } from '@/lib/api'
 import {
   LineChart,
@@ -53,7 +53,48 @@ const DEVICE_COLORS: Record<string, string> = {
   unknown: '#9ca3af',
 }
 
+class AnalyticsErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Analytics</h1>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+            <p className="text-red-700 font-medium">Something went wrong loading analytics.</p>
+            <p className="text-sm text-red-600 mt-1">{this.state.error?.message}</p>
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="mt-4 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 export default function AdminAnalyticsPage() {
+  return (
+    <AnalyticsErrorBoundary>
+      <AdminAnalyticsPageInner />
+    </AnalyticsErrorBoundary>
+  )
+}
+
+function AdminAnalyticsPageInner() {
   const [funnel, setFunnel] = useState<FunnelData | null>(null)
   const [scores, setScores] = useState<ScoreDistribution[]>([])
   const [dailyActive, setDailyActive] = useState<DailyActive[]>([])
@@ -107,16 +148,24 @@ export default function AdminAnalyticsPage() {
 
   const funnelSteps = funnel
     ? [
-        { label: 'Registered', value: (funnel.total_registered ?? funnel.registered ?? 0) as number },
-        { label: 'Onboarded', value: (funnel.onboarded ?? 0) as number },
-        { label: 'Enrolled', value: (funnel.total_enrollments ?? funnel.foundation_enrolled ?? 0) as number },
-        { label: 'Completed', value: (funnel.total_completions ?? funnel.foundation_completed ?? 0) as number },
-        { label: 'Specialty Enrolled', value: (funnel.specialty_enrolled ?? 0) as number },
-        { label: 'Specialty Completed', value: (funnel.specialty_completed ?? 0) as number },
+        { label: 'Registered', value: Number(funnel.total_registered ?? funnel.registered ?? 0) || 0 },
+        { label: 'Onboarded', value: Number(funnel.onboarded ?? 0) || 0 },
+        { label: 'Enrolled', value: Number(funnel.total_enrollments ?? funnel.foundation_enrolled ?? 0) || 0 },
+        { label: 'Completed', value: Number(funnel.total_completions ?? funnel.foundation_completed ?? 0) || 0 },
+        { label: 'Specialty Enrolled', value: Number(funnel.specialty_enrolled ?? 0) || 0 },
+        { label: 'Specialty Completed', value: Number(funnel.specialty_completed ?? 0) || 0 },
       ]
     : []
 
   const maxFunnel = funnelSteps[0]?.value || 1
+
+  // Filter out bad data points for recharts
+  const cleanDailyActive = dailyActive.filter(
+    (d) => d.day != null && d.active_count != null && !isNaN(Number(d.active_count))
+  )
+  const cleanDevices = devices.filter(
+    (d) => d.device != null && d.count != null && !isNaN(Number(d.count))
+  )
 
   return (
     <div>
@@ -131,7 +180,8 @@ export default function AdminAnalyticsPage() {
           ) : (
             <div className="space-y-4">
               {funnelSteps.map((step) => {
-                const pct = Math.round((step.value / maxFunnel) * 100)
+                const rawPct = (step.value / maxFunnel) * 100
+                const pct = isFinite(rawPct) ? Math.round(rawPct) : 0
                 return (
                   <div key={step.label}>
                     <div className="flex items-center justify-between text-sm mb-1">
@@ -184,12 +234,12 @@ export default function AdminAnalyticsPage() {
       {/* Daily Active Users */}
       <div className="mt-6 bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Daily Active Users</h2>
-        {dailyActive.length === 0 ? (
+        {cleanDailyActive.length === 0 ? (
           <p className="text-sm text-gray-500">No daily active user data yet.</p>
         ) : (
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dailyActive}>
+              <LineChart data={cleanDailyActive}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis
                   dataKey="day"
@@ -226,14 +276,14 @@ export default function AdminAnalyticsPage() {
       <div className="mt-6 grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Device Breakdown</h2>
-          {devices.length === 0 ? (
+          {cleanDevices.length === 0 ? (
             <p className="text-sm text-gray-500">No device data yet.</p>
           ) : (
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={devices}
+                    data={cleanDevices}
                     dataKey="count"
                     nameKey="device"
                     cx="50%"
@@ -241,10 +291,10 @@ export default function AdminAnalyticsPage() {
                     outerRadius={100}
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     label={(props: any) =>
-                      `${props.device} ${((props.percent as number) * 100).toFixed(0)}%`
+                      `${props.name ?? 'unknown'} ${((props.percent as number) * 100).toFixed(0)}%`
                     }
                   >
-                    {devices.map((entry) => (
+                    {cleanDevices.map((entry) => (
                       <Cell
                         key={entry.device ?? 'unknown'}
                         fill={DEVICE_COLORS[entry.device ?? 'unknown'] ?? DEVICE_COLORS.unknown}

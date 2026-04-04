@@ -36,7 +36,7 @@ export default function AdminTalentPage() {
   const router = useRouter()
   const [learners, setLearners] = useState<AcademyLearner[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'talent' | 'leader'>('all')
+  const [filter, setFilter] = useState<'everyone' | 'talent' | 'leader'>('everyone')
 
   const scatterData = useMemo<ScatterPoint[]>(
     () =>
@@ -56,7 +56,6 @@ export default function AdminTalentPage() {
   useEffect(() => {
     let cancelled = false
     const params: Record<string, string> = { limit: '50' }
-    if (filter === 'all') params.flagged = 'true'
     if (filter === 'talent') params.flagged_talent = 'true'
     if (filter === 'leader') params.flagged_leader = 'true'
 
@@ -93,9 +92,9 @@ export default function AdminTalentPage() {
       {/* Filter */}
       <div className="flex gap-2 mb-6">
         {[
-          { key: 'all', label: 'All Flagged' },
-          { key: 'talent', label: 'Top Talent (IC)' },
-          { key: 'leader', label: 'Leadership Potential' },
+          { key: 'everyone', label: 'All Learners' },
+          { key: 'talent', label: 'Flagged Talent' },
+          { key: 'leader', label: 'Flagged Leaders' },
         ].map((f) => (
           <button
             key={f.key}

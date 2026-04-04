@@ -76,23 +76,15 @@ export function ChatSidebar({ lessonId, lessonTitle, availableTools, trackSlug }
     didLoad.current = false;
   }, [lessonId]);
 
-  // Load chat history and set lesson context
+  // Load chat history (lesson context is set by the parent LessonPage)
   useEffect(() => {
     if (didLoad.current) return;
     didLoad.current = true;
 
-    if (lessonId) {
-      setLessonContext({
-        lessonId,
-        lessonTitle: lessonTitle || '',
-        availableTools,
-        trackSlug,
-      });
-    }
     loadHistory(lessonId).catch(() => {
       // Failed to load history — start fresh
     });
-  }, [lessonId, lessonTitle, loadHistory, setLessonContext]);
+  }, [lessonId, loadHistory]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {

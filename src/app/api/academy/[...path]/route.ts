@@ -57,18 +57,22 @@ async function proxyToHenry(req: NextRequest, method: string) {
 
   const henryUrl = `${HENRY_API_URL}/api/academy/${pathSegments}${url.search}`
 
-  const user = await getSupabaseUser()
-
-  if (!user) {
-    return NextResponse.json(
-      { error: 'You must be signed in to use this feature', code: 'NOT_AUTHENTICATED' },
-      { status: 401 }
-    )
-  }
+  // Public endpoints that don't require auth
+  const isPublicPath = pathSegments.startsWith('artifacts/public/')
 
   const headers: Record<string, string> = {
     'Authorization': `Bearer ${ACADEMY_API_KEY}`,
-    'X-Academy-Auth-User-ID': user.id,
+  }
+
+  if (!isPublicPath) {
+    const user = await getSupabaseUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: 'You must be signed in to use this feature', code: 'NOT_AUTHENTICATED' },
+        { status: 401 }
+      )
+    }
+    headers['X-Academy-Auth-User-ID'] = user.id
   }
 
   // Determine content type and body

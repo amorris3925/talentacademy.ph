@@ -5,7 +5,9 @@ import { RefreshCw } from 'lucide-react'
 import { academyApi } from '@/lib/api'
 
 interface ActivityEvent {
-  timestamp: string
+  timestamp?: string
+  created_at?: string
+  client_ts?: string
   event_type: string
   learner_name: string
   metadata?: Record<string, string>
@@ -18,7 +20,11 @@ const EVENT_TYPES = [
   'lesson_complete',
   'quiz_submit',
   'chat_send',
+  'chat_receive',
   'hint_reveal',
+  'block_view',
+  'checkpoint_complete',
+  'rating_submit',
   'login',
   'logout',
 ] as const
@@ -29,13 +35,23 @@ const EVENT_COLORS: Record<string, string> = {
   lesson_complete: 'bg-green-100 text-green-700',
   quiz_submit: 'bg-amber-100 text-amber-700',
   chat_send: 'bg-indigo-100 text-indigo-700',
+  chat_receive: 'bg-indigo-100 text-indigo-700',
   hint_reveal: 'bg-purple-100 text-purple-700',
+  block_view: 'bg-gray-100 text-gray-700',
+  checkpoint_complete: 'bg-green-100 text-green-700',
+  rating_submit: 'bg-amber-100 text-amber-700',
   login: 'bg-emerald-100 text-emerald-700',
   logout: 'bg-red-100 text-red-700',
 }
 
+function getEventTime(event: ActivityEvent): string {
+  return event.created_at || event.client_ts || event.timestamp || ''
+}
+
 function formatTime(timestamp: string): string {
+  if (!timestamp) return '--'
   const d = new Date(timestamp)
+  if (isNaN(d.getTime())) return '--'
   return d.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -140,9 +156,9 @@ export default function AdminActivityPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filtered.map((event, i) => (
-                <tr key={`${event.timestamp}-${i}`} className="hover:bg-gray-50">
+                <tr key={`${getEventTime(event)}-${i}`} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                    {formatTime(event.timestamp)}
+                    {formatTime(getEventTime(event))}
                   </td>
                   <td className="px-4 py-3 font-medium text-gray-700">
                     {event.learner_name}
