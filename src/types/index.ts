@@ -362,6 +362,7 @@ export interface RegisterPayload {
   website_url?: string;
   work_type?: string;
   specialization?: string;
+  recaptcha_token: string;
 }
 
 // ─── Dashboard ──────────────────────────────────────────────────────────────
@@ -548,6 +549,86 @@ export interface SkillProfile {
   assessment_count: number;
   trend: 'improving' | 'stable' | 'declining';
   last_assessed_at: string | null;
+}
+
+// ─── Feedback / Ticketing ──────────────────────────────────────────────────
+
+export type FeedbackTicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed' | 'not_relevant';
+export type FeedbackTicketPriority = 'low' | 'normal' | 'high' | 'urgent';
+export type FeedbackTicketCategory = 'bug' | 'feature_request' | 'question' | 'other';
+
+export interface FeedbackTicket {
+  id: string;
+  user_id: string;
+  user_email: string;
+  user_display_name: string;
+  ticket_number: number;
+  status: FeedbackTicketStatus;
+  priority: FeedbackTicketPriority;
+  category: FeedbackTicketCategory;
+  title: string;
+  description: string;
+  page_url: string;
+  page_path: string | null;
+  context_data: Record<string, unknown>;
+  assigned_to: string | null;
+  assigned_at: string | null;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  resolution_notes: string | null;
+  ai_problem_diagnosis: string | null;
+  ai_recommended_fix: string | null;
+  ai_analysis_model: string | null;
+  ai_analyzed_at: string | null;
+  unread_by_user: boolean;
+  unread_by_admin: boolean;
+  last_message_at: string | null;
+  message_count: number;
+  created_at: string;
+  updated_at: string;
+  // From views
+  assigned_to_name?: string | null;
+  attachment_count?: number;
+  last_message?: string | null;
+}
+
+export interface FeedbackMessage {
+  id: string;
+  ticket_id: string;
+  user_id: string;
+  user_email: string;
+  user_display_name: string;
+  is_staff: boolean;
+  message: string;
+  is_internal_note: boolean;
+  created_at: string;
+}
+
+export interface FeedbackAttachment {
+  id: string;
+  ticket_id: string | null;
+  message_id: string | null;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  storage_path: string;
+  storage_url: string;
+  uploaded_by: string;
+  uploaded_by_email: string;
+  created_at: string;
+}
+
+export interface FeedbackStats {
+  total_tickets: number;
+  by_status: Record<string, number>;
+  by_category: Record<string, number>;
+  unread_count: number;
+}
+
+export interface FeedbackTeamMember {
+  id: string;
+  email: string;
+  display_name: string;
 }
 
 // ─── Pagination ─────────────────────────────────────────────────────────────

@@ -37,10 +37,15 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/server-wrapper.js ./server-wrapper.js
 
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV KEEP_ALIVE_TIMEOUT=65000
 
-CMD ["node", "server.js"]
+HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/health || exit 1
+
+CMD ["node", "server-wrapper.js"]

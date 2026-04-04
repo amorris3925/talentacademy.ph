@@ -1,5 +1,5 @@
 {
-  "name": "talentacademy.ph",
+  "name": "talentacademy.online",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -15,6 +15,7 @@
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "dompurify": "^3.3.3",
+    "html2canvas": "^1.4.1",
     "lucide-react": "^1.7.0",
     "marked": "^17.0.5",
     "next": "16.2.2",

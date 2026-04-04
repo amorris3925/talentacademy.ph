@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseUser } from '@/lib/auth-helpers'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const HENRY_API_URL = process.env.HENRY_API_URL || process.env.NEXT_PUBLIC_HENRY_API_URL || 'http://localhost:8081'
 const ACADEMY_API_KEY = process.env.ACADEMY_API_KEY || ''
@@ -28,10 +29,24 @@ async function proxyToHenry(req: NextRequest, method: string) {
     )
   }
 
+  // Rate limit registration endpoint
+  if (pathSegments === 'register' && method === 'POST') {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    if (!checkRateLimit(`register:${ip}`)) {
+      return NextResponse.json(
+        { error: 'Too many registration attempts. Please try again later.', code: 'RATE_LIMITED' },
+        { status: 429 }
+      )
+    }
+  }
+
   const henryUrl = `${HENRY_API_URL}/api/academy/${pathSegments}${url.search}`
 
   // Public endpoints that don't require auth
-  const isPublicPath = pathSegments.startsWith('artifacts/public/')
+  const isPublicPath =
+    pathSegments.startsWith('artifacts/public/') ||
+    pathSegments === 'register' ||
+    pathSegments.startsWith('register/')
 
   const headers: Record<string, string> = {
     'Authorization': `Bearer ${ACADEMY_API_KEY}`,
@@ -118,8 +133,8 @@ async function proxyToHenry(req: NextRequest, method: string) {
   } catch (error) {
     console.error('Proxy error:', error)
     return NextResponse.json(
-      { error: 'Failed to connect to API' },
-      { status: 502 }
+      { error: 'Our AI service is briefly updating and will be back online momentarily. Please try again in a few seconds.', code: 'SERVICE_UPDATING' },
+      { status: 503 }
     )
   }
 }

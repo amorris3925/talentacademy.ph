@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth'
+import { ServiceStatusBanner } from '@/components/ServiceStatusBanner'
 import {
   LayoutDashboard,
   Users,
@@ -13,6 +14,7 @@ import {
   Activity,
   Sparkles,
   ArrowLeft,
+  MessageSquare,
 } from 'lucide-react'
 
 const adminNav = [
@@ -22,6 +24,7 @@ const adminNav = [
   { href: '/admin/content', label: 'Content', icon: BookOpen },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/activity', label: 'Activity', icon: Activity },
+  { href: '/admin/tickets', label: 'Tickets', icon: MessageSquare },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -97,6 +100,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
       </nav>
+
+      <ServiceStatusBanner />
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>

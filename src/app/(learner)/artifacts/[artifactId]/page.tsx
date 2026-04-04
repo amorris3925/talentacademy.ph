@@ -49,6 +49,18 @@ export default function ArtifactDetailPage() {
     }
   }, [activeArtifact]);
 
+  const hasUnsavedChanges = isEditing && activeArtifact != null && editContent !== activeArtifact.content_markdown;
+
+  // Warn before closing/refreshing with unsaved changes
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasUnsavedChanges]);
+
   const handleSave = async () => {
     if (!activeArtifact) return;
     await updateArtifact(activeArtifact.id, { content_markdown: editContent } as Partial<typeof activeArtifact>);
@@ -138,14 +150,20 @@ export default function ArtifactDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => {
+                if (isEditing && hasUnsavedChanges) {
+                  if (!window.confirm('You have unsaved changes. Discard them?')) return;
+                  setEditContent(activeArtifact.content_markdown);
+                }
+                setIsEditing(!isEditing);
+              }}
             >
               {isEditing ? <Eye className="h-3.5 w-3.5" /> : <Edit3 className="h-3.5 w-3.5" />}
               {isEditing ? 'Preview' : 'Edit'}
             </Button>
             {isEditing && (
               <Button size="sm" onClick={handleSave}>
-                Save
+                {hasUnsavedChanges ? 'Save *' : 'Save'}
               </Button>
             )}
           </div>

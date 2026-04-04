@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import type { Session } from '@supabase/supabase-js';
+import type { SupabaseClient, Session } from '@supabase/supabase-js';
 import { createBrowserClient } from '@/lib/supabase';
 import { academyApi } from '@/lib/api';
 import { analytics } from '@/lib/analytics';
@@ -13,6 +13,20 @@ import { useInteractionStore } from '@/stores/interaction';
 import { useLessonStore } from '@/stores/lesson';
 import { useSettingsStore } from '@/stores/settings';
 import type { AcademyLearner, RegisterPayload } from '@/types';
+
+/** Fetch learner profile directly from Supabase — no Henry dependency. */
+async function fetchLearnerProfile(
+  supabase: SupabaseClient,
+  authUserId: string,
+): Promise<AcademyLearner | null> {
+  const { data, error } = await supabase
+    .from('academy_learners')
+    .select('*')
+    .eq('auth_user_id', authUserId)
+    .single();
+  if (error || !data) return null;
+  return data as AcademyLearner;
+}
 
 interface AuthState {
   learner: AcademyLearner | null;
@@ -53,10 +67,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
         if (session) {
           set({ session });
-          try {
-            const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
-            set({ learner: res.learner, isAuthenticated: true });
-          } catch {
+          const learner = await fetchLearnerProfile(supabase, session.user.id);
+          if (learner) {
+            set({ learner, isAuthenticated: true });
+          } else {
             set({ learner: null, isAuthenticated: false });
           }
 
@@ -80,10 +94,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
             if (event === 'SIGNED_OUT' || !newSession) {
               set({ learner: null, isAuthenticated: false });
             } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-              try {
-                const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
-                set({ learner: res.learner, isAuthenticated: true });
-              } catch {
+              const learner = await fetchLearnerProfile(supabase, newSession.user.id);
+              if (learner) {
+                set({ learner, isAuthenticated: true });
+              } else {
                 set({ learner: null, isAuthenticated: false });
               }
             }
@@ -98,60 +112,39 @@ export const useAuthStore = create<AuthState>((set, get) => {
     async login(email: string, password: string) {
       const supabase = createBrowserClient();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (error) {
+        if (error.message?.toLowerCase().includes('email not confirmed')) {
+          throw new Error('Please verify your email before logging in. Check your inbox for a verification link.');
+        }
+        throw error;
+      }
 
       const {
         data: { session },
       } = await supabase.auth.getSession();
       set({ session });
 
-      const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
-      set({ learner: res.learner, isAuthenticated: true });
+      const learner = await fetchLearnerProfile(supabase, session!.user.id);
+      if (!learner) throw new Error('Learner profile not found. Please contact support.');
+      set({ learner, isAuthenticated: true });
 
       // Start analytics session after successful login
       await analytics.startSession();
       analytics.trackEvent('login');
 
       // Identify user in external analytics (PostHog, etc.)
-      identifyUser(res.learner.id, {
-        email: res.learner.email,
-        name: `${res.learner.first_name} ${res.learner.last_name}`,
-        cohort: res.learner.cohort,
-        specialization: res.learner.specialization,
+      identifyUser(learner.id, {
+        email: learner.email,
+        name: `${learner.first_name} ${learner.last_name}`,
+        cohort: learner.cohort,
+        specialization: learner.specialization,
       });
     },
 
     async register(data: RegisterPayload) {
       // Let the backend handle auth user creation to avoid double creation
+      // User must verify email before they can sign in
       await academyApi.post<{ learner_id: string; auth_user_id: string }>('/register', data);
-
-      // Establish session by signing in with the credentials
-      const supabase = createBrowserClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
-      if (error) throw error;
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      set({ session });
-
-      const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
-      set({ learner: res.learner, isAuthenticated: true });
-
-      // Start analytics session after successful registration
-      await analytics.startSession();
-      analytics.trackEvent('login');
-
-      // Identify user in external analytics
-      identifyUser(res.learner.id, {
-        email: res.learner.email,
-        name: `${res.learner.first_name} ${res.learner.last_name}`,
-        cohort: res.learner.cohort,
-        specialization: res.learner.specialization,
-      });
     },
 
     async logout() {
@@ -177,12 +170,12 @@ export const useAuthStore = create<AuthState>((set, get) => {
     },
 
     async refreshProfile() {
-      if (!get().session) return;
-      try {
-        const res = await academyApi.get<{ learner: AcademyLearner; badges: unknown[] }>('/learner/profile');
-        set({ learner: res.learner, isAuthenticated: true });
-      } catch {
-        // Profile fetch failed — leave current state
+      const session = get().session;
+      if (!session) return;
+      const supabase = createBrowserClient();
+      const learner = await fetchLearnerProfile(supabase, session.user.id);
+      if (learner) {
+        set({ learner, isAuthenticated: true });
       }
     },
   };

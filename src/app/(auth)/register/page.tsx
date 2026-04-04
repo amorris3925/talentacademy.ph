@@ -1,12 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Sparkles, ArrowLeft, ArrowRight, Upload, Globe, Check, Briefcase } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 
 type Step = 1 | 2 | 3 | 4
+
+declare global {
+  interface Window {
+    grecaptcha?: {
+      ready: (cb: () => void) => void
+      execute: (siteKey: string, options: { action: string }) => Promise<string>
+    }
+  }
+}
 
 const sexOptions = [
   { value: 'male', label: 'Male' },
@@ -69,6 +78,34 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState('')
   const [acceptTerms, setAcceptTerms] = useState(false)
 
+  // Google reCAPTCHA v3 (invisible, score-based)
+  const recaptchaLoaded = useRef(false)
+
+  // Honeypot — invisible to humans, bots fill it in
+  const [honeypot, setHoneypot] = useState('')
+
+  useEffect(() => {
+    if (recaptchaLoaded.current) return
+    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+    if (!siteKey) return
+    recaptchaLoaded.current = true
+    const script = document.createElement('script')
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`
+    script.async = true
+    document.head.appendChild(script)
+  }, [])
+
+  const getRecaptchaToken = useCallback(async (): Promise<string> => {
+    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+    if (!siteKey || !window.grecaptcha) return ''
+    return new Promise((resolve) => {
+      window.grecaptcha!.ready(async () => {
+        const token = await window.grecaptcha!.execute(siteKey, { action: 'register' })
+        resolve(token)
+      })
+    })
+  }, [])
+
   function canProceedStep1() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const ageNum = parseInt(age);
@@ -120,10 +157,16 @@ export default function RegisterPage() {
   }
 
   async function handleSubmit() {
+    // Honeypot check — if filled, silently reject (bots won't notice)
+    if (honeypot) return
+
     setError('')
     setIsLoading(true)
 
     try {
+      // Get reCAPTCHA v3 token (invisible, no user interaction)
+      const recaptchaToken = await getRecaptchaToken()
+
       await register({
         first_name: firstName,
         last_name: lastName,
@@ -137,8 +180,9 @@ export default function RegisterPage() {
         website_url: profileMode === 'website' ? websiteUrl : undefined,
         work_type: workType || undefined,
         specialization: specialization || undefined,
+        recaptcha_token: recaptchaToken,
       })
-      router.push('/dashboard')
+      router.push(`/register/verify-email?email=${encodeURIComponent(email)}`)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed'
       setError(message)
@@ -573,6 +617,19 @@ export default function RegisterPage() {
                     </Link>
                   </label>
                 </div>
+
+                {/* Honeypot — invisible to humans */}
+                <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+                  <input
+                    type="text"
+                    name="website_url_confirm"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                  />
+                </div>
+
               </div>
 
               <div className="flex gap-3 mt-6">

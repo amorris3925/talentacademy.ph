@@ -40,6 +40,7 @@ function formatErrorMessage(status: number, text: string): string {
     if (parsed?.code === 'MISSING_API_KEY') return 'The AI service is not configured. Please contact support.';
     if (parsed?.code === 'NOT_AUTHENTICATED') return 'Please sign in to use this feature.';
     if (parsed?.code === 'UPSTREAM_AUTH_FAILED') return 'AI service authentication failed. Please contact support.';
+    if (parsed?.code === 'SERVICE_UPDATING') return 'Our AI service is briefly updating and will be back online momentarily. Please try again in a few seconds.';
     if (Array.isArray(parsed?.detail)) {
       return parsed.detail
         .map((err: { loc?: string[]; msg?: string }) => {
