@@ -45,9 +45,13 @@ function useTrackPageViews() {
       ? `${pathname}?${searchParams.toString()}`
       : pathname
 
-    // GA4 page view
+    // GA4 page view (SPA navigation)
     if (GA_MEASUREMENT_ID && typeof window !== 'undefined' && window.gtag) {
-      window.gtag('config', GA_MEASUREMENT_ID, { page_path: url })
+      window.gtag('event', 'page_view', {
+        page_path: url,
+        page_location: window.location.origin + url,
+        send_to: GA_MEASUREMENT_ID,
+      })
     }
 
     // PostHog page view
@@ -95,7 +99,6 @@ export default function ExternalAnalytics() {
               gtag('js', new Date());
               gtag('config', '${GA_MEASUREMENT_ID}', {
                 page_path: window.location.pathname,
-                send_page_view: false
               });
             `}
           </Script>
