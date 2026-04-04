@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { MessageSquare, Bot, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { MessageSquare, Bot, Sparkles } from 'lucide-react';
 import { useChatStore } from '@/stores/chat';
 import { useInteractionStore } from '@/stores/interaction';
 import { ChatMessage } from './ChatMessage';
@@ -113,23 +113,6 @@ export function ChatSidebar({ lessonId, lessonTitle, availableTools, trackSlug }
           <MessageSquare className="h-4 w-4 text-indigo-600" />
           <h3 className="text-sm font-semibold text-gray-900">AI Tutor</h3>
 
-          <div className="ml-auto flex items-center gap-1.5">
-            {/* Image creation toggle */}
-            <button
-              type="button"
-              onClick={() => setImageCreationEnabled(!imageCreationEnabled)}
-              className={cn(
-                'flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-colors',
-                imageCreationEnabled
-                  ? 'bg-indigo-100 text-indigo-700'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
-              )}
-              title={imageCreationEnabled ? 'Image creation enabled' : 'Enable image creation'}
-            >
-              <ImageIcon className="h-3 w-3" />
-              <span className="hidden sm:inline">{imageCreationEnabled ? 'On' : 'Off'}</span>
-            </button>
-          </div>
 
           {/* Contextual glow tooltip */}
           {showGlowTip && (
