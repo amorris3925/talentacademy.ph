@@ -143,12 +143,36 @@ export interface AcademyEnrollment {
 
 // ─── Chat ───────────────────────────────────────────────────────────────────
 
+export interface ChatImage {
+  data: string;        // base64-encoded
+  media_type: string;  // e.g. "image/png"
+  url?: string;        // server-side URL if persisted
+}
+
+export interface ToolCallEvent {
+  tool_call_id: string;
+  tool_name: string;
+  tool_input: Record<string, unknown>;
+  status: 'running' | 'done' | 'error';
+  result_preview?: string;
+  duration_ms?: number;
+}
+
+export type AcademyStructuredBlock =
+  | { type: 'image'; url: string; alt?: string }
+  | { type: 'data_table'; title?: string; columns: Array<{ key: string; label: string }>; rows: Array<Record<string, unknown>> }
+  | { type: 'chart'; chart_type: string; title?: string; labels: string[]; datasets: Array<{ label: string; data: number[] }> }
+  | { type: 'artifact_embed'; artifact_id: string; title: string; artifact_type: string; summary?: string };
+
 export interface AcademyChatMessage {
   id: string;
   session_id: string;
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  images?: ChatImage[];
+  tool_calls?: ToolCallEvent[];
+  structured_blocks?: AcademyStructuredBlock[];
 }
 
 // ─── AI Generation ──────────────────────────────────────────────────────────
@@ -407,7 +431,8 @@ export type ChatMessageSource =
   | 'prompt_chip'
   | 'highlight_ask'
   | 'quiz_feedback'
-  | 'checkpoint';
+  | 'checkpoint'
+  | 'lesson_trigger';
 
 export interface BlockViewData {
   block_index: number;
