@@ -379,58 +379,40 @@ export const useChatStore = create<ChatState>((set, get) => ({
         || errorMessage.includes('abort') || errorMessage.includes('timeout');
 
       if (isNetworkError && lessonContext?.lessonId) {
-        // Likely a deployment or network interruption — try to recover
+        // Likely a deployment or network interruption — try to recover from DB
         set({ streamingContent: '', isStreaming: false });
 
-        // If we got partial content, save it
-        if (accumulated.length > 10) {
-          const partialMsg: AcademyChatMessage = {
-            id: `temp-${Date.now()}-partial`,
-            session_id: '',
-            role: 'assistant',
-            content: accumulated + '\n\n*[Connection interrupted — response may be incomplete]*',
-            created_at: new Date().toISOString(),
-            tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
-            structured_blocks: structuredBlocks.length > 0 ? structuredBlocks : undefined,
-          };
-          set((state) => ({ messages: [...state.messages, partialMsg] }));
-        }
-
         // Attempt to reconnect and reload history from Supabase
-        const maxRetries = 3;
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
+        for (let attempt = 0; attempt < 3; attempt++) {
           await new Promise((r) => setTimeout(r, (attempt + 1) * 3000));
           try {
             await get().loadHistory(lessonContext.lessonId);
-            // Success — history restored from DB
-            return;
+            return; // Success — history restored from DB
           } catch {
             // Retry
           }
         }
 
-        // All retries failed — show error
-        const reconnectError: AcademyChatMessage = {
-          id: `temp-${Date.now()}-reconnect-fail`,
-          session_id: '',
-          role: 'assistant',
-          content: 'Connection lost. Your messages are saved — please refresh the page to continue.',
-          created_at: new Date().toISOString(),
-        };
-        set((state) => ({ messages: [...state.messages, reconnectError] }));
-      } else {
-        // Non-network error — show the error message
-        const errorMsg: AcademyChatMessage = {
-          id: `temp-${Date.now()}-error`,
-          session_id: '',
-          role: 'assistant',
-          content: `Sorry, something went wrong: ${errorMessage}`,
-          created_at: new Date().toISOString(),
-        };
+        // All retries failed
         set((state) => ({
-          messages: [...state.messages, errorMsg],
-          isStreaming: false,
-          streamingContent: '',
+          messages: [...state.messages, {
+            id: `temp-${Date.now()}-reconnect-fail`,
+            session_id: '',
+            role: 'assistant',
+            content: 'Connection lost. Your messages are saved — please refresh the page to continue.',
+            created_at: new Date().toISOString(),
+          }],
+        }));
+      } else {
+        // Non-network error
+        set((state) => ({
+          messages: [...state.messages, {
+            id: `temp-${Date.now()}-error`,
+            session_id: '',
+            role: 'assistant',
+            content: `Sorry, something went wrong: ${errorMessage}`,
+            created_at: new Date().toISOString(),
+          }],
         }));
       }
     } finally {
