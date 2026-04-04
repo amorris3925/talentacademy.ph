@@ -14,7 +14,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, Send, AlertCircle, UserCircle } from 'lucide-react';
+import { Search, Send, AlertCircle, UserCircle, ChevronLeft, Zap } from 'lucide-react';
 import { createBrowserClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -92,6 +92,15 @@ function getPriorityVariant(priority: string): 'default' | 'info' | 'warning' | 
   return map[priority] || 'default';
 }
 
+const CANNED_RESPONSES = [
+  { label: 'Acknowledged', text: 'Thanks for reporting this! We\'re looking into it and will update you shortly.' },
+  { label: 'Fixed next deploy', text: 'This has been fixed and will be live in the next deployment. Thanks for catching it!' },
+  { label: 'Need more info', text: 'Thanks for the report. Could you provide a bit more detail about what you were doing when this happened? Steps to reproduce would be very helpful.' },
+  { label: 'Known issue', text: 'We\'re aware of this issue and it\'s already being worked on. We\'ll notify you once it\'s resolved.' },
+  { label: 'Not a bug', text: 'After investigating, this appears to be working as intended. Let us know if you have further questions about how this feature works.' },
+  { label: 'Duplicate', text: 'This has already been reported and is being tracked. We\'ll update you when it\'s resolved.' },
+];
+
 export default function FeedbackManager() {
   const [tickets, setTickets] = useState<FeedbackTicket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<FeedbackTicket | null>(null);
@@ -108,6 +117,7 @@ export default function FeedbackManager() {
   const [newMessage, setNewMessage] = useState('');
   const [isInternalNote, setIsInternalNote] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [showCannedMenu, setShowCannedMenu] = useState(false);
 
   // Detail tabs
   const [detailTab, setDetailTab] = useState<string>('messages');
@@ -342,7 +352,7 @@ export default function FeedbackManager() {
   return (
     <div className="flex flex-col gap-4" style={{ height: 'calc(100vh - 12rem)' }}>
       {/* Stats Cards */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card padding="sm">
           <div className="text-xs text-gray-500">Total Tickets</div>
           <div className="text-2xl font-bold text-gray-900">{stats?.total_tickets || 0}</div>
@@ -363,7 +373,7 @@ export default function FeedbackManager() {
 
       {/* Filters */}
       <Card padding="sm" className="shrink-0">
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
@@ -389,10 +399,10 @@ export default function FeedbackManager() {
         </div>
       </Card>
 
-      {/* Two-column Layout */}
+      {/* Two-column Layout (stacked on mobile) */}
       <div className="flex flex-1 gap-4 overflow-hidden">
-        {/* Ticket List */}
-        <Card padding="sm" className="flex w-1/2 flex-col overflow-hidden">
+        {/* Ticket List — hidden on mobile when a ticket is selected */}
+        <Card padding="sm" className={`flex flex-col overflow-hidden lg:w-1/2 ${selectedTicket ? 'hidden lg:flex' : 'w-full'}`}>
           <div className="border-b border-gray-200 px-3 pb-3">
             <h3 className="font-semibold text-gray-900">Tickets ({filteredTickets.length})</h3>
           </div>
@@ -454,8 +464,8 @@ export default function FeedbackManager() {
           </div>
         </Card>
 
-        {/* Ticket Detail */}
-        <Card padding="sm" className="flex w-1/2 flex-col overflow-hidden">
+        {/* Ticket Detail — full width on mobile */}
+        <Card padding="sm" className={`flex flex-col overflow-hidden lg:w-1/2 ${selectedTicket ? 'w-full' : 'hidden lg:flex'}`}>
           {!selectedTicket ? (
             <div className="flex flex-1 items-center justify-center text-gray-400">
               Select a ticket to view details
@@ -466,9 +476,17 @@ export default function FeedbackManager() {
               <div className="shrink-0 border-b border-gray-200 px-3 pb-3">
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <h3 className="mb-2 text-sm font-semibold text-gray-900">
-                      #{selectedTicket.ticket_number} — {selectedTicket.title}
-                    </h3>
+                    <div className="mb-2 flex items-center gap-2">
+                      <button
+                        onClick={() => setSelectedTicket(null)}
+                        className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 lg:hidden"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        #{selectedTicket.ticket_number} — {selectedTicket.title}
+                      </h3>
+                    </div>
                     <div className="flex items-center gap-2">
                       <Select
                         value={selectedTicket.status}
@@ -537,11 +555,42 @@ export default function FeedbackManager() {
 
                     {/* Message Input */}
                     <div className="shrink-0 space-y-2">
-                      <Checkbox
-                        label="Internal note (not visible to user)"
-                        checked={isInternalNote}
-                        onChange={(e) => setIsInternalNote((e.target as HTMLInputElement).checked)}
-                      />
+                      <div className="flex items-center justify-between">
+                        <Checkbox
+                          label="Internal note (not visible to user)"
+                          checked={isInternalNote}
+                          onChange={(e) => setIsInternalNote((e.target as HTMLInputElement).checked)}
+                        />
+
+                        {/* Canned Responses */}
+                        <div className="relative">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowCannedMenu(!showCannedMenu)}
+                            className="text-gray-500"
+                          >
+                            <Zap className="h-4 w-4" />
+                            Quick Reply
+                          </Button>
+                          {showCannedMenu && (
+                            <div className="absolute bottom-full right-0 z-10 mb-1 w-64 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                              {CANNED_RESPONSES.map((canned) => (
+                                <button
+                                  key={canned.label}
+                                  onClick={() => {
+                                    setNewMessage(canned.text);
+                                    setShowCannedMenu(false);
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                >
+                                  {canned.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
                       <div className="flex gap-2">
                         <Textarea

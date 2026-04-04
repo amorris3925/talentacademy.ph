@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [partialError, setPartialError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,7 +64,10 @@ export default function DashboardPage() {
       try {
         const [dashRes, progressRes] = await Promise.all([
           academyApi.get<DashboardData>('/learner/dashboard'),
-          academyApi.get<{ progress: Array<{ lesson_id: string; status: string; xp_earned: number }> }>('/learner/progress').catch(() => ({ progress: [] })),
+          academyApi.get<{ progress: Array<{ lesson_id: string; status: string; xp_earned: number }> }>('/learner/progress').catch(() => {
+            if (!cancelled) setPartialError('Some progress data may be temporarily unavailable.');
+            return { progress: [] };
+          }),
         ]);
 
         // Compute real XP from completed lessons if backend isn't tracking it
@@ -137,6 +141,13 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {/* Partial data warning */}
+      {partialError && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-2.5 text-sm text-amber-800">
+          {partialError}
+        </div>
+      )}
+
       {/* Onboarding Survey Banner */}
       {learner && !learner.work_type && (
         <div className="rounded-xl bg-red-600 p-4 shadow-sm">
