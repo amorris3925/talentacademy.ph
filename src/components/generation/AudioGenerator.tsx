@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, Mic } from 'lucide-react';
 import { useGenerationStore } from '@/stores/generation';
 import { Button, Select } from '@/components/ui';
@@ -23,9 +23,11 @@ export function AudioGenerator() {
   const [result, setResult] = useState<AcademyGeneration | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { generateAudio } = useGenerationStore();
+  const { generateAudio, cancelPolling } = useGenerationStore();
   const generatingTypes = useGenerationStore((s) => s.generatingTypes);
   const isGenerating = generatingTypes.includes('audio');
+
+  useEffect(() => () => { cancelPolling(); }, [cancelPolling]);
 
   const handleGenerate = async () => {
     if (!text.trim()) return;

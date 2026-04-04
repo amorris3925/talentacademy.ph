@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Sparkles, Video, UploadCloud } from 'lucide-react';
 import { useGenerationStore } from '@/stores/generation';
 import { Button, Select } from '@/components/ui';
@@ -29,7 +29,9 @@ export function VideoGenerator() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { generateVideo, isGenerating } = useGenerationStore();
+  const { generateVideo, isGenerating, cancelPolling } = useGenerationStore();
+
+  useEffect(() => () => { cancelPolling(); }, [cancelPolling]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

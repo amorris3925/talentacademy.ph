@@ -9,7 +9,8 @@ import {
   Settings,
 } from 'lucide-react';
 import Link from 'next/link';
-import { academyApi } from '@/lib/api';
+import { createBrowserClient } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/auth';
 import { formatXp, formatDate, getLevelColor } from '@/lib/utils';
 import { Card, Spinner, Avatar, Badge, ProgressBar, EmptyState } from '@/components/ui';
 import type {
@@ -18,11 +19,6 @@ import type {
   AcademyEnrollment,
 } from '@/types';
 
-interface ProfileResponse {
-  learner: AcademyLearner;
-  badges: LearnerBadge[];
-}
-
 interface ProfileData {
   learner: AcademyLearner;
   badges: LearnerBadge[];
@@ -30,19 +26,39 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
+  const authLearner = useAuthStore((s) => s.learner);
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!authLearner) return;
     let cancelled = false;
     (async () => {
       try {
-        const [profileRes, enrollmentsRes] = await Promise.all([
-          academyApi.get<ProfileResponse>('/learner/profile'),
-          academyApi.get<{ enrollments: (AcademyEnrollment & { track_title?: string; track_slug?: string })[] }>('/enrollments'),
+        const supabase = createBrowserClient();
+        const [badgesRes, enrollmentsRes] = await Promise.all([
+          supabase
+            .from('academy_learner_badges')
+            .select('*, badge:academy_badges(*)')
+            .eq('learner_id', authLearner.id),
+          supabase
+            .from('academy_enrollments')
+            .select('*, track:academy_tracks(title, slug)')
+            .eq('learner_id', authLearner.id),
         ]);
-        if (!cancelled) setData({ ...profileRes, enrollments: enrollmentsRes.enrollments || [] });
+        if (!cancelled) {
+          const enrollments = (enrollmentsRes.data ?? []).map((e: Record<string, unknown>) => ({
+            ...e,
+            track_title: (e.track as Record<string, unknown>)?.title as string | undefined,
+            track_slug: (e.track as Record<string, unknown>)?.slug as string | undefined,
+          }));
+          setData({
+            learner: authLearner,
+            badges: (badgesRes.data ?? []) as LearnerBadge[],
+            enrollments: enrollments as ProfileData['enrollments'],
+          });
+        }
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load profile');
       } finally {
@@ -50,7 +66,7 @@ export default function ProfilePage() {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [authLearner]);
 
   if (loading) {
     return (

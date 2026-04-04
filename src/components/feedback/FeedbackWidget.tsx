@@ -83,6 +83,17 @@ export function FeedbackWidget() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Preload unread count on mount (so badge shows immediately)
+  useEffect(() => {
+    if (!learner) return;
+    fetch('/api/feedback')
+      .then(r => r.ok ? r.json() : [])
+      .then((data: FeedbackTicket[]) => {
+        setTickets(data || []);
+      })
+      .catch(() => {});
+  }, [learner]);
+
   // Load tickets when dialog opens
   useEffect(() => {
     if (open && learner && activeTab === 'tickets') {
@@ -95,6 +106,38 @@ export function FeedbackWidget() {
     const count = tickets.filter(t => t.unread_by_user).length;
     setUnreadCount(count);
   }, [tickets]);
+
+  // Subscribe to new messages globally (for unread badge updates)
+  useEffect(() => {
+    if (!learner) return;
+
+    const supabase = createBrowserClient();
+    const channel = supabase
+      .channel('feedback-user-global')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'feedback_tickets',
+        },
+        (payload) => {
+          const updated = payload.new as FeedbackTicket;
+          setTickets(prev => {
+            const exists = prev.some(t => t.id === updated.id);
+            if (exists) {
+              return prev.map(t => t.id === updated.id ? { ...t, ...updated } : t);
+            }
+            return prev;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [learner]);
 
   // Auto-scroll messages to bottom
   useEffect(() => {

@@ -53,10 +53,14 @@ class AnalyticsService {
       this.isDestroyed = false;
 
       // Persist to localStorage for rehydration
-      localStorage.setItem(
-        SESSION_STORAGE_KEY,
-        JSON.stringify({ sessionId: this.sessionId, expiresAt: res.expires_at }),
-      );
+      try {
+        localStorage.setItem(
+          SESSION_STORAGE_KEY,
+          JSON.stringify({ sessionId: this.sessionId, expiresAt: res.expires_at }),
+        );
+      } catch {
+        // QuotaExceededError or SecurityError — session still works in-memory
+      }
 
       // Start flush interval
       this.startFlushInterval();

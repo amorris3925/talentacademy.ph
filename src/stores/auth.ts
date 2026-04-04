@@ -128,9 +128,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
       if (!learner) throw new Error('Learner profile not found. Please contact support.');
       set({ learner, isAuthenticated: true });
 
-      // Start analytics session after successful login
-      await analytics.startSession();
-      analytics.trackEvent('login');
+      // Start analytics session after successful login (non-blocking)
+      analytics.startSession().then(() => analytics.trackEvent('login'));
 
       // Identify user in external analytics (PostHog, etc.)
       identifyUser(learner.id, {

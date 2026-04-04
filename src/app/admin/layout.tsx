@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth'
 import { ServiceStatusBanner } from '@/components/ServiceStatusBanner'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import {
   LayoutDashboard,
   Users,
@@ -16,6 +17,7 @@ import {
   ArrowLeft,
   MessageSquare,
 } from 'lucide-react'
+import { useTicketUnreadCount } from '@/components/feedback/useTicketUnreadCount'
 
 const adminNav = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard },
@@ -31,6 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
   const { learner, isLoading, initialize } = useAuthStore()
+  const ticketUnreadCount = useTicketUnreadCount()
 
   useEffect(() => {
     initialize()
@@ -94,6 +97,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
+                  {item.href === '/admin/tickets' && ticketUnreadCount > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
+                      {ticketUnreadCount}
+                    </span>
+                  )}
                 </Link>
               )
             })}
@@ -104,7 +112,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <ServiceStatusBanner />
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </main>
     </div>
   )
 }

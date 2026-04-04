@@ -32,10 +32,12 @@ export function ImageGenerator() {
 
   const [refineTrigger, setRefineTrigger] = useState(0);
 
-  const { generateImage } = useGenerationStore();
+  const { generateImage, cancelPolling } = useGenerationStore();
   const activeGeneration = useGenerationStore((s) => s.activeGeneration);
   const generatingTypes = useGenerationStore((s) => s.generatingTypes);
   const isGenerating = generatingTypes.includes('image');
+
+  useEffect(() => () => { cancelPolling(); }, [cancelPolling]);
 
   // Auto-trigger generation after refinement updates state
   useEffect(() => {

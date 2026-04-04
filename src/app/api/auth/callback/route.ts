@@ -8,7 +8,6 @@ const ACADEMY_API_KEY = process.env.ACADEMY_API_KEY || ''
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
-  const type = searchParams.get('type')
   const rawNext = searchParams.get('next') || '/dashboard'
   const safeNext = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard'
 
@@ -33,8 +32,10 @@ export async function GET(req: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // If this is a signup email confirmation, trigger welcome email via Henry
-      if (type === 'signup' && ACADEMY_API_KEY) {
+      // Try to trigger welcome email on every code exchange.
+      // Henry's endpoint is idempotent — it checks newsletter_subscribers
+      // and skips if already sent or if no subscriber row exists.
+      if (ACADEMY_API_KEY) {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
           // Fire-and-forget — don't block the redirect
