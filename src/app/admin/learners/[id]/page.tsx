@@ -19,9 +19,11 @@ import type { AcademyLearner } from '@/types'
 
 interface EngagementStats {
   total_sessions: number
-  quiz_attempts: number
+  total_quiz_attempts?: number
+  quiz_attempts?: number
   quiz_accuracy: number
-  chat_messages: number
+  total_chat_messages?: number
+  chat_messages?: number
 }
 
 interface Session {
@@ -34,6 +36,16 @@ interface Session {
   event_count: number
 }
 
+interface ReasoningAnalysis {
+  score: number
+  effort: number
+  causal: number
+  connection: number
+  depth: number
+  originality: number
+  flags: string[]
+}
+
 interface QuizAttempt {
   id: string
   question_text: string
@@ -41,6 +53,8 @@ interface QuizAttempt {
   correct_answer: string
   is_correct: boolean
   reasoning: string | null
+  reasoning_score?: number | null
+  reasoning_analysis?: ReasoningAnalysis | null
   time_to_answer: number | null
   attempt_number: number
   created_at: string
@@ -85,6 +99,17 @@ interface LearnerDetail extends AcademyLearner {
   talent_reviews?: TalentReview[]
 }
 
+interface EvaluationScores {
+  analytical_reasoning: number
+  engagement_depth: number
+  management_aptitude: number
+  self_direction: number
+  consistency: number
+  growth_trajectory: number
+  communication_quality: number
+  evaluation_date?: string
+}
+
 type TabKey = 'sessions' | 'quizzes' | 'chat' | 'progress'
 
 const levelColors: Record<string, string> = {
@@ -119,6 +144,8 @@ export default function AdminLearnerDetailPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([])
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [evaluationScores, setEvaluationScores] = useState<EvaluationScores | null>(null)
+  const [expandedReasoning, setExpandedReasoning] = useState<Set<string>>(new Set())
   const [activeTab, setActiveTab] = useState<TabKey>('sessions')
   const [isLoading, setIsLoading] = useState(true)
   const [tabLoading, setTabLoading] = useState(false)
@@ -127,6 +154,7 @@ export default function AdminLearnerDetailPage() {
   useEffect(() => {
     loadLearner()
     loadEngagement()
+    loadEvaluationScores()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
@@ -161,6 +189,15 @@ export default function AdminLearnerDetailPage() {
     try {
       const res = await academyApi.get<EngagementStats>(`/admin/analytics/learner/${id}/engagement`)
       setEngagement(res)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  async function loadEvaluationScores() {
+    try {
+      const res = await academyApi.get<{ scores: EvaluationScores | null }>(`/admin/analytics/learner/${id}/evaluation-scores`)
+      setEvaluationScores(res?.scores ?? null)
     } catch (err) {
       console.error(err)
     }
@@ -324,7 +361,7 @@ export default function AdminLearnerDetailPage() {
             <div>
               <p className="text-sm text-gray-500">Quiz Attempts</p>
               <p className="text-2xl font-bold text-gray-900">
-                {engagement?.quiz_attempts ?? '—'}
+                {engagement?.total_quiz_attempts ?? engagement?.quiz_attempts ?? '—'}
                 {engagement?.quiz_accuracy != null && (
                   <span className="text-sm font-normal text-gray-500 ml-1">
                     ({Math.round(engagement.quiz_accuracy)}% acc)
@@ -342,7 +379,7 @@ export default function AdminLearnerDetailPage() {
             <div>
               <p className="text-sm text-gray-500">Chat Messages</p>
               <p className="text-2xl font-bold text-gray-900">
-                {engagement?.chat_messages ?? '—'}
+                {engagement?.total_chat_messages ?? engagement?.chat_messages ?? '—'}
               </p>
             </div>
           </div>
@@ -361,6 +398,45 @@ export default function AdminLearnerDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Evaluation Scores */}
+      {evaluationScores && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">7-Dimension Evaluation</h2>
+          <div className="space-y-3">
+            {([
+              ['Analytical Reasoning', evaluationScores.analytical_reasoning],
+              ['Engagement Depth', evaluationScores.engagement_depth],
+              ['Management Aptitude', evaluationScores.management_aptitude],
+              ['Self Direction', evaluationScores.self_direction],
+              ['Consistency', evaluationScores.consistency],
+              ['Growth Trajectory', evaluationScores.growth_trajectory],
+              ['Communication Quality', evaluationScores.communication_quality],
+            ] as [string, number][]).map(([label, value]) => (
+              <div key={label}>
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="font-medium text-gray-700">{label}</span>
+                  <span className="text-gray-500">{value}/100</span>
+                </div>
+                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all duration-500',
+                      value < 30 ? 'bg-red-500' : value < 60 ? 'bg-amber-500' : 'bg-green-500'
+                    )}
+                    style={{ width: `${value}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          {evaluationScores.evaluation_date && (
+            <p className="text-xs text-gray-400 mt-3">
+              Last evaluated {new Date(evaluationScores.evaluation_date).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -442,11 +518,37 @@ export default function AdminLearnerDetailPage() {
                       {quizAttempts.map((q) => (
                         <div key={q.id} className="border border-gray-200 rounded-lg p-4">
                           <div className="flex items-start justify-between mb-2">
-                            <p className="text-sm font-medium text-gray-900">{q.question_text}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-gray-900">{q.question_text}</p>
+                              {q.reasoning_score != null && (
+                                <span className={cn(
+                                  'inline-flex px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap',
+                                  q.reasoning_score < 0.3
+                                    ? 'bg-red-100 text-red-700'
+                                    : q.reasoning_score < 0.6
+                                      ? 'bg-amber-100 text-amber-700'
+                                      : 'bg-green-100 text-green-700'
+                                )}>
+                                  {Math.round(q.reasoning_score * 100)}%
+                                </span>
+                              )}
+                            </div>
                             <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
                               Attempt #{q.attempt_number}
                             </span>
                           </div>
+                          {q.reasoning_analysis?.flags && q.reasoning_analysis.flags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {q.reasoning_analysis.flags.map((flag) => (
+                                <span
+                                  key={flag}
+                                  className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-200"
+                                >
+                                  {flag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                             <div>
                               <p className="text-xs text-gray-500 mb-1">Selected Answer</p>
@@ -474,6 +576,43 @@ export default function AdminLearnerDetailPage() {
                               <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
                                 {q.reasoning}
                               </p>
+                            </div>
+                          )}
+                          {q.reasoning_analysis && (
+                            <div className="mt-2">
+                              <button
+                                onClick={() => setExpandedReasoning((prev) => {
+                                  const next = new Set(prev)
+                                  if (next.has(q.id)) next.delete(q.id)
+                                  else next.add(q.id)
+                                  return next
+                                })}
+                                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                              >
+                                {expandedReasoning.has(q.id) ? 'Hide' : 'Show'} reasoning breakdown
+                              </button>
+                              {expandedReasoning.has(q.id) && (
+                                <div className="mt-2 bg-gray-50 rounded-lg p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                  {([
+                                    ['Score', q.reasoning_analysis.score],
+                                    ['Effort', q.reasoning_analysis.effort],
+                                    ['Causal', q.reasoning_analysis.causal],
+                                    ['Connection', q.reasoning_analysis.connection],
+                                    ['Depth', q.reasoning_analysis.depth],
+                                    ['Originality', q.reasoning_analysis.originality],
+                                  ] as [string, number][]).map(([label, val]) => (
+                                    <div key={label} className="text-xs">
+                                      <span className="text-gray-500">{label}:</span>{' '}
+                                      <span className={cn(
+                                        'font-semibold',
+                                        val < 0.3 ? 'text-red-600' : val < 0.6 ? 'text-amber-600' : 'text-green-600'
+                                      )}>
+                                        {(val * 100).toFixed(0)}%
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )}
                           <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
