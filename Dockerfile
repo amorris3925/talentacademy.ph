@@ -49,6 +49,6 @@ ENV HOSTNAME="0.0.0.0"
 ENV KEEP_ALIVE_TIMEOUT=65000
 
 HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health',(r)=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>process.exit(r.statusCode===200?0:1))}).on('error',()=>process.exit(1))"
+  CMD wget -q --spider http://localhost:3000/ || exit 1
 
 CMD ["node", "server-wrapper.js"]
