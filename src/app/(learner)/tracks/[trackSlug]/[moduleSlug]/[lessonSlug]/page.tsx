@@ -38,6 +38,7 @@ export default function LessonPage() {
     currentTrack,
     progress,
     isLoading,
+    error,
     activeTab,
     showCompletionOverlay,
     loadLesson,
@@ -172,19 +173,33 @@ export default function LessonPage() {
 
   // --- Error / not found ---
   if (!currentLesson) {
+    const isServiceError = error === 'Failed to load lesson';
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
-            <AlertCircle className="h-7 w-7 text-red-500" />
+          <div className={cn(
+            'flex h-14 w-14 items-center justify-center rounded-full',
+            isServiceError ? 'bg-amber-100' : 'bg-red-100',
+          )}>
+            <AlertCircle className={cn('h-7 w-7', isServiceError ? 'text-amber-500' : 'text-red-500')} />
           </div>
           <h2 className="text-lg font-semibold text-gray-900">
-            Lesson not found
+            {isServiceError ? 'Temporarily unavailable' : 'Lesson not found'}
           </h2>
           <p className="max-w-sm text-sm text-gray-500">
-            The lesson you are looking for does not exist or you do not have
-            access.
+            {isServiceError
+              ? 'Our AI service is updating. The lesson will be available shortly — please try again in a moment.'
+              : 'The lesson you are looking for does not exist or you do not have access.'}
           </p>
+          {isServiceError && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => loadLesson(params.trackSlug, params.moduleSlug, params.lessonSlug)}
+            >
+              Try again
+            </Button>
+          )}
         </div>
       </div>
     );

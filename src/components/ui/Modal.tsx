@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useRef, type ReactNode } from 'react';
+import { useEffect, useCallback, useRef, useState, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,11 +30,16 @@ export function Modal({
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<Element | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  // Track whether this is the initial open (for auto-focus)
+  const [hasAutoFocused, setHasAutoFocused] = useState(false);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        onCloseRef.current();
         return;
       }
 
@@ -59,8 +64,15 @@ export function Modal({
         }
       }
     },
-    [onClose],
+    [],
   );
+
+  // Reset auto-focus tracking when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setHasAutoFocused(false);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -71,17 +83,20 @@ export function Modal({
     document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
 
-    // Auto-focus the first focusable element inside the modal
-    requestAnimationFrame(() => {
-      if (panelRef.current) {
-        const focusable = panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-        if (focusable.length > 0) {
-          focusable[0].focus();
-        } else {
-          panelRef.current.focus();
+    // Auto-focus only on initial open, not on re-renders
+    if (!hasAutoFocused) {
+      setHasAutoFocused(true);
+      requestAnimationFrame(() => {
+        if (panelRef.current) {
+          const focusable = panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+          if (focusable.length > 0) {
+            focusable[0].focus();
+          } else {
+            panelRef.current.focus();
+          }
         }
-      }
-    });
+      });
+    }
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
@@ -92,7 +107,7 @@ export function Modal({
         previousFocusRef.current.focus();
       }
     };
-  }, [isOpen, handleKeyDown]);
+  }, [isOpen, handleKeyDown, hasAutoFocused]);
 
   if (!isOpen) return null;
 

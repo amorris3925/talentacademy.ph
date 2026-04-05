@@ -247,6 +247,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     let pendingContent = '';
     const toolCalls: ToolCallEvent[] = [];
     const structuredBlocks: AcademyStructuredBlock[] = [];
+    const pendingImageGenerations: Promise<void>[] = [];
+
+    // If image creation is enabled, generate directly via Gemini first (don't rely on Henry)
+    if (imageCreationEnabled) {
+      set({ streamingContent: 'Generating image...' });
+      const imageResult = await generateImageViaGemini(content);
+      if (imageResult) {
+        structuredBlocks.push({ type: 'image', url: imageResult.url, alt: content });
+      }
+    }
 
     try {
       await academyApi.stream(
@@ -285,7 +295,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
               // Intercept generate_image tool calls — route to Gemini instead of Henry
               if (parsed.tool_name === 'generate_image') {
                 const input = parsed.tool_input || {};
-                generateImageViaGemini(
+                const imagePromise = generateImageViaGemini(
                   input.prompt as string || content,
                   input.style as string | undefined,
                 ).then((result) => {
@@ -299,6 +309,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                   }
                   set({ streamingContent: accumulated });
                 });
+                pendingImageGenerations.push(imagePromise);
               }
               return;
             }
@@ -342,6 +353,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       // Flush any pending RAF update
       if (rafId) cancelAnimationFrame(rafId);
       set({ streamingContent: accumulated });
+
+      // Wait for any pending image generations to complete before finalizing
+      if (pendingImageGenerations.length > 0) {
+        set({ streamingContent: accumulated || 'Generating image...' });
+        await Promise.all(pendingImageGenerations);
+      }
 
       // Streaming complete — push assistant message
       const assistantMsg: AcademyChatMessage = {

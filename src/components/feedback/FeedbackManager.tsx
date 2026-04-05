@@ -592,7 +592,7 @@ export default function FeedbackManager() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex items-end gap-2">
                         <Textarea
                           placeholder="Type your message..."
                           value={newMessage}
@@ -610,6 +610,7 @@ export default function FeedbackManager() {
                           onClick={handleSendMessage}
                           disabled={sendingMessage || !newMessage.trim()}
                           size="sm"
+                          className="mb-0.5"
                         >
                           <Send className="h-4 w-4" />
                         </Button>

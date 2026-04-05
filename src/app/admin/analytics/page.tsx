@@ -118,10 +118,14 @@ function AdminAnalyticsPageInner() {
         if (Array.isArray(scoreData)) {
           setScores(scoreData)
         } else if (scoreData && typeof scoreData === 'object') {
+          const obj = scoreData as Record<string, unknown>
           // Convert { talent_scores: { "0-20": 5, ... }, management_scores: {...} } into ScoreDistribution[]
-          const talentScores = (scoreData as { talent_scores?: Record<string, number> }).talent_scores
+          const talentScores = obj.talent_scores as Record<string, number> | undefined
           if (talentScores && typeof talentScores === 'object') {
-            setScores(Object.entries(talentScores).map(([range, count]) => ({ range, count: count ?? 0 })))
+            setScores(Object.entries(talentScores).map(([range, count]) => ({ range, count: Number(count) || 0 })))
+          } else if (Object.keys(obj).some(k => k.includes('-'))) {
+            // Raw score object like { "0-20": 5, "21-40": 10, ... }
+            setScores(Object.entries(obj).map(([range, count]) => ({ range, count: Number(count) || 0 })))
           } else {
             setScores([])
           }

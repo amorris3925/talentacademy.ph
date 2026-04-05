@@ -10,7 +10,7 @@ function getClient() {
 }
 
 const VISION_MODEL = 'gemini-2.0-flash';
-const IMAGE_GEN_MODEL = 'gemini-2.0-flash-exp'; // supports image generation
+const IMAGE_GEN_MODEL = 'gemini-2.0-flash-exp-image-generation'; // native image generation model
 
 const DESCRIBE_SYSTEM_PROMPT =
   'You are a visual analysis assistant for an educational platform. ' +
