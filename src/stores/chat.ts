@@ -27,6 +27,8 @@ interface ChatState {
   messages: AcademyChatMessage[];
   isStreaming: boolean;
   streamingContent: string;
+  streamingToolCalls: ToolCallEvent[];
+  streamingStructuredBlocks: AcademyStructuredBlock[];
   lessonContext: LessonContextData | null;
   imageCreationEnabled: boolean;
 
@@ -190,6 +192,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isStreaming: false,
   streamingContent: '',
+  streamingToolCalls: [],
+  streamingStructuredBlocks: [],
   lessonContext: null,
   imageCreationEnabled: false,
 
@@ -219,6 +223,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       messages: [...state.messages, userMsg],
       isStreaming: true,
       streamingContent: '',
+      streamingToolCalls: [],
+      streamingStructuredBlocks: [],
     }));
 
     // Describe images via Gemini so Henry receives text descriptions instead of raw images
@@ -290,7 +296,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                 status: 'running',
               });
               // Force UI update for tool call indicator
-              set({ streamingContent: accumulated });
+              set({ streamingContent: accumulated, streamingToolCalls: [...toolCalls] });
 
               // Intercept generate_image tool calls — route to Gemini instead of Henry
               if (parsed.tool_name === 'generate_image') {
@@ -307,7 +313,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                   if (result) {
                     structuredBlocks.push({ type: 'image', url: result.url, alt: (input.prompt as string) || 'Generated image' });
                   }
-                  set({ streamingContent: accumulated });
+                  set({ streamingContent: accumulated, streamingToolCalls: [...toolCalls], streamingStructuredBlocks: [...structuredBlocks] });
                 });
                 pendingImageGenerations.push(imagePromise);
               }
@@ -321,13 +327,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
                 tc.result_preview = parsed.result_preview;
                 tc.duration_ms = parsed.duration_ms;
               }
-              set({ streamingContent: accumulated });
+              set({ streamingContent: accumulated, streamingToolCalls: [...toolCalls] });
               return;
             }
 
             if (parsed.type === 'structured_content' && parsed.block) {
               structuredBlocks.push(parsed.block as AcademyStructuredBlock);
-              set({ streamingContent: accumulated });
+              set({ streamingContent: accumulated, streamingStructuredBlocks: [...structuredBlocks] });
               return;
             }
 
@@ -386,6 +392,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         messages: [...state.messages, assistantMsg],
         isStreaming: false,
         streamingContent: '',
+        streamingToolCalls: [],
+        streamingStructuredBlocks: [],
       }));
     } catch (err) {
       // Flush any pending RAF update
@@ -434,7 +442,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
     } finally {
       streamAbortController = null;
-      set({ isStreaming: false, streamingContent: '' });
+      set({ isStreaming: false, streamingContent: '', streamingToolCalls: [], streamingStructuredBlocks: [] });
     }
   },
 

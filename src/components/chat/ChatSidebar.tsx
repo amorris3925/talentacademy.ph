@@ -8,6 +8,8 @@ import { ChatMessage } from './ChatMessage';
 import { ChatMarkdown } from './ChatMarkdown';
 import { ChatInput } from './ChatInput';
 import { LessonTriggers } from './LessonTriggers';
+import { ToolCallIndicator } from './ToolCallIndicator';
+import { StructuredBlockRenderer } from './StructuredBlockRenderer';
 import { cn } from '@/lib/utils';
 
 import OutputRating from './OutputRating';
@@ -42,6 +44,8 @@ export function ChatSidebar({ lessonId, lessonTitle, availableTools, trackSlug }
     messages,
     isStreaming,
     streamingContent,
+    streamingToolCalls,
+    streamingStructuredBlocks,
     sendMessage,
     loadHistory,
     setLessonContext,
@@ -159,19 +163,35 @@ export function ChatSidebar({ lessonId, lessonTitle, availableTools, trackSlug }
         ))}
 
         {/* Streaming indicator */}
-        {isStreaming && streamingContent && (
+        {isStreaming && (streamingContent || streamingToolCalls.length > 0) && (
           <div className="flex gap-2">
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-200">
               <Bot className="h-3 w-3 text-gray-600" />
             </div>
             <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-gray-200 bg-white px-3 py-2">
-              <ChatMarkdown content={streamingContent} />
+              {/* Tool call indicators during streaming */}
+              {streamingToolCalls.length > 0 && (
+                <div className="mb-2 space-y-1.5">
+                  {streamingToolCalls.map((tc) => (
+                    <ToolCallIndicator key={tc.tool_call_id} toolCall={tc} />
+                  ))}
+                </div>
+              )}
+              {streamingContent && <ChatMarkdown content={streamingContent} />}
+              {/* Structured blocks (images) during streaming */}
+              {streamingStructuredBlocks.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {streamingStructuredBlocks.map((block, i) => (
+                    <StructuredBlockRenderer key={i} block={block} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Typing indicator */}
-        {isStreaming && !streamingContent && (
+        {isStreaming && !streamingContent && streamingToolCalls.length === 0 && (
           <div className="flex gap-2">
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-200">
               <Bot className="h-3 w-3 text-gray-600" />
